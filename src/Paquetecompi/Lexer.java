@@ -127,6 +127,6 @@ public class Lexer {
 
     public static void main(String[] args) {
         Lexer lexer = new Lexer();
-        lexer.analyze("ab");
+        lexer.analyze("abc");
     }
 }

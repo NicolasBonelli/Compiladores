@@ -4,15 +4,34 @@ import java.util.Map;
 
 public class Lexer {
 	private HashMap<String, Integer> reservedWords; //reservadas
-	private HashMap<String,Integer> symbolTable;
+	private HashMap<String,Integer> symbolMap;
+	private int nmrLinea;
+	
+	public Lexer() {
+		reservedWords = new HashMap<>();
+		initializeReservedSymbols();
+	    initializeReservedWords();
+	    this.nmrLinea = 0;	}
 	private int[][] transitionMatrix = {
-	        // Define la matriz de estados según tu informe
-	        // Ejemplo:
-	        // {estado_actual, entrada, nuevo_estado}
-	        {0, 'a', 1}, // Desde estado 0, si recibe 'a', pasa al estado 1
-	        {1, 'b', 2}, // Desde estado 1, si recibe 'b', pasa al estado 2
-	        // ...
-	    };
+		    {0, 0, 0, 1, -1, 2, 3, 3, 16, -1, 17, 17, 17, 17, 17, 17, 17, 17, 10, 18, 16, 16, 16, 11, 13, -1, 1, -1},
+		    {-1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1},
+		    {-1, -1, -1, -1, -1, 4, 4, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, 3, 3, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, 4, 4, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, 6, 6, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 6, -1},
+		    {-1, -1, -1, -1, -1, 6, 6, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 7, -1},
+		    {-1, -1, -1, -1, -1, 9, 9, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, 9, 9, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, 9, 9, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 13, -1, -1, -1},
+		    {12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12},
+		    {14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14},
+		    {14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14},
+		    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
+		};
+
 	private SemanticAction[][] actionMatrix = {
 	        // Define las acciones semánticas para cada transición
 	        // Ejemplo:
@@ -20,11 +39,7 @@ public class Lexer {
 	        // ...
 	    };
 	private int currentState = 0;
-	public Lexer() {
-		reservedWords = new HashMap<>();
-		symbolTable = new HashMap<>();
-	    initializeReservedWords();
-	}
+
 	private void initializeReservedWords() {
         reservedWords.put("IF",1);
         reservedWords.put("THEN", 2);
@@ -40,8 +55,37 @@ public class Lexer {
         reservedWords.put("WHILE", 12);
         // Agrega más palabras reservadas según sea necesario
     }
-    // Matriz de transición de estados
+	
     
+	private void initializeReservedSymbols() {
+		symbolMap = new HashMap<>();
+        symbolMap.put("bl", 1);
+        symbolMap.put("tab", 2);
+        symbolMap.put("nl", 3);
+        symbolMap.put("letra-[d]", 4);
+        symbolMap.put("\" \"", 5);
+        symbolMap.put("0", 6);
+        symbolMap.put("1 al 7", 7);
+        symbolMap.put("8 al 9", 8);
+        symbolMap.put("+", 9);
+        symbolMap.put("-", 10);
+        symbolMap.put("/", 11);
+        symbolMap.put("*", 12);
+        symbolMap.put("(", 13);
+        symbolMap.put(")", 14);
+        symbolMap.put("=", 15);
+        symbolMap.put(">", 16);
+        symbolMap.put(",", 17);
+        symbolMap.put(";", 18);
+        symbolMap.put("==", 19);
+        symbolMap.put("<", 20);
+        symbolMap.put(">", 21);
+        symbolMap.put("#", 22);
+        symbolMap.put("[", 23);
+        symbolMap.put("]", 24);
+        symbolMap.put("{", 25);
+        symbolMap.put("d", 26);
+	}
     public boolean isReservedWord(String word) {
         return reservedWords.containsKey(word);
     }
@@ -50,20 +94,13 @@ public class Lexer {
     }
     
     
-    public void addSymbol(String name, int value) {
-        if (!symbolTable.containsKey(name)) {
-            symbolTable.put(name, value);
-        } else {
-            // Si ya existe, puedes decidir si actualizar el símbolo o lanzar un error
-            System.out.println("Warning: Symbol already exists in the table.");
-        }
-    }
+    
     public int getSymbol(String name) {
-        return symbolTable.get(name);
+        return symbolMap.get(name);
     }
  
     public boolean containsSymbol(String name) {
-        return symbolTable.containsKey(name);
+        return symbolMap.containsKey(name);
     }
 
     // Implementación de las acciones semánticas como inner classes

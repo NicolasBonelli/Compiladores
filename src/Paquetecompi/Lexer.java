@@ -4,14 +4,16 @@ import java.util.Map;
 
 public class Lexer {
 	private HashMap<String, Integer> reservedWords; //reservadas
-	private HashMap<String,Integer> symbolMap;
-	private int nmrLinea;
+	private SymbolTable tabla;
+	static int nmrLinea;
 	
-	public Lexer() {
+	public Lexer(SymbolTable tabla) {
 		reservedWords = new HashMap<>();
 		initializeReservedSymbols();
 	    initializeReservedWords();
-	    this.nmrLinea = 0;	}
+	    this.nmrLinea = 0;
+	    this.tabla=tabla;
+	}
 	private int[][] transitionMatrix = {
 		    {0, 0, 0, 1, -1, 2, 3, 3, 16, -1, 17, 17, 17, 17, 17, 17, 17, 17, 10, 18, 16, 16, 16, 11, 13, -1, 1, -1},
 		    {-1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1},
@@ -104,33 +106,32 @@ public class Lexer {
 	
     
 	private void initializeReservedSymbols() {
-		symbolMap = new HashMap<>();
-        symbolMap.put("bl", 1);
-        symbolMap.put("tab", 2);
-        symbolMap.put("nl", 3);
-        symbolMap.put("letra-[d]", 4);
-        symbolMap.put("\" \"", 5);
-        symbolMap.put("0", 6);
-        symbolMap.put("1 al 7", 7);
-        symbolMap.put("8 al 9", 8);
-        symbolMap.put("+", 9);
-        symbolMap.put("-", 10);
-        symbolMap.put("/", 11);
-        symbolMap.put("*", 12);
-        symbolMap.put("(", 13);
-        symbolMap.put(")", 14);
-        symbolMap.put("=", 15);
-        symbolMap.put(">", 16);
-        symbolMap.put(",", 17);
-        symbolMap.put(";", 18);
-        symbolMap.put("==", 19);
-        symbolMap.put("<", 20);
-        symbolMap.put(">", 21);
-        symbolMap.put("#", 22);
-        symbolMap.put("[", 23);
-        symbolMap.put("]", 24);
-        symbolMap.put("{", 25);
-        symbolMap.put("d", 26);
+		this.tabla.addValue("bl",1);
+		this.tabla.addValue("tab",2);
+		this.tabla.addValue("nl",3);
+		this.tabla.addValue("letra-[d]",4);
+		this.tabla.addValue("\" \"",5);
+		this.tabla.addValue("0",6);
+		this.tabla.addValue("1 al 7",7);
+		this.tabla.addValue("8 al 9", 8);
+		this.tabla.addValue("+", 9);
+		this.tabla.addValue("-", 10);
+		this.tabla.addValue("/", 11);
+		this.tabla.addValue("*", 12);
+		this.tabla.addValue("(", 13);
+		this.tabla.addValue(")", 14);
+		this.tabla.addValue("=", 15);
+		this.tabla.addValue(">", 16);
+		this.tabla.addValue(",", 17);
+		this.tabla.addValue(";", 18);
+		this.tabla.addValue("==", 19);
+		this.tabla.addValue("<", 20);
+		this.tabla.addValue(">", 21);
+		this.tabla.addValue("#", 22);
+		this.tabla.addValue("[", 23);
+		this.tabla.addValue("]", 24);
+		this.tabla.addValue("{", 25);
+		this.tabla.addValue("d", 26);
 	}
     public boolean isReservedWord(String word) {
         return reservedWords.containsKey(word);

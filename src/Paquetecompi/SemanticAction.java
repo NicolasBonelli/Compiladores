@@ -11,7 +11,8 @@ class ASE extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	
-    	
+    	/* Lo que vamos a hacer es en la matriz de AS, pasarle por el constructor el tipo de error, de manera que aquí
+    	 * lo determinamos, y tiramos el error, warning, lo q sea*/
     	
     }
 }
@@ -20,23 +21,24 @@ class ASI extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
         System.out.println("Leer siguiente token o eliminar espacio en blanco.");//se deja asi
-    }
+    }// done a priori
 }
 
 class AS1 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	lexeme.setLength(0);
+    	
         lexeme.append(currentChar);
     	
-    }
+    }//done a priori
 }
 
 class AS2 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	lexeme.append(currentChar);
-    }
+    }//done a priori
 }
 
 class AS3 extends SemanticAction {
@@ -81,29 +83,32 @@ class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
         Integer valor=lex.getSymbol(lexeme.toString());
     	lex.addToken(valor);
-    }
+    	lex.setLexeme(null);
+    } //done a priori
 }
 
 class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	lexeme.append(currentChar);
-    	Integer valor=lex.getReservedWordToken(lexeme.toString());
+    	Integer valor = lex.getReservedWordToken(lexeme.toString());
     	lex.addToken(valor);
-    }
+    	lex.setLexeme(null);
+    } //done a priori
 }
 
 class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-        if(currentChar=='=') {//AGARRO =, CONCATENO Y ME FIJO EN TABLA DE RESERVADAS
+        if(Character.toString(currentChar).equals("=")) {//AGARRO =, CONCATENO Y ME FIJO EN TABLA DE RESERVADAS
         	lexeme.append(currentChar);
-        	Integer valor=lex.getReservedWordToken(lexeme.toString());
+        	Integer valor = lex.getReservedWordToken(lexeme.toString());
         	lex.addToken(valor);
         }else {//AGARRAR HASTA EL LEXEMA Y ENTREGAR SIMBOLO DE TABLA DE SIMBOLOS
-        	Integer valor=lex.getSymbol(lexeme.toString());
+        	Integer valor = lex.getSymbol(lexeme.toString());
         	lex.addToken(valor);
-        	lex.setLexeme(Character.toString(currentChar));
         }
-    }
+        
+        lex.setLexeme(null);
+    } //done a priori 
 }

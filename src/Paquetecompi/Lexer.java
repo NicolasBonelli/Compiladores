@@ -10,12 +10,12 @@ public class Lexer {
 	private int currentState = 0;
 	private ArrayList<Integer> tokenList;
 	private StringBuilder lexema;
-	private final static int MAX_ID_LENGTH=15;
+	final static int MAX_ID_LENGTH=15;
 	public Lexer(SymbolTable tabla) {
 		reservedWords = new HashMap<>();
 		initializeReservedSymbols();
 	    initializeReservedWords();
-	    this.nmrLinea = 0;
+	    Lexer.nmrLinea = 0;
 	    this.tabla=tabla;
 	    this.tokenList=new ArrayList<Integer>();
 	    this.lexema=new StringBuilder();
@@ -33,7 +33,7 @@ public class Lexer {
 		    {16, 16, 16, 16, 16,  9,   9,   9, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, -1},
 		    {-1, -1, -1, -1, -1, -1,  -1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, -1, -1, -1, -1, -1},
 		    {-1, -1, -1, -1, -1, -1,  -1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 13, -1, -1, -1, -1},
-		    {12, 12, 0 , 12, 12, 12,  12,  12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, -1},
+		    {12, 12,  0, 12, 12, 12,  12,  12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, -1},
 		    {13, 13, 13, 13, 13, 13,  13,  13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 16, 13, -1},
 		    {16, 16, 16, 16, 16, 16,  16,  16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, -1},
 		    {16, 16, 16, 16, 16, 16,  16,  16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, -1, -1, -1, -1, 16, 16, 16, 16, -1}
@@ -159,7 +159,7 @@ public class Lexer {
     	this.lexema=new StringBuilder(set);
     }
     public int getNroLinea() {
-    	return this.nmrLinea;
+    	return Lexer.nmrLinea;
     }
     public int getSymbol(String name) {
         return tabla.getValue(name);
@@ -177,21 +177,27 @@ public class Lexer {
     public void analyze(String input) {
         char[] chars = input.toCharArray();
         for (char c : chars) {
-            int actionIndex = getTSIndex(c);
+            int actionIndex = getTSIndex(c); //20
             if (actionIndex != -1) {
-                actionMatrix[currentState][actionIndex].execute(this,this.lexema,c);
-                currentState = getNextState(currentState, c);
+                actionMatrix[currentState][actionIndex].execute(this,this.lexema,c); //16
+                currentState = transitionMatrix[currentState][actionIndex];
+                if (currentState == 16) {
+                	currentState = 0;
+                    actionMatrix[currentState][actionIndex].execute(this,this.lexema,c);
+                    currentState = transitionMatrix[currentState][actionIndex];
+
+                }
             } else {
-                new ASE().execute(this,this.lexema,c); //hacer algo para diferenciar los errores 
+                //new ASE().execute(this,this.lexema,c); //hacer algo para diferenciar los errores 
                 break;
             }
             
         }
+        
+        
     }
     
-    private int getNextState(int currentState, char input) {
-        return transitionMatrix[currentState][this.getTSIndex(input)]; 
-    }
+    
 
     private int getTSIndex(char input) {
         if (Character.toString(input).matches("[a-ce-zA-Z]")) { 
@@ -221,6 +227,6 @@ public class Lexer {
     public static void main(String[] args) {
     	SymbolTable st = new SymbolTable();
         Lexer lexer = new Lexer(st);
-        lexer.analyze("abc");
+        lexer.analyze("3<2 ");
     }
 }

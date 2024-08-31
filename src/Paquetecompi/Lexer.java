@@ -6,7 +6,8 @@ public class Lexer {
 	private HashMap<String, Integer> reservedWords; //reservadas
 	private SymbolTable tabla;
 	static int nmrLinea;
-	
+	private int currentState = 0;
+
 	public Lexer(SymbolTable tabla) {
 		reservedWords = new HashMap<>();
 		initializeReservedSymbols();
@@ -35,7 +36,7 @@ public class Lexer {
 
 
 
-	private SemanticAction[][] actionMatrix = {
+		private SemanticAction[][] actionMatrix = {
 		    // Estado 0
 		    {new ASI(), new ASI(), new ASI(), new AS1(), new ASE(), new AS1(), new AS1(), new AS1(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new ASE(), new AS1(), new ASE()},
 		    
@@ -85,8 +86,6 @@ public class Lexer {
 		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new ASE(), new ASE(), new ASE(), new ASE(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8()}
 		};
 
-	private int currentState = 0;
-
 	private void initializeReservedWords() {
         reservedWords.put("IF",1);
         reservedWords.put("THEN", 2);
@@ -105,11 +104,11 @@ public class Lexer {
 	
     
 	private void initializeReservedSymbols() {
-		this.tabla.addValue("bl",1);
-		this.tabla.addValue("tab",2);
-		this.tabla.addValue("nl",3);
+		this.tabla.addValue("bl",1); //espacio alt 32
+		this.tabla.addValue("tab",2); //tab facil alt 09
+		this.tabla.addValue("nl",3);	// /n ??
 		this.tabla.addValue("letra-[d]",4);
-		this.tabla.addValue("\" \"",5);
+		this.tabla.addValue("_",5);
 		this.tabla.addValue("0",6);
 		this.tabla.addValue("1 al 7",7);
 		this.tabla.addValue("8 al 9", 8);
@@ -123,7 +122,7 @@ public class Lexer {
 		this.tabla.addValue(">", 16);
 		this.tabla.addValue(",", 17);
 		this.tabla.addValue(";", 18);
-		this.tabla.addValue("==", 19);
+		this.tabla.addValue("=", 19);
 		this.tabla.addValue("<", 20);
 		this.tabla.addValue(">", 21);
 		this.tabla.addValue("#", 22);
@@ -142,11 +141,11 @@ public class Lexer {
     
     
     public int getSymbol(String name) {
-        return symbolMap.get(name);
+        return tabla.getValue(name);
     }
  
     public boolean containsSymbol(String name) {
-        return symbolMap.containsKey(name);
+        return tabla.hasKey(name);
     }
 
     // Implementación de las acciones semánticas como inner classes
@@ -157,7 +156,12 @@ public class Lexer {
     class ASE extends SemanticAction {
         @Override
         void execute() {
-            System.out.println("Error léxico.");
+        	
+        	//Error de variable con nombre distinto
+        	//Error fuera de rango un entero o flotante
+        	//Error del estilo := :: (lexico)
+        	//Error 
+        	
         }
     }
 
@@ -174,6 +178,55 @@ public class Lexer {
             System.out.println("Iniciar la cadena de string y agregar primera letra.");
         }
     }
+    
+    class AS2 extends SemanticAction {
+        @Override
+        void execute() {
+            System.out.println("Iniciar la cadena de string y agregar primera letra.");
+        }
+    }
+    
+    class AS3 extends SemanticAction {
+        @Override
+        void execute() {
+            System.out.println("Iniciar la cadena de string y agregar primera letra.");
+        }
+    }
+    
+    class AS4 extends SemanticAction {
+        @Override
+        void execute() {
+            System.out.println("Iniciar la cadena de string y agregar primera letra.");
+        }
+    }
+    
+    class AS5 extends SemanticAction {
+        @Override
+        void execute() {
+            System.out.println("Iniciar la cadena de string y agregar primera letra.");
+        }
+    }
+    
+    class AS6 extends SemanticAction {
+        @Override
+        void execute() {
+            System.out.println("Iniciar la cadena de string y agregar primera letra.");
+        }
+    }
+    
+    class AS7 extends SemanticAction {
+        @Override
+        void execute() {
+            System.out.println("Iniciar la cadena de string y agregar primera letra.");
+        }
+    }
+    
+    class AS8 extends SemanticAction {
+        @Override
+        void execute() {
+            System.out.println("Iniciar la cadena de string y agregar primera letra.");
+        }
+    }
 
     // Otras acciones semánticas implementadas de manera similar...
 
@@ -181,35 +234,47 @@ public class Lexer {
     public void analyze(String input) {
         char[] chars = input.toCharArray();
         for (char c : chars) {
-            int actionIndex = getActionIndex(currentState, c);
+            int actionIndex = getTSIndex(c);
             if (actionIndex != -1) {
                 actionMatrix[currentState][actionIndex].execute();
                 currentState = getNextState(currentState, c);
             } else {
-                new ASE().execute();
+                new ASE().execute(); //hacer algo para diferenciar los errores 
                 break;
             }
         }
     }
 
     private int getNextState(int currentState, char input) {
-        // Busca en la matriz de transición el próximo estado
-        for (int[] transition : transitionMatrix) {
-            if (transition[0] == currentState && transition[1] == input) {
-                return transition[2];
-            }
-        }
-        return -1; // Estado de error
+        
+        
+        return transitionMatrix[currentState][this.getTSIndex(input)]; // Estado de error
     }
 
-    private int getActionIndex(int currentState, char input) {
-        // Determina qué acción ejecutar según el estado y la entrada
-        // Puedes modificar esta lógica según tu implementación
-        return 0; // Ejemplo: Siempre retorna la primera acción
+    private int getTSIndex(char input) {
+        if (Character.toString(input).matches("[a-ce-zA-Z]")) { 
+            return this.tabla.getValue("letra-[d]") - 1;
+        } else if (input == 'd') {
+            return this.tabla.getValue("d") - 1; 
+        } else if (Character.toString(input).matches("[8-9]")) {
+            return this.tabla.getValue("8 al 9") - 1;
+        } else if (Character.toString(input).matches("[1-7]")) {
+            return this.tabla.getValue("1 al 7") - 1;
+        } else if (input == ' ') {
+            return this.tabla.getValue("bl") - 1; // Manejo de espacio
+        } else if (input == '\n') {
+            return this.tabla.getValue("nl") - 1; // Manejo de salto de línea
+        } else if (input == '\t') {
+            return this.tabla.getValue("tab") - 1; // Manejo de tabulación
+        } else {
+            return this.tabla.getValue(Character.toString(input)) - 1;
+        }
     }
+
 
     public static void main(String[] args) {
-        Lexer lexer = new Lexer();
+    	SymbolTable st = new SymbolTable();
+        Lexer lexer = new Lexer(st);
         lexer.analyze("abc");
     }
 }

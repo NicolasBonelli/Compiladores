@@ -20,6 +20,10 @@ public class SymbolTable {
 			return -1;
 		}
 	}
+	
+	public boolean hasKey(String key) {
+        return symbolMap.containsKey(key);
+    }
 }
 	
 

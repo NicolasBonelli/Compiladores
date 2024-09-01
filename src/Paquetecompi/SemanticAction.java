@@ -58,7 +58,7 @@ class AS3 extends SemanticAction {
             lex.addToken(valorTabla);//se agarra y se mete en la lista del analizador sintactico
         } else {
             if (token.length() > Lexer.MAX_ID_LENGTH) {
-                System.out.println("Advertencia: Identificador demasiado largo en la línea " + Integer.toString(lex.getNroLinea()));
+                System.out.println("Advertencia: Identificador demasiado largo en la linea " + Integer.toString(lex.getNroLinea()));
                 System.out.println("Se recortara el identificador");
                 token = lexeme.substring(0,15);
                 if (!lex.containsSymbol(token))
@@ -79,7 +79,7 @@ class AS4 extends SemanticAction {
 
         String token = lexeme.toString();
         int numero = Integer.parseInt(token);
-        if ((numero > Math.pow(-2, -31)) && (numero < Math.pow(2, 31)-1)) {
+        if ((numero > Math.pow(-2, -31)) && (numero < Math.pow(2, 31))) {
         	lex.insertSymbolTable(token, SymbolTable.constantValue);
             lex.addToken(SymbolTable.constantValue);  
 
@@ -135,11 +135,12 @@ class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS6");
-
+    	lexeme.append(currentChar);
         Integer valor=lex.getSymbol(lexeme.toString());
+        lex.addToken(valor);
     	System.out.println("Valor: "+  valor + "para: " + lexeme.toString());
 
-    	lex.addToken(valor);
+    	
     	lex.setLexeme("");
     } //done a priori
 }
@@ -170,7 +171,6 @@ class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
         	lex.addToken(valor);
         }else {//AGARRAR HASTA EL LEXEMA Y ENTREGAR SIMBOLO DE TABLA DE SIMBOLOS
         	Integer valor = lex.getSymbol(lexeme.toString());
-        	System.out.println("Valor: "+  valor);
         	lex.addToken(valor);
         }
         

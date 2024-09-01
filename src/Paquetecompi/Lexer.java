@@ -22,7 +22,7 @@ public class Lexer {
 	    this.lexema=new StringBuilder();
 	}
 	private int[][] transitionMatrix = {
-		    { 0,  0,  0,  1, -1,  2,   3,   3, 16, 16, 16, 16, 16, 16, 16, 16, 16, 10, 16, 15, 15, 15, 11, 13, -1,  1, -1},
+		    { 0,  0,  0,  1, -1,  2,   3,   3, 16, 16, 16, 16, 16, 16, 16, 16, 16, 10, 15, 14, 14, 14, 11, 13, -1,  1, -1},
 		    {16, 16, 16,  1,  1,  1,   1,   1, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,  1, -1},
 		    {16, 16, 16, 16, 16,  4,   4,   3, 16, 16, 16, 16, 16, 16,  5, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, -1},
 		    {16, 16, 16, 16, 16,  3,   3,   3, 16, 16, 16, 16, 16, 16,  5, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, -1},
@@ -135,10 +135,10 @@ public class Lexer {
 		this.tabla.addValue("*", 12);
 		this.tabla.addValue("(", 13);
 		this.tabla.addValue(")", 14);
-		this.tabla.addValue("=", 15);
-		this.tabla.addValue(">", 16);
+		this.tabla.addValue(".", 15);
+		this.tabla.addValue(";", 16);
 		this.tabla.addValue(",", 17);
-		this.tabla.addValue(";", 18);
+		this.tabla.addValue(":", 18);
 		this.tabla.addValue("=", 19);
 		this.tabla.addValue("<", 20);
 		this.tabla.addValue(">", 21);
@@ -147,7 +147,6 @@ public class Lexer {
 		this.tabla.addValue("[", 24);
 		this.tabla.addValue("]", 25);
 		this.tabla.addValue("d", 26);
-		
 	}
     public boolean isReservedWord(String word) {
         return reservedWords.containsKey(word);
@@ -191,11 +190,17 @@ public class Lexer {
                 System.out.println(currentState + " arriba");
                 if (currentState == 16) {
                 	currentState = 0;
-                    actionMatrix[currentState][actionIndex].execute(this,this.lexema,c);
-                    currentState = transitionMatrix[currentState][actionIndex];
-                    currentState = (currentState == 16) ? 0 :  currentState;
-                    System.out.println(currentState + " abajo");
-
+                	System.out.println(actionIndex + " abajo");
+                	SemanticAction action = actionMatrix[currentState][actionIndex];
+                	if (!(action instanceof AS6 || action instanceof AS7 || action instanceof AS8 || (actionIndex==18 &&action instanceof AS1))) { //Si no son acciones semanticas de las que entregan tokens o caso especial :=
+	                	actionIndex = getTSIndex(c);
+	                	System.out.println("Se puso estado en 0");
+	                	System.out.println("Valor action index "+actionIndex );
+	                    actionMatrix[currentState][actionIndex].execute(this,this.lexema,c);
+	                    currentState = transitionMatrix[currentState][actionIndex];
+	                    currentState = (currentState == 16) ? 0 :  currentState;
+	                    System.out.println(currentState + " abajo");
+                	}
                 }
             } else {
                 new ASE().execute(this,this.lexema,c); //hacer algo para diferenciar los errores 
@@ -209,6 +214,7 @@ public class Lexer {
     
 
     private int getTSIndex(char input) {
+    	System.out.println("Valor input:" + input);
         if (Character.toString(input).matches("[a-ce-zA-Z]")) { 
             return this.tabla.getValue("letra-[d]") - 1;
         } else if (input == 'd') {
@@ -225,6 +231,8 @@ public class Lexer {
             return this.tabla.getValue("tab") - 1; // Manejo de tabulación
         } else {
         	if (tabla.hasKey(Character.toString(input))) {
+        		
+        		System.out.println("Valor devuelto columna:" + String.valueOf(this.tabla.getValue(Character.toString(input)) - 1));
         		return this.tabla.getValue(Character.toString(input)) - 1;
         	}else {
         		return -1;
@@ -239,7 +247,7 @@ public class Lexer {
     public static void main(String[] args) {
     	SymbolTable st = new SymbolTable();
         Lexer lexer = new Lexer(st);
-        lexer.analyze("12 != 13 "); 
+        lexer.analyze(" hola; "); 
     	lexer.showArray();
     	 	
     }

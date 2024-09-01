@@ -4,6 +4,8 @@ import java.util.HashMap;
 
 public class SymbolTable {
 	private HashMap<String,Integer> symbolMap;
+	static final int identifierValue = 278;
+	static final int constantValue = 279;
 	
 	public SymbolTable(){
 		this.symbolMap=new HashMap<String, Integer>();
@@ -21,9 +23,12 @@ public class SymbolTable {
 		}
 	}
 	
+	
 	public boolean hasKey(String key) {
         return symbolMap.containsKey(key);
     }
+	
+	
 }
 	
 

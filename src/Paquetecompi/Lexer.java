@@ -13,10 +13,11 @@ public class Lexer {
 	final static int MAX_ID_LENGTH=15;
 	public Lexer(SymbolTable tabla) {
 		reservedWords = new HashMap<>();
+	    this.tabla=tabla;
+
 		initializeReservedSymbols();
 	    initializeReservedWords();
 	    Lexer.nmrLinea = 0;
-	    this.tabla=tabla;
 	    this.tokenList=new ArrayList<Integer>();
 	    this.lexema=new StringBuilder();
 	}
@@ -92,19 +93,30 @@ public class Lexer {
 		};
 
 	private void initializeReservedWords() {
-        reservedWords.put("IF",1);
-        reservedWords.put("THEN", 2);
-        reservedWords.put("ELSE", 3);
-        reservedWords.put("BEGIN", 4);
-        reservedWords.put("END", 5);
-        reservedWords.put("END_IF", 6);
-        reservedWords.put("OUTF", 7);
-        reservedWords.put("TYPEDEF", 8);
-        reservedWords.put("FUN", 9);
-        reservedWords.put("RET", 10);
-        reservedWords.put("REPEAT", 11);
-        reservedWords.put("WHILE", 12);
-        // Agrega más palabras reservadas según sea necesario
+		reservedWords.put("IF", 257);
+		reservedWords.put("THEN", 258);
+		reservedWords.put("ELSE", 259);
+		reservedWords.put("BEGIN", 260);
+		reservedWords.put("END", 261);
+		reservedWords.put("END_IF", 262);
+		reservedWords.put("OUTF", 263);
+		reservedWords.put("TYPEDEF", 264);
+		reservedWords.put("FUN", 265);
+		reservedWords.put("RET", 266);
+		reservedWords.put("REPEAT", 267);
+		reservedWords.put("WHILE", 268);
+		reservedWords.put("PAIR", 269);
+		reservedWords.put("GOTO", 270);
+		reservedWords.put("LONGINT", 271);
+		reservedWords.put("DOUBLE", 272);
+		reservedWords.put("<=", 273);
+		reservedWords.put(">=", 274);
+		reservedWords.put("!=", 275);
+		reservedWords.put(":=", 276);
+		reservedWords.put("CADENA", 277);
+		reservedWords.put("ID", 278);
+		reservedWords.put("CTE", 279);
+
     }
 	
     
@@ -130,11 +142,12 @@ public class Lexer {
 		this.tabla.addValue("=", 19);
 		this.tabla.addValue("<", 20);
 		this.tabla.addValue(">", 21);
-		this.tabla.addValue("#", 22);
-		this.tabla.addValue("[", 23);
-		this.tabla.addValue("]", 24);
-		this.tabla.addValue("{", 25);
+		this.tabla.addValue("!", 22);
+		this.tabla.addValue("#", 23);
+		this.tabla.addValue("[", 24);
+		this.tabla.addValue("]", 25);
 		this.tabla.addValue("d", 26);
+		
 	}
     public boolean isReservedWord(String word) {
         return reservedWords.containsKey(word);
@@ -142,15 +155,9 @@ public class Lexer {
     public int getReservedWordToken(String word) {
         return reservedWords.getOrDefault(word, -1); // Retorna un token para identificadores si no es reservada
     }
-    public void insertReservedWord(String word) {
-        int maxKey = -1;
-        for (Integer key : reservedWords.values()) {
-            if (key > maxKey) {
-                maxKey = key;
-            }
-        }
-        int newKey = maxKey + 1;
-        reservedWords.put(word, newKey);
+    public void insertSymbolTable(String word, int token) { //
+        
+        tabla.addValue(word, token);
     }
     public void addToken(Integer token) {
     	this.tokenList.add(token);
@@ -181,15 +188,17 @@ public class Lexer {
             if (actionIndex != -1) {
                 actionMatrix[currentState][actionIndex].execute(this,this.lexema,c); //16
                 currentState = transitionMatrix[currentState][actionIndex];
+                System.out.println(currentState + " arriba");
                 if (currentState == 16) {
                 	currentState = 0;
                     actionMatrix[currentState][actionIndex].execute(this,this.lexema,c);
                     currentState = transitionMatrix[currentState][actionIndex];
+                    currentState = (currentState == 16) ? 0 :  currentState;
+                    System.out.println(currentState + " abajo");
 
                 }
             } else {
-                //new ASE().execute(this,this.lexema,c); //hacer algo para diferenciar los errores 
-                break;
+                new ASE().execute(this,this.lexema,c); //hacer algo para diferenciar los errores 
             }
             
         }
@@ -222,11 +231,16 @@ public class Lexer {
         	}
         }
     }
-
+    
+    public void showArray() {
+    	System.out.println(tokenList);
+    }
 
     public static void main(String[] args) {
     	SymbolTable st = new SymbolTable();
         Lexer lexer = new Lexer(st);
-        lexer.analyze("3<2 ");
+        lexer.analyze("12 != 13 "); 
+    	lexer.showArray();
+    	 	
     }
 }

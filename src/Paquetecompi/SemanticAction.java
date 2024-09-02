@@ -8,12 +8,16 @@ abstract class SemanticAction {
 }
 
 class ASE extends SemanticAction {
+private String errorType;
+public ASE(String errorType) {
+this.errorType = errorType;
+}
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("Error");
-    	/* Lo que vamos a hacer es en la matriz de AS, pasarle por el constructor el tipo de error, de manera que aquí
-    	 * lo determinamos, y tiramos el error, warning, lo q sea*/
-    	
+    System.out.println(errorType + " at linea: "+ lex.getNroLinea());
+    /* Lo que vamos a hacer es en la matriz de AS, pasarle por el constructor el tipo de error, de manera que aquí
+     * lo determinamos, y tiramos el error, warning, lo q sea*/
+    
     }
 }
 
@@ -21,6 +25,7 @@ class ASI extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
         System.out.println("Leer siguiente token o eliminar espacio en blanco.");//se deja asi
+        
     }// done a priori
 }
 
@@ -30,7 +35,8 @@ class AS1 extends SemanticAction {
     	System.out.println("AS1");
 
     	lexeme.setLength(0);
-    	
+    	lex.setEstado(true);
+
         lexeme.append(currentChar);
     	
     }//done a priori
@@ -40,6 +46,7 @@ class AS2 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS2");
+    	lex.setEstado(true);
 
     	lexeme.append(currentChar);
     }//done a priori
@@ -49,6 +56,7 @@ class AS3 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS3");
+    	lex.setEstado(true);
 
         String token = lexeme.toString().toUpperCase();
         if (lex.isReservedWord(token)) {//si está dentro de la tabla de tokens o si es palabra reservada
@@ -76,6 +84,7 @@ class AS4 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS4");
+    	lex.setEstado(true);
 
         String token = lexeme.toString();
         int numero = Integer.parseInt(token);
@@ -96,6 +105,7 @@ class AS5 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS5");
+    	lex.setEstado(true);
 
         String token = lexeme.toString();
 
@@ -135,6 +145,7 @@ class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS6");
+    	lex.setEstado(false);
     	lexeme.append(currentChar);
         Integer valor=lex.getSymbol(lexeme.toString());
         lex.addToken(valor);
@@ -149,10 +160,17 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS7");
-
-    	lexeme.append(currentChar);
-    	Integer valor = lex.getReservedWordToken(lexeme.toString());
-    	System.out.println("Valor: "+  valor);
+    	lex.setEstado(false);
+		lexeme.append(currentChar);
+		Integer valor = 0;
+    	if (currentChar == ']') {
+        	lex.insertSymbolTable(lexeme.toString().replace("[", "").replace("]", "").replace("\n", " "), 277);
+        	valor = 277;
+    	}else {
+    		valor = lex.getReservedWordToken(lexeme.toString());
+        	System.out.println("Valor: "+  valor);
+    	}
+    	
 
     	lex.addToken(valor);
     	
@@ -164,13 +182,15 @@ class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.out.println("AS8");
-
         if(Character.toString(currentChar).equals("=")) {//AGARRO =, CONCATENO Y ME FIJO EN TABLA DE RESERVADAS
+        	lex.setEstado(false);
         	lexeme.append(currentChar);
         	Integer valor = lex.getReservedWordToken(lexeme.toString());
         	lex.addToken(valor);
         }else {//AGARRAR HASTA EL LEXEMA Y ENTREGAR SIMBOLO DE TABLA DE SIMBOLOS
         	Integer valor = lex.getSymbol(lexeme.toString());
+        	lex.setEstado(true);
+
         	lex.addToken(valor);
         }
         

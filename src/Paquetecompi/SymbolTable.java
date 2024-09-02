@@ -27,8 +27,10 @@ public class SymbolTable {
 	public boolean hasKey(String key) {
         return symbolMap.containsKey(key);
     }
-	
+	@Override	
+	public String toString() {
+		return symbolMap.toString();
+	}
 	
 }
-	
 

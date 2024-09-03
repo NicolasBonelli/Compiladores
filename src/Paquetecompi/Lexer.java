@@ -1,4 +1,6 @@
 package Paquetecompi;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +36,7 @@ public class Lexer {
 		    {-1, -1, -1, -1, -1,  9,   9,   9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		    {16, 16, 16, 16, 16,  9,   9,   9, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, -1},
 		    {-1, -1, -1, -1, -1, -1,  -1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, -1, -1, -1, -1, -1},
-		    {-1, -1, -1, -1, -1, -1,  -1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 13, -1, -1, -1, -1},
+		    {-1, -1, -1, -1, -1, -1,  -1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 12, -1, -1, -1, -1},
 		    {12, 12,  0, 12, 12, 12,  12,  12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, -1},
 		    {13, 13, 13, 13, 13, 13,  13,  13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 16, 13, -1},
 		    {16, 16, 16, 16, 16, 16,  16,  16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, -1},
@@ -190,40 +192,51 @@ public class Lexer {
 	}
 
 
-	// Función principal de análisis léxico
-    public void analyze(String input) {
-        char[] chars = input.toCharArray();
-        for (char c : chars) {
-        	if ( c == '\n') {
-        		nmrLinea++;
-        	}
+
+public void analyze(String filePath) {
+    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        int currentChar;
+        while ((currentChar = reader.read()) != -1) { // Leer hasta EOF
+            char c = (char) currentChar;
+            
+            if (c == '\n') {
+                nmrLinea++;
+            }
+            
             int actionIndex = getTSIndex(c); //20
             if (actionIndex != -1) {
-                actionMatrix[currentState][actionIndex].execute(this,this.lexema,c); //16
+                actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); //16
                 currentState = transitionMatrix[currentState][actionIndex];
                 System.out.println(currentState + " arriba");
+                
                 if (currentState == 16) {
-                	currentState = 0;
-                	System.out.println(actionIndex + " abajo");
-                	if (estado) { //Si no son acciones semanticas de las que entregan tokens o caso especial :=
-	                	actionIndex = getTSIndex(c);
-	                	System.out.println("Se puso estado en 0");
-	                	System.out.println("Valor action index "+actionIndex );
-	                    actionMatrix[currentState][actionIndex].execute(this,this.lexema,c);
-	                    currentState = transitionMatrix[currentState][actionIndex];
-	                    currentState = (currentState == 16) ? 0 :  currentState;
-	                    System.out.println(currentState + " abajo");
-                	}
+                    currentState = 0;
+                    System.out.println(actionIndex + " abajo");
+                    
+                    if (estado) { //Si no son acciones semánticas de las que entregan tokens o caso especial :=
+                        actionIndex = getTSIndex(c);
+                        System.out.println("Se puso estado en 0");
+                        System.out.println("Valor action index " + actionIndex);
+                        actionMatrix[currentState][actionIndex].execute(this, this.lexema, c);
+                        currentState = transitionMatrix[currentState][actionIndex];
+                        currentState = (currentState == 16) ? 0 : currentState;
+                        System.out.println(currentState + " abajo");
+                    }
                 }
             } else {
-                new ASE("Caracter no identificado").execute(this,this.lexema,c); //hacer algo para diferenciar los errores 
+                new ASE("Caracter no identificado").execute(this, this.lexema, c); // Manejo de errores
             }
             estado = true;
-            
         }
         
-        
+        // Asegurar que se procesa cualquier carácter pendiente al final del archivo
+        if (currentState != 0) {
+            actionMatrix[currentState][0].execute(this, this.lexema, '\0'); // Manejar el final del archivo si es necesario
+        }
+    } catch (Exception e) {
+        e.printStackTrace(); // Manejo de excepciones de E/S
     }
+}
     
     
 
@@ -261,7 +274,7 @@ public class Lexer {
     public static void main(String[] args) {
     	SymbolTable st = new SymbolTable();
         Lexer lexer = new Lexer(st);
-        lexer.analyze(" 12:=13 \n perro \n 2 ==3 "); 
+        lexer.analyze("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
     	lexer.showArray();
     	System.out.println(st.toString());
     }

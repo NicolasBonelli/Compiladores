@@ -68,10 +68,11 @@ class AS3 extends SemanticAction {
             if (token.length() > Lexer.MAX_ID_LENGTH) {
                 System.out.println("Advertencia: Identificador demasiado largo en la linea " + Integer.toString(lex.getNroLinea()));
                 System.out.println("Se recortara el identificador");
-                token = lexeme.substring(0,15);
-                if (!lex.containsSymbol(token))
-                	lex.insertSymbolTable(token, SymbolTable.identifierValue);
+                token = lexeme.substring(0,15).toUpperCase();
+                
             }
+            if (!lex.containsSymbol(token))
+            	lex.insertSymbolTable(token, SymbolTable.identifierValue);
             //VER
             lex.addToken(SymbolTable.identifierValue);  
         }

@@ -4,8 +4,10 @@ import java.util.HashMap;
 
 public class SymbolTable {
 	private HashMap<String,Integer> symbolMap;
+	static final int stringValue = 277;
 	static final int identifierValue = 278;
 	static final int constantValue = 279;
+	static final int tagValue=280;
 	
 	public SymbolTable(){
 		this.symbolMap=new HashMap<String, Integer>();

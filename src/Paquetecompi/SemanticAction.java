@@ -165,9 +165,13 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
 		lexeme.append(currentChar);
 		Integer valor = 0;
     	if (currentChar == ']') {
-        	lex.insertSymbolTable(lexeme.toString().replace("[", "").replace("]", "").replace("\n", " "), 277);
-        	valor = 277;
-    	}else {
+        	lex.insertSymbolTable(lexeme.toString().replace("[", "").replace("]", "").replace("\n", " "), SymbolTable.stringValue);
+        	valor = SymbolTable.stringValue;
+    	}else if(currentChar == ':') {
+    		lex.insertSymbolTable(lexeme.toString(),SymbolTable.tagValue);
+    		valor = SymbolTable.tagValue;
+    	}
+    	else {
     		valor = lex.getReservedWordToken(lexeme.toString());
         	System.out.println("Valor: "+  valor);
     	}
@@ -176,7 +180,7 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     	lex.addToken(valor);
     	
     	lex.setLexeme("");
-    } //done a priori
+    } 
 }
 
 class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
@@ -196,5 +200,5 @@ class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
         }
         
     	lex.setLexeme("");
-    } //done a priori 
+    } 
 }

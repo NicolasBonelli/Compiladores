@@ -1,10 +1,28 @@
-package gramaticPackage;
-import java.util.*;
-import Paquetecompi.*;
+//### This file created by BYACC 1.8(/Java extension  1.15)
+//### Java capabilities added 7 Jan 97, Bob Jamison
+//### Updated : 27 Nov 97  -- Bob Jamison, Joe Nieten
+//###           01 Jan 98  -- Bob Jamison -- fixed generic semantic constructor
+//###           01 Jun 99  -- Bob Jamison -- added Runnable support
+//###           06 Aug 00  -- Bob Jamison -- made state variables class-global
+//###           03 Jan 01  -- Bob Jamison -- improved flags, tracing
+//###           16 May 01  -- Bob Jamison -- added custom stack sizing
+//###           04 Mar 02  -- Yuval Oren  -- improved java performance, added options
+//###           14 Mar 02  -- Tomas Hurka -- -d support, static initializer workaround
+//### Please send bug reports to tom@hukatronic.cz
+//### static char yysccsid[] = "@(#)yaccpar	1.8 (Berkeley) 01/20/90";
 
+
+
+
+
+
+//#line 2 "gramatica.y"
+    package gramaticPackage;
+    import java.util.*;
+    import gramaticPackage.*;
+    
     /* Definir la tabla de símbolos para los tipos definidos por el usuario.*/
-    Map<String, TipoSubrango> tablaTipos = new HashMap<>();
-
+   
     /* Clase para almacenar la información de los subrangos.*/
     class TipoSubrango {
         String tipoBase;
@@ -44,7 +62,7 @@ import Paquetecompi.*;
         return tablaDeSimbolos.get(variable).tipo;  /* Ejemplo*/
     }
     
-//#line 62 "Parser.java"
+//#line 66 "Parser.java"
 
 
 
@@ -589,6 +607,18 @@ final static String yyrule[] = {
 "expresion : acceso_par",
 };
 
+//#line 244 "gramatica.y"
+
+int yylex() {
+   	lexer.getToken();
+}
+
+/*blic static void main(String[] args) {
+	Parser parser= new Parser();
+    parser.run();
+        
+}*/
+//#line 553 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -743,27 +773,27 @@ boolean doaction;
       {
 //########## USER-SUPPLIED ACTIONS ##########
 case 1:
-//#line 57 "gramatica.y"
+//#line 61 "gramatica.y"
 {  
     System.out.println("Programa compilado correctamente");
 }
 break;
 case 15:
-//#line 78 "gramatica.y"
+//#line 82 "gramatica.y"
 { 
     System.out.println("Declaración: " + val_peek(1));
 }
 break;
 case 23:
-//#line 99 "gramatica.y"
+//#line 103 "gramatica.y"
 { yyval = "double"; }
 break;
 case 24:
-//#line 100 "gramatica.y"
+//#line 104 "gramatica.y"
 { yyval = "longint"; }
 break;
 case 25:
-//#line 102 "gramatica.y"
+//#line 106 "gramatica.y"
 {
         /* Verificar si el tipo está en la tabla de tipos definidos*/
         if (tablaTipos.containsKey(val_peek(0))) {
@@ -774,7 +804,7 @@ case 25:
     }
 break;
 case 36:
-//#line 129 "gramatica.y"
+//#line 133 "gramatica.y"
 {
         /* Guardar el nuevo tipo en la tabla de símbolos*/
         String nombreTipo = val_peek(5); /* T_ID*/
@@ -787,13 +817,13 @@ case 36:
     }
 break;
 case 37:
-//#line 140 "gramatica.y"
+//#line 144 "gramatica.y"
 {
         yyval = new Subrango(Double.parseDouble(val_peek(3)), Double.parseDouble(val_peek(1)));
     }
 break;
 case 64:
-//#line 177 "gramatica.y"
+//#line 181 "gramatica.y"
 {
 
     if (val_peek(3).size() != val_peek(1).size()){
@@ -829,14 +859,14 @@ case 64:
 }
 break;
 case 73:
-//#line 221 "gramatica.y"
+//#line 225 "gramatica.y"
 { yyval = val_peek(3) + "[1]"; }
 break;
 case 74:
-//#line 222 "gramatica.y"
+//#line 226 "gramatica.y"
 { yyval = val_peek(3) + "[2]"; }
 break;
-//#line 780 "Parser.java"
+//#line 796 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

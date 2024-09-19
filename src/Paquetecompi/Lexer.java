@@ -3,10 +3,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Lexer {
 	private HashMap<String, Integer> reservedWords; //reservadas
 	private SymbolTable tabla;
+	Map<String, TipoSubrango> tablaTipos = new HashMap<>();
 	static int nmrLinea;
 	private int currentState = 0;
 	private ArrayList<Integer> tokenList;
@@ -22,6 +24,8 @@ public class Lexer {
 	    Lexer.nmrLinea = 1;
 	    this.tokenList=new ArrayList<Integer>();
 	    this.lexema=new StringBuilder();
+	    this.tablaTipos= new HashMap<>();
+	    
 	}
 	private int[][] transitionMatrix = {
 		    { 0,  0,  0,  1, -1,  2,   3,   3, 16, 16, 16, 16, 16, 16, 16, 16, 16, 10, 15, 14, 14, 14, 11, 13, -1,  1, -1, 16, 16, -1},
@@ -93,7 +97,42 @@ public class Lexer {
 		    // Estado 15
 		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new ASE("No puede ir un = despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un ! despues de un ="), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8()}
 		};
+	class TipoSubrango {
+        String tipoBase;
+        double limiteInferior;
+        double limiteSuperior;
 
+        public TipoSubrango(String tipoBase, double limiteInferior, double limiteSuperior) {
+            this.tipoBase = tipoBase;
+            this.limiteInferior = limiteInferior;
+            this.limiteSuperior = limiteSuperior;
+        }
+    }
+	/* Función para verificar si el valor está dentro del rango*/
+    boolean verificarRango(String tipo, double valor) {
+        if (tablaTipos.containsKey(tipo)) {
+            TipoSubrango subrango = tablaTipos.get(tipo);
+            return valor >= subrango.limiteInferior && valor <= subrango.limiteSuperior;
+        }
+        return true; /* Si no es un tipo definido por el usuario, no se verifica el rango*/
+    }
+
+    /* Definir rangos para tipos estándar*/
+    boolean verificarRangoLongInt(double valor) {
+        return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
+    }
+
+    boolean verificarRangoDouble(double valor) {
+        return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
+    }
+
+    String obtenerTipo(String variable) {
+        /* Implementa la lógica para obtener el tipo de la variable a partir de una tabla de símbolos.*/
+        /* Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.*/
+        if (tabla.hasKey(variable)) return variable;
+
+        return tabla.getType(variable);  /* Ejemplo*/
+    }
 	private void initializeReservedWords() {
 		reservedWords.put("IF", 257);
 		reservedWords.put("THEN", 258);
@@ -124,35 +163,35 @@ public class Lexer {
 	
     
 	private void initializeReservedSymbols() {
-		this.tabla.addValue("bl",1); //espacio alt 32
-		this.tabla.addValue("tab",2); //tab facil alt 09
-		this.tabla.addValue("nl",3);	// /n ??
-		this.tabla.addValue("letra-[d]",4);
-		this.tabla.addValue("_",5);
-		this.tabla.addValue("0",6);
-		this.tabla.addValue("1 al 7",7);
-		this.tabla.addValue("8 al 9", 8);
-		this.tabla.addValue("+", 9);
-		this.tabla.addValue("-", 10);
-		this.tabla.addValue("/", 11);
-		this.tabla.addValue("*", 12);
-		this.tabla.addValue("(", 13);
-		this.tabla.addValue(")", 14);
-		this.tabla.addValue(".", 15);
-		this.tabla.addValue(";", 16);
-		this.tabla.addValue(",", 17);
-		this.tabla.addValue(":", 18);
-		this.tabla.addValue("=", 19);
-		this.tabla.addValue("<", 20);
-		this.tabla.addValue(">", 21);
-		this.tabla.addValue("!", 22);
-		this.tabla.addValue("#", 23);
-		this.tabla.addValue("[", 24);
-		this.tabla.addValue("]", 25);
-		this.tabla.addValue("d", 26);
-		this.tabla.addValue("{", 28);
-		this.tabla.addValue("}", 29);
-		this.tabla.addValue("@", 30);
+		this.tabla.addValue("bl",null,1); //espacio alt 32
+		this.tabla.addValue("tab",null,2); //tab facil alt 09
+		this.tabla.addValue("nl",null,3);	// /n ??
+		this.tabla.addValue("letra-[d]",null,4);
+		this.tabla.addValue("_",null,5);
+		this.tabla.addValue("0",null,6);
+		this.tabla.addValue("1 al 7",null,7);
+		this.tabla.addValue("8 al 9",null, 8);
+		this.tabla.addValue("+",null, 9);
+		this.tabla.addValue("-",null, 10);
+		this.tabla.addValue("/",null, 11);
+		this.tabla.addValue("*",null, 12);
+		this.tabla.addValue("(",null, 13);
+		this.tabla.addValue(")",null, 14);
+		this.tabla.addValue(".",null, 15);
+		this.tabla.addValue(";",null, 16);
+		this.tabla.addValue(",",null, 17);
+		this.tabla.addValue(":",null, 18);
+		this.tabla.addValue("=",null, 19);
+		this.tabla.addValue("<",null, 20);
+		this.tabla.addValue(">",null, 21);
+		this.tabla.addValue("!",null, 22);
+		this.tabla.addValue("#",null, 23);
+		this.tabla.addValue("[",null, 24);
+		this.tabla.addValue("]",null, 25);
+		this.tabla.addValue("d",null, 26);
+		this.tabla.addValue("{",null, 28);
+		this.tabla.addValue("}",null, 29);
+		this.tabla.addValue("@",null, 30);
 	}
     public boolean isReservedWord(String word) {
         return reservedWords.containsKey(word);
@@ -160,9 +199,9 @@ public class Lexer {
     public int getReservedWordToken(String word) {
         return reservedWords.getOrDefault(word, -1); // Retorna un token para identificadores si no es reservada
     }
-    public void insertSymbolTable(String word, int token) { //
+    public void insertSymbolTable(String word, String type, int token) { //
         
-        tabla.addValue(word, token);
+        tabla.addValue(word,type, token);
     }
     public void addToken(Integer token) {
     	this.tokenList.add(token);
@@ -285,7 +324,7 @@ public void analyze(String filePath) {
     public static void main(String[] args) {
     	SymbolTable st = new SymbolTable();
         Lexer lexer = new Lexer(st);
-        lexer.analyze("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
+        lexer.analyze("C:\\Users\\usuario\\Desktop\\prueba.txt");
     	lexer.showArray();
     	System.out.println(st.toString());
     }

@@ -83,17 +83,13 @@ declaracion: tipo lista_var ';' {
     List<String> variables = (List<String>)$2; // Asume que lista_var devuelve una lista de variables
     
     for (String variable : variables) {
-        // Verificar si la variable ya existe en la tabla de símbolos
+        // Agregar a la tabla de símbolos: clave = nombre de variable, tipo = tipo declarado
         if (!st.hasKey(variable)) {
-            System.out.println("ERROR, la tabla de símbolos no contenía la variable: " + variable);
+            System.out.println("ERROR , la tabla de simbolos no tenia esa variable");
         } else {
-            // Actualiza el tipo de la variable si ya está en la tabla de símbolos
-            boolean actualizado = st.updateType(variable, $1);
-            if (actualizado) {
-                System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + $1);
-            } else {
-                System.out.println("Error al actualizar el tipo de la variable: " + variable);
-            }
+            Symbol symbol = st.getSymbol(variable);
+            symbol.setType($1);  // Asume que el método setType() permite cambiar el tipo
+            System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + $1);
         }
     }
 };

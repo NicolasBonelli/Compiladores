@@ -72,7 +72,7 @@ class AS3 extends SemanticAction {
                 
             }
             if (!lex.containsSymbol(token))
-            	lex.insertSymbolTable(token, SymbolTable.identifierValue);
+            	lex.insertSymbolTable(token, "String", SymbolTable.identifierValue);
             //VER
             lex.addToken(SymbolTable.identifierValue);  
         }
@@ -90,12 +90,12 @@ class AS4 extends SemanticAction {
         String token = lexeme.toString();
         int numero = Integer.parseInt(token);
         if ((numero > Math.pow(-2, -31)) && (numero < Math.pow(2, 31))) {
-        	lex.insertSymbolTable(token, SymbolTable.constantValue);
+        	lex.insertSymbolTable(token,"longint", SymbolTable.constantValue);
             lex.addToken(SymbolTable.constantValue);  
 
         } else {
             System.out.println("El número usado en la linea " + lex.getNroLinea() + " supera el rango permitido por los enteros.");
-
+            
         }
        
     	lex.setLexeme("");
@@ -124,7 +124,7 @@ class AS5 extends SemanticAction {
             if ((number > minPositive && number < maxPositive) ||
                 (number < maxNegative && number > minNegative) || 
                 number == 0.0) {
-            	lex.insertSymbolTable(lexeme.toString(), SymbolTable.constantValue);
+            	lex.insertSymbolTable(lexeme.toString(),"double" , SymbolTable.constantValue);
             	
                 lex.addToken(SymbolTable.constantValue); 
             } else {
@@ -165,10 +165,10 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
 		lexeme.append(currentChar);
 		Integer valor = 0;
     	if (currentChar == ']') {
-        	lex.insertSymbolTable(lexeme.toString().replace("[", "").replace("]", "").replace("\n", " "), SymbolTable.stringValue);
+        	lex.insertSymbolTable(lexeme.toString().replace("[", "").replace("]", "").replace("\n", " "),"String", SymbolTable.stringValue);
         	valor = SymbolTable.stringValue;
     	}else if(currentChar == '@') {
-    		lex.insertSymbolTable(lexeme.toString(),SymbolTable.tagValue);
+    		lex.insertSymbolTable(lexeme.toString(),"String",SymbolTable.tagValue);
     		valor = SymbolTable.tagValue;
     	}
     	else {

@@ -167,7 +167,7 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     	if (currentChar == ']') {
         	lex.insertSymbolTable(lexeme.toString().replace("[", "").replace("]", "").replace("\n", " "), SymbolTable.stringValue);
         	valor = SymbolTable.stringValue;
-    	}else if(currentChar == ':') {
+    	}else if(currentChar == '@') {
     		lex.insertSymbolTable(lexeme.toString(),SymbolTable.tagValue);
     		valor = SymbolTable.tagValue;
     	}

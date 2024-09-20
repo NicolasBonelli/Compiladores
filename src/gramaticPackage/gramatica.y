@@ -248,8 +248,8 @@ expresion_list: expresion
               | expresion_list ',' invocacion_funcion
               | invocacion_funcion;
 
-acceso_par: T_ID '[' '1' ']' { $$ = $1 + "[1]"; }
-          | T_ID '[' '2' ']' { $$ = $1 + "[2]"; };
+acceso_par: T_ID '{' '1' '}' { $$ = $1 + "{1}"; }
+          | T_ID '{' '2' '}' { $$ = $1 + "{2}"; };
 
 
 goto_statement: GOTO T_ETIQUETA';';

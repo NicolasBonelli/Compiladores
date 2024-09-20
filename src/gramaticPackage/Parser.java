@@ -1,27 +1,13 @@
-//### This file created by BYACC 1.8(/Java extension  1.15)
-//### Java capabilities added 7 Jan 97, Bob Jamison
-//### Updated : 27 Nov 97  -- Bob Jamison, Joe Nieten
-//###           01 Jan 98  -- Bob Jamison -- fixed generic semantic constructor
-//###           01 Jun 99  -- Bob Jamison -- added Runnable support
-//###           06 Aug 00  -- Bob Jamison -- made state variables class-global
-//###           03 Jan 01  -- Bob Jamison -- improved flags, tracing
-//###           16 May 01  -- Bob Jamison -- added custom stack sizing
-//###           04 Mar 02  -- Yuval Oren  -- improved java performance, added options
-//###           14 Mar 02  -- Tomas Hurka -- -d support, static initializer workaround
-//### Please send bug reports to tom@hukatronic.cz
-//### static char yysccsid[] = "@(#)yaccpar	1.8 (Berkeley) 01/20/90";
-
-
-
-
-
-
-//#line 2 "gramatica.y"
-    package gramaticPackage;
-    import java.util.*;
-    import gramaticPackage.*;
+package gramaticPackage;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+import Paquetecompi.Lexer;
+import Paquetecompi.Pair;
+import Paquetecompi.SymbolTable;
+import gramaticPackage.*;
     
-    /* Definir la tabla de símbolos para los tipos definidos por el usuario.*/
    
     /* Clase para almacenar la información de los subrangos.*/
     class TipoSubrango {
@@ -35,33 +21,16 @@
             this.limiteSuperior = limiteSuperior;
         }
     }
-
-    /* Función para verificar si el valor está dentro del rango*/
-    boolean verificarRango(String tipo, double valor) {
-        if (tablaTipos.containsKey(tipo)) {
-            TipoSubrango subrango = tablaTipos.get(tipo);
-            return valor >= subrango.limiteInferior && valor <= subrango.limiteSuperior;
-        }
-        return true; /* Si no es un tipo definido por el usuario, no se verifica el rango*/
-    }
-
-    /* Definir rangos para tipos estándar*/
-    boolean verificarRangoLongInt(double valor) {
-        return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
-    }
-
-    boolean verificarRangoDouble(double valor) {
-        return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
-    }
-
-    String obtenerTipo(String variable) {
-        /* Implementa la lógica para obtener el tipo de la variable a partir de una tabla de símbolos.*/
-        /* Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.*/
-        if (!tablaDeSimbolos.containsKey(variable)) return variable;
-
-        return tablaDeSimbolos.get(variable).tipo;  /* Ejemplo*/
-    }
     
+    class Subrango{
+    	private double limiteSuperior;
+    	private double limiteInferior;
+    	
+    	public Subrango(double limiteSuperior, double limiteInferior) {
+    		this.limiteSuperior = limiteSuperior; this.limiteInferior = limiteInferior;
+    	}
+    }
+  
 //#line 66 "Parser.java"
 
 
@@ -69,13 +38,24 @@
 
 public class Parser
 {
-
+private Map<String, TipoSubrango> tablaTipos;
+private SymbolTable st;
+private Lexer lexer;
 boolean yydebug;        //do I want debug output?
 int yynerrs;            //number of errors so far
 int yyerrflag;          //was there an error?
 int yychar;             //the current working character
 
 //########## MESSAGES ##########
+
+public Parser(String ruta)
+{
+	tablaTipos = new HashMap<>();
+	st = new SymbolTable();
+	lexer = new Lexer(st);
+	System.out.println("SALI DEL LEXER");
+}
+
 //###############################################################
 // method: debug
 //###############################################################
@@ -607,17 +587,42 @@ final static String yyrule[] = {
 "expresion : acceso_par",
 };
 
-//#line 244 "gramatica.y"
+//#line 270 "gramatica.y"
 
 int yylex() {
-   	lexer.getToken();
+	
+	SymbolTable st = new SymbolTable();
+	try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt"))) {
+	    Lexer lexer = new Lexer(st); // Asumiendo que tienes una clase Lexer
+	    Pair token;
+	    while ((token = lexer.analyze(reader)) != null) {
+	        System.out.println("Token: " + token);
+	        if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
+	    		yylval = new ParserVal(token.getLexema());
+	    		
+	    	}
+	    		
+	       	return  token.getToken();//arreglar 
+	    }
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+
+	System.out.println(st.toString());
+	//preguntar si hay un puntero a la TS, si es asi hago un new yylva = new Parser(lexema que le paso )
+	return -1;
+	
+	
+	
+	
 }
 
-/*blic static void main(String[] args) {
-	Parser parser= new Parser();
+public static void main(String[] args) {
+	
+	Parser parser= new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
     parser.run();
         
-}*/
+}
 //#line 553 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
@@ -781,19 +786,52 @@ break;
 case 15:
 //#line 82 "gramatica.y"
 { 
-    System.out.println("Declaración: " + val_peek(1));
+    List<String> variables = (List<String>)val_peek(1); /* Asume que lista_var devuelve una lista de variables*/
+    
+    for (String variable : variables) {
+        /* Verificar si la variable ya existe en la tabla de símbolos*/
+        if (!st.hasKey(variable)) {
+            System.out.println("ERROR, la tabla de símbolos no contenía la variable: " + variable);
+        } else {
+            /* Actualiza el tipo de la variable si ya está en la tabla de símbolos*/
+            boolean actualizado = st.updateType(variable, val_peek(2).toString());
+            if (actualizado) {
+                System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + val_peek(2));
+            } else {
+                System.out.println("Error al actualizar el tipo de la variable: " + variable);
+            }
+        }
+    }
+}
+break;
+case 21:
+//#line 116 "gramatica.y"
+{ 
+    /* Si ya tenemos una lista de variables, añadimos la nueva variable*/
+    List<String> variables = (List<String>)val_peek(2);
+    variables.add(val_peek(0).toString());
+    yyval = (ParserVal) variables;  /* Devolvemos la lista actualizada*/
+}
+break;
+case 22:
+//#line 122 "gramatica.y"
+{ 
+    /* Creamos una nueva lista con la primera variable*/
+    List<String> variables = new ArrayList<>();
+    variables.add(val_peek(0).toString());
+    yyval = (ParserVal) variables;  /* Devolvemos la lista*/
 }
 break;
 case 23:
-//#line 103 "gramatica.y"
-{ yyval = "double"; }
+//#line 129 "gramatica.y"
+{ yyval = new ParserVal("double"); }
 break;
 case 24:
-//#line 104 "gramatica.y"
-{ yyval = "longint"; }
+//#line 130 "gramatica.y"
+{ yyval = new ParserVal("longint"); }
 break;
 case 25:
-//#line 106 "gramatica.y"
+//#line 132 "gramatica.y"
 {
         /* Verificar si el tipo está en la tabla de tipos definidos*/
         if (tablaTipos.containsKey(val_peek(0))) {
@@ -804,37 +842,37 @@ case 25:
     }
 break;
 case 36:
-//#line 133 "gramatica.y"
+//#line 159 "gramatica.y"
 {
         /* Guardar el nuevo tipo en la tabla de símbolos*/
-        String nombreTipo = val_peek(5); /* T_ID*/
-        String tipoBase = val_peek(3); /* tipo base (INTEGER o SINGLE)*/
-        double limiteInferior = Double.parseDouble(val_peek(2)); /* Limite inferior del subrango*/
-        double limiteSuperior = Double.parseDouble(val_peek(1)); /* Limite superior del subrango*/
+        String nombreTipo = val_peek(5).toString(); /* T_ID*/
+        String tipoBase = val_peek(3).toString(); /* tipo base (INTEGER o SINGLE)*/
+        double limiteInferior = Double.parseDouble(val_peek(2).toString()); /* Limite inferior del subrango*/
+        double limiteSuperior = Double.parseDouble(val_peek(1).toString()); /* Limite superior del subrango*/
 
         /* Almacenar en la tabla de símbolos*/
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
     }
 break;
 case 37:
-//#line 144 "gramatica.y"
+//#line 170 "gramatica.y"
 {
-        yyval = new Subrango(Double.parseDouble(val_peek(3)), Double.parseDouble(val_peek(1)));
+	yyval = new ParserVal(new Subrango(Double.parseDouble(val_peek(3).toString()), Double.parseDouble(val_peek(1).toString())));
     }
 break;
 case 64:
-//#line 181 "gramatica.y"
+//#line 207 "gramatica.y"
 {
 
-    if (val_peek(3).size() != val_peek(1).size()){
+	if (((List<?>) val_peek(3).obj).size() != ((List<?>) val_peek(1).obj).size()){
         yyerror("Error: El número de variables no coincide con el número de expresiones.");
 
     } else {
 
         /* Verificar si el valor asignado está dentro del rango*/
-        for (int i = 0; i < val_peek(3).size(); i++) {
-            String variable = val_peek(3).get(i);  /* IDENTIFIER_LIST*/
-            double valorAsignado = val_peek(1).get(i);  /* expresion_list (valor)*/
+        for (int i = 0; i < ((List<?>) val_peek(3).obj).size(); i++) {
+            String variable = (String) ((List<?>) val_peek(3).obj).get(i);  /* IDENTIFIER_LIST*/
+            double valorAsignado = (Double) ((List<?>) val_peek(1).obj).get(i);  /* expresion_list (valor)*/
 
             /* Obtener el tipo de la variable*/
             String tipoVariable = obtenerTipo(variable); /* Implementa obtenerTipo() para encontrar el tipo de la variable*/
@@ -859,14 +897,14 @@ case 64:
 }
 break;
 case 73:
-//#line 225 "gramatica.y"
-{ yyval = val_peek(3) + "[1]"; }
+//#line 251 "gramatica.y"
+{ yyval = new ParserVal(val_peek(3).toString() + "{1}"); }
 break;
 case 74:
-//#line 226 "gramatica.y"
-{ yyval = val_peek(3) + "[2]"; }
+//#line 252 "gramatica.y"
+{ yyval = new ParserVal(val_peek(3).toString() + "{2}"); }
 break;
-//#line 796 "Parser.java"
+//#line 829 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####
@@ -911,6 +949,10 @@ break;
 
 
 //## run() --- for Thread #######################################
+public void yyerror(String s) {
+    System.err.println("Error: " + s);
+}
+
 /**
  * A default run method, used for operating this parser
  * object in the background.  It is intended for extending Thread
@@ -929,11 +971,32 @@ public void run()
  * Default constructor.  Turn off with -Jnoconstruct .
 
  */
-public Parser()
-{
-  //nothing to do
-}
 
+	/* Función para verificar si el valor está dentro del rango*/
+	boolean verificarRango(String tipo, double valor) {
+	    if (tablaTipos.containsKey(tipo)) {
+	        TipoSubrango subrango = tablaTipos.get(tipo);
+	        return valor >= subrango.limiteInferior && valor <= subrango.limiteSuperior;
+	    }
+	    return true; /* Si no es un tipo definido por el usuario, no se verifica el rango*/
+	}
+	
+	/* Definir rangos para tipos estándar*/
+	boolean verificarRangoLongInt(double valor) {
+	    return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
+	}
+	
+	boolean verificarRangoDouble(double valor) {
+	    return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
+	}
+	
+	String obtenerTipo(String variable) {
+	    /* Implementa la lógica para obtener el tipo de la variable a partir de una tabla de símbolos.*/
+	    /* Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.*/
+	    if (!st.hasKey(variable)) return variable;
+	
+	    return st.getType(variable);  /* Ejemplo*/
+	}
 
 /**
  * Create a parser, setting the debug to true or false.

@@ -55,31 +55,32 @@ class AS2 extends SemanticAction {
 class AS3 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS3");
-    	lex.setEstado(true);
+        System.out.println("AS3");
+        lex.setEstado(true);
 
         String token = lexeme.toString().toUpperCase();
-        if (lex.isReservedWord(token)) {//si está dentro de la tabla de tokens o si es palabra reservada
+        if (lex.isReservedWord(token)) {
             Integer valorTabla = lex.getReservedWordToken(token);
-        	System.out.println("Valor: "+  valorTabla);
+            System.out.println("Valor: " + valorTabla);
 
-            lex.addToken(valorTabla);//se agarra y se mete en la lista del analizador sintactico
+            lex.addToken(new Pair(lexeme.toString(), valorTabla));
         } else {
             if (token.length() > Lexer.MAX_ID_LENGTH) {
-                System.out.println("Advertencia: Identificador demasiado largo en la linea " + Integer.toString(lex.getNroLinea()));
-                System.out.println("Se recortara el identificador");
-                token = lexeme.substring(0,15).toUpperCase();
-                
+                System.out.println("Advertencia: Identificador demasiado largo en la línea " + lex.getNroLinea());
+                token = lexeme.substring(0, 15).toUpperCase();
             }
-            if (!lex.containsSymbol(token))
-            	lex.insertSymbolTable(token, "String", SymbolTable.identifierValue);
-            //VER
-            lex.addToken(SymbolTable.identifierValue);  
+            if (!lex.containsSymbol(token)) {
+                lex.insertSymbolTable(token, "String", SymbolTable.identifierValue);
+            }
+            lex.addToken(new Pair(lexeme.toString(), SymbolTable.identifierValue));
         }
-        
-    	lex.setLexeme("");
-    }//done a priori
+
+        // Limpiar lexema después de procesar el token
+        lexeme.setLength(0);
+        lex.setCurrentState(0); // Reiniciar el estado
+    }
 }
+
 
 class AS4 extends SemanticAction {
     @Override
@@ -91,14 +92,16 @@ class AS4 extends SemanticAction {
         int numero = Integer.parseInt(token);
         if ((numero > Math.pow(-2, -31)) && (numero < Math.pow(2, 31))) {
         	lex.insertSymbolTable(token,"longint", SymbolTable.constantValue);
-            lex.addToken(SymbolTable.constantValue);  
+            lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));  
 
         } else {
             System.out.println("El número usado en la linea " + lex.getNroLinea() + " supera el rango permitido por los enteros.");
             
         }
        
-    	lex.setLexeme("");
+     // Limpiar lexema después de procesar el token
+        lexeme.setLength(0);
+        lex.setCurrentState(0); // Reiniciar el estado
     }//done a priori
 }
 
@@ -126,14 +129,16 @@ class AS5 extends SemanticAction {
                 number == 0.0) {
             	lex.insertSymbolTable(lexeme.toString(),"double" , SymbolTable.constantValue);
             	
-                lex.addToken(SymbolTable.constantValue); 
+                lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 
             } else {
                 System.out.println("El número está fuera del rango permitido.");
             }
         } catch (NumberFormatException e) {
             System.out.println("El formato del número es incorrecto.");
         }finally{
-        	lex.setLexeme("");
+        	// Limpiar lexema después de procesar el token
+            lexeme.setLength(0);
+            lex.setCurrentState(0); // Reiniciar el estado
 
         };
     	
@@ -149,11 +154,11 @@ class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
     	lex.setEstado(false);
     	lexeme.append(currentChar);
         Integer valor=lex.getSymbol(lexeme.toString());
-        lex.addToken(valor);
+        lex.addToken(new Pair(lexeme.toString(), valor));
     	System.out.println("Valor: "+  valor + "para: " + lexeme.toString());
 
     	
-    	lex.setLexeme("");
+    	//lex.setLexeme("");
     } //done a priori
 }
 
@@ -177,9 +182,9 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     	}
     	
 
-    	lex.addToken(valor);
+    	lex.addToken(new Pair(lexeme.toString(), valor));
     	
-    	lex.setLexeme("");
+    	//lex.setLexeme("");
     } 
 }
 
@@ -191,14 +196,17 @@ class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
         	lex.setEstado(false);
         	lexeme.append(currentChar);
         	Integer valor = lex.getReservedWordToken(lexeme.toString());
-        	lex.addToken(valor);
+        	lex.addToken(new Pair(lexeme.toString(), valor));
         }else {//AGARRAR HASTA EL LEXEMA Y ENTREGAR SIMBOLO DE TABLA DE SIMBOLOS
         	Integer valor = lex.getSymbol(lexeme.toString());
         	lex.setEstado(true);
 
-        	lex.addToken(valor);
+        	lex.addToken(new Pair(lexeme.toString(), valor));
+        	// Limpiar lexema después de procesar el token
+            lexeme.setLength(0);
+            lex.setCurrentState(0); // Reiniciar el estado
         }
         
-    	lex.setLexeme("");
+    	//lex.setLexeme("");
     } 
 }

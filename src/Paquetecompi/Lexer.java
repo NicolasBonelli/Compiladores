@@ -1,6 +1,7 @@
 package Paquetecompi;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +12,7 @@ public class Lexer {
 	Map<String, TipoSubrango> tablaTipos = new HashMap<>();
 	static int nmrLinea;
 	private int currentState = 0;
-	private ArrayList<Integer> tokenList;
+	private ArrayList<Pair> tokenList;
 	private StringBuilder lexema;
 	final static int MAX_ID_LENGTH=15;
 	private boolean estado; 
@@ -22,7 +23,7 @@ public class Lexer {
 		initializeReservedSymbols();
 	    initializeReservedWords();
 	    Lexer.nmrLinea = 1;
-	    this.tokenList=new ArrayList<Integer>();
+	    this.tokenList=new ArrayList<Pair>();
 	    this.lexema=new StringBuilder();
 	    this.tablaTipos= new HashMap<>();
 	    
@@ -203,8 +204,8 @@ public class Lexer {
         
         tabla.addValue(word,type, token);
     }
-    public void addToken(Integer token) {
-    	this.tokenList.add(token);
+    public void addToken(Pair pair) {
+    	this.tokenList.add(pair);
     }
     public void setLexeme(String set) {
     	this.lexema=new StringBuilder(set);
@@ -235,50 +236,58 @@ public class Lexer {
 
 
 
-public void analyze(String filePath) {
-    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-        int currentChar;
-        while ((currentChar = reader.read()) != -1) { // Leer hasta EOF
-            char c = (char) currentChar;
-            
-            if (c == '\n') {
-                nmrLinea++;
-            }
-            
-            int actionIndex = getTSIndex(c); //20
-            if (actionIndex != -1) {
-                actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); //16
-                currentState = transitionMatrix[currentState][actionIndex];
-                System.out.println(currentState + " arriba");
-                
-                if (currentState == 16) {
-                    currentState = 0;
-                    System.out.println(actionIndex + " abajo");
-                    
-                    if (estado) { //Si no son acciones semánticas de las que entregan tokens o caso especial :=
-                        actionIndex = getTSIndex(c);
-                        System.out.println("Se puso estado en 0");
-                        System.out.println("Valor action index " + actionIndex);
-                        actionMatrix[currentState][actionIndex].execute(this, this.lexema, c);
-                        currentState = transitionMatrix[currentState][actionIndex];
-                        currentState = (currentState == 16) ? 0 : currentState;
-                        System.out.println(currentState + " abajo");
-                    }
-                }
-            } else {
-                new ASE("Caracter no identificado").execute(this, this.lexema, c); // Manejo de errores
-            }
-            estado = true;
-        }
-        
-        // Asegurar que se procesa cualquier carácter pendiente al final del archivo
-        if (currentState != 0) {
-            actionMatrix[currentState][0].execute(this, this.lexema, '\0'); // Manejar el final del archivo si es necesario
-        }
-    } catch (Exception e) {
-        e.printStackTrace(); // Manejo de excepciones de E/S
-    }
-}
+	public Pair analyze(BufferedReader reader) {
+	    try {
+	        int currentChar;
+	        //reader.mark(1); // Marcar la posición actual en el archivo
+	        
+	        while ((currentChar = reader.read()) != -1) { // Leer hasta EOF
+	            char c = (char) currentChar;
+	            System.out.println("CHAR: " + c);
+	            if (c == '\n' || c == '\r') {
+	                nmrLinea++;
+	                System.out.println("ENTRE");
+	            }
+
+	            int actionIndex = getTSIndex(c); // Obtener índice en la tabla de símbolos
+	            
+	            if (actionIndex != -1) {
+	                actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); // Ejecutar acción
+	                currentState = transitionMatrix[currentState][actionIndex];
+	                System.out.println(currentState + " arriba");
+
+	                if (currentState == 16) { // Estado final
+	                    currentState = 0; // Resetear el estado
+	                    Pair tokenPair = new Pair(lexema.toString(), actionIndex); // Crear un Pair con el lexema y el índice de acción
+	                    lexema.setLength(0); // Limpiar el lexema para el siguiente token
+	                    return tokenPair; // Devolver el Pair
+	                }
+
+	                reader.mark(1); // Marcar la posición actual antes de leer el siguiente carácter
+	            } else {
+	                new ASE("Caracter no identificado").execute(this, this.lexema, c); // Manejo de errores
+	                return null; // Devolver null si ocurre un error
+	            }
+
+	            // Si estado es `false`, necesitamos procesar el carácter actual de nuevo
+	            if (estado) {
+	                reader.reset(); // Volver a la última posición marcada
+	                estado = false; // Reiniciar el estado para el siguiente ciclo
+	            }
+	        }
+
+	        // Procesar cualquier carácter pendiente al final del archivo
+	        if (currentState != 0) {
+	            actionMatrix[currentState][0].execute(this, this.lexema, '\0'); // Manejar fin de archivo
+	            Pair finalPair = new Pair(lexema.toString(), 0); // Devolver el último token o fin de archivo
+	            return finalPair;
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace(); // Manejo de excepciones de E/S
+	    }
+	    return null; // Devolver null al final del archivo o si ocurre un error
+	}
+
     
     
 
@@ -294,7 +303,7 @@ public void analyze(String filePath) {
             return this.tabla.getValue("1 al 7") - 1;
         } else if (input == ' ') {
             return this.tabla.getValue("bl") - 1; // Manejo de espacio
-        } else if (input == '\n') {
+        } else if (input == '\n' || input == '\r') {
             return this.tabla.getValue("nl") - 1; // Manejo de salto de línea
         } else if (input == '\t') {
             return this.tabla.getValue("tab") - 1; // Manejo de tabulación
@@ -316,16 +325,15 @@ public void analyze(String filePath) {
     public void showArray() {
     	System.out.println(tokenList);
     }
-    
-    public int getLex() {
+    /*
+    public Pair getLex() {
     	return tokenList.remove(0);
-    }
+    } */
 
     public static void main(String[] args) {
-    	SymbolTable st = new SymbolTable();
-        Lexer lexer = new Lexer(st);
-        lexer.analyze("C:\\Users\\usuario\\Desktop\\prueba.txt");
-    	lexer.showArray();
-    	System.out.println(st.toString());
+    	
     }
+
+	public void setCurrentState(int i) {
+		this.currentState = i;	}
 }

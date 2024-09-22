@@ -14,7 +14,7 @@ this.errorType = errorType;
 }
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    System.out.println(errorType + " at linea: "+ lex.getNroLinea());
+    //System.out.println(errorType + " at linea: "+ lex.getNroLinea());
     /* Lo que vamos a hacer es en la matriz de AS, pasarle por el constructor el tipo de error, de manera que aquí
      * lo determinamos, y tiramos el error, warning, lo q sea*/
     
@@ -24,7 +24,7 @@ this.errorType = errorType;
 class ASI extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-        System.out.println("Leer siguiente token o eliminar espacio en blanco.");//se deja asi
+        //System.out.println("Leer siguiente token o eliminar espacio en blanco.");//se deja asi
         
     }// done a priori
 }
@@ -32,10 +32,10 @@ class ASI extends SemanticAction {
 class AS1 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS1");
+    	//System.out.println("AS1");
 
     	lexeme.setLength(0);
-    	lex.setEstado(true);
+    	lex.setEstado(false);
 
         lexeme.append(currentChar);
     	
@@ -45,8 +45,8 @@ class AS1 extends SemanticAction {
 class AS2 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS2");
-    	lex.setEstado(true);
+    	//System.out.println("AS2");
+    	lex.setEstado(false);
 
     	lexeme.append(currentChar);
     }//done a priori
@@ -55,13 +55,13 @@ class AS2 extends SemanticAction {
 class AS3 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-        System.out.println("AS3");
+        //System.out.println("AS3");
         lex.setEstado(true);
 
         String token = lexeme.toString().toUpperCase();
         if (lex.isReservedWord(token)) {
             Integer valorTabla = lex.getReservedWordToken(token);
-            System.out.println("Valor: " + valorTabla);
+           // System.out.println("Valor: " + valorTabla);
 
             lex.addToken(new Pair(lexeme.toString(), valorTabla));
         } else {
@@ -76,8 +76,8 @@ class AS3 extends SemanticAction {
         }
 
         // Limpiar lexema después de procesar el token
-        lexeme.setLength(0);
-        lex.setCurrentState(0); // Reiniciar el estado
+        //lexeme.setLength(0);
+        //lex.setCurrentState(0); // Reiniciar el estado
     }
 }
 
@@ -85,7 +85,7 @@ class AS3 extends SemanticAction {
 class AS4 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS4");
+    	//System.out.println("AS4");
     	lex.setEstado(true);
 
         String token = lexeme.toString();
@@ -100,15 +100,15 @@ class AS4 extends SemanticAction {
         }
        
      // Limpiar lexema después de procesar el token
-        lexeme.setLength(0);
-        lex.setCurrentState(0); // Reiniciar el estado
+    /*    lexeme.setLength(0);
+        lex.setCurrentState(0); // Reiniciar el estado */
     }//done a priori
 }
 
 class AS5 extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS5");
+    	//System.out.println("AS5");
     	lex.setEstado(true);
 
         String token = lexeme.toString();
@@ -136,9 +136,9 @@ class AS5 extends SemanticAction {
         } catch (NumberFormatException e) {
             System.out.println("El formato del número es incorrecto.");
         }finally{
-        	// Limpiar lexema después de procesar el token
+        /*	// Limpiar lexema después de procesar el token
             lexeme.setLength(0);
-            lex.setCurrentState(0); // Reiniciar el estado
+            lex.setCurrentState(0); // Reiniciar el estado */
 
         };
     	
@@ -150,12 +150,12 @@ class AS5 extends SemanticAction {
 class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS6");
+    	//System.out.println("AS6");
     	lex.setEstado(false);
     	lexeme.append(currentChar);
-        Integer valor=lex.getSymbol(lexeme.toString());
+        Integer valor = lex.getSymbol(lexeme.toString());
         lex.addToken(new Pair(lexeme.toString(), valor));
-    	System.out.println("Valor: "+  valor + "para: " + lexeme.toString());
+    	//System.out.println("Valor: "+  valor + "para: " + lexeme.toString());
 
     	
     	//lex.setLexeme("");
@@ -165,7 +165,7 @@ class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
 class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS7");
+    	//System.out.println("AS7");
     	lex.setEstado(false);
 		lexeme.append(currentChar);
 		Integer valor = 0;
@@ -178,7 +178,7 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     	}
     	else {
     		valor = lex.getReservedWordToken(lexeme.toString());
-        	System.out.println("Valor: "+  valor);
+        	//System.out.println("Valor: "+  valor);
     	}
     	
 
@@ -191,7 +191,7 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
 class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.out.println("AS8");
+    	//System.out.println("AS8");
         if(Character.toString(currentChar).equals("=")) {//AGARRO =, CONCATENO Y ME FIJO EN TABLA DE RESERVADAS
         	lex.setEstado(false);
         	lexeme.append(currentChar);
@@ -203,8 +203,8 @@ class AS8 extends SemanticAction {//TABLA PALABRA RESERVADAS Y TABLA DE SIMBOLOS
 
         	lex.addToken(new Pair(lexeme.toString(), valor));
         	// Limpiar lexema después de procesar el token
-            lexeme.setLength(0);
-            lex.setCurrentState(0); // Reiniciar el estado
+       /*     lexeme.setLength(0);
+            lex.setCurrentState(0); // Reiniciar el estado */
         }
         
     	//lex.setLexeme("");

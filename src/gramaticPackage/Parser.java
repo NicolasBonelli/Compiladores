@@ -1,61 +1,90 @@
-package gramaticPackage;
-import java.io.BufferedReader;
+//### This file created by BYACC 1.8(/Java extension  1.15)
+//### Java capabilities added 7 Jan 97, Bob Jamison
+//### Updated : 27 Nov 97  -- Bob Jamison, Joe Nieten
+//###           01 Jan 98  -- Bob Jamison -- fixed generic semantic constructor
+//###           01 Jun 99  -- Bob Jamison -- added Runnable support
+//###           06 Aug 00  -- Bob Jamison -- made state variables class-global
+//###           03 Jan 01  -- Bob Jamison -- improved flags, tracing
+//###           16 May 01  -- Bob Jamison -- added custom stack sizing
+//###           04 Mar 02  -- Yuval Oren  -- improved java performance, added options
+//###           14 Mar 02  -- Tomas Hurka -- -d support, static initializer workaround
+//### Please send bug reports to tom@hukatronic.cz
+//### static char yysccsid[] = "@(#)yaccpar	1.8 (Berkeley) 01/20/90";
+
+
+
+
+
+
+//#line 2 "gramatica.y"
+    package gramaticPackage;
+    import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+
 import Paquetecompi.Lexer;
 import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
 import gramaticPackage.*;
-    
    
-    /* Clase para almacenar la información de los subrangos.*/
-    class TipoSubrango {
-        String tipoBase;
-        double limiteInferior;
-        double limiteSuperior;
+   /* Clase para almacenar la información de los subrangos.*/
+   class TipoSubrango {
+    String tipoBase;
+    double limiteInferior;
+    double limiteSuperior;
 
-        public TipoSubrango(String tipoBase, double limiteInferior, double limiteSuperior) {
-            this.tipoBase = tipoBase;
-            this.limiteInferior = limiteInferior;
-            this.limiteSuperior = limiteSuperior;
-        }
+    public TipoSubrango(String tipoBase, double limiteInferior, double limiteSuperior) {
+        this.tipoBase = tipoBase;
+        this.limiteInferior = limiteInferior;
+        this.limiteSuperior = limiteSuperior;
     }
+}
+
+class Subrango{
+    private double limiteSuperior;
+    private double limiteInferior;
     
-    class Subrango{
-    	private double limiteSuperior;
-    	private double limiteInferior;
-    	
-    	public Subrango(double limiteSuperior, double limiteInferior) {
-    		this.limiteSuperior = limiteSuperior; this.limiteInferior = limiteInferior;
-    	}
+    public Subrango(double limiteSuperior, double limiteInferior) {
+        this.limiteSuperior = limiteSuperior; this.limiteInferior = limiteInferior;
     }
-  
-//#line 66 "Parser.java"
+}
+
+/*#line 66 "Parser.java"*/
+
+
+   
+    
+//#line 87 "Parser.java"
 
 
 
 
 public class Parser
 {
-private Map<String, TipoSubrango> tablaTipos;
-private SymbolTable st;
-private Lexer lexer;
-boolean yydebug;        //do I want debug output?
-int yynerrs;            //number of errors so far
-int yyerrflag;          //was there an error?
-int yychar;             //the current working character
+	
+	
+	 
+	 private Map<String, TipoSubrango> tablaTipos;
+	 private SymbolTable st;
+	 private Lexer lexer;
+	 boolean yydebug;        //do I want debug output?
+	 int yynerrs;            //number of errors so far
+	 int yyerrflag;          //was there an error?
+	 int yychar;             //the current working character
+           //the current working character
+	    private BufferedReader reader;
 
+	    public Parser(String filePath) {
+	        SymbolTable st = new SymbolTable();
+	        try {
+	            this.reader = new BufferedReader(new FileReader(filePath));
+	            this.lexer = new Lexer(st);
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	    }
 //########## MESSAGES ##########
-
-public Parser(String ruta)
-{
-	tablaTipos = new HashMap<>();
-	st = new SymbolTable();
-	lexer = new Lexer(st);
-	System.out.println("SALI DEL LEXER");
-}
-
 //###############################################################
 // method: debug
 //###############################################################
@@ -254,25 +283,25 @@ final static short yydgoto[] = {                          2,
   111,   65,   75,
 };
 final static short yysindex[] = {                      -225,
- -203,    0,  423,    0,   19,   69, -215,  367, -212,    0,
-    0,  -29,    0,  386,    0,    0,    0,    0,    0,    0,
-    0,  121,    0,    0,    0, -226,   98,  -36,    0, -265,
- -173,   50, -165, -156, -155,   55, -241,   41,    0,    0,
- -265, -265, -265, -265, -265, -265, -157,    0,  -28, -265,
- -265, -265, -265, -241, -241, -241, -241, -265, -265, -265,
- -154,  -29,   82,  121,    0,   84,   25,   29, -164, -238,
-   86,   87,    0,   13,   88,   35,   37,    0,   13,    0,
-   13,    0,   13,    0,   13,    0,   13,    0,   13,   92,
-    0, -145,    0,   13,    0,   13,    0,   13,    0,   13,
-   33,   33,    0,    0,    0,   13,    0,   13,    0,   13,
-  -14,   25,    0, -124,   80,   83,   85,   90,    0,   23,
- -265, -265,   89,    0,    0, -238,    0,    0, -265,  367,
-    0,    0, -129, -128, -125,  103,  115,  116,    0, -115,
-    0,   13, -247, -162,  108,  110,  126,    0,  112,  117,
+ -205,    0,  423,    0,   19,   23, -224,  367, -212,    0,
+    0,  -26,    0,  386,    0,    0,    0,    0,    0,    0,
+    0,  121,    0,    0,    0, -226,   98,  -36,    0, -241,
+ -266,   17, -176, -162, -152,   54, -188,   60,    0,    0,
+ -241, -241, -241, -241, -241, -241, -164,    0,  -29, -241,
+ -241, -241, -241, -188, -188, -188, -188, -241, -241, -241,
+ -157,  -26,   82,  121,    0,   83,    2,   15, -160, -238,
+   86,   87,    0,   36,   88,    3,    7,    0,   36,    0,
+   36,    0,   36,    0,   36,    0,   36,    0,   36,   90,
+    0, -145,    0,   36,    0,   36,    0,   36,    0,   36,
+   33,   33,    0,    0,    0,   36,    0,   36,    0,   36,
+  -28,    2,    0, -124,   80,   89,   84,   85,    0,   26,
+ -241, -241,   91,    0,    0, -238,    0,    0, -241,  367,
+    0,    0, -136, -126, -125,  103,  115,  116,    0, -115,
+    0,   36, -155, -154,  108,  110,  126,    0,  112,  117,
   133,  367,  118,  367,  119,    0,    0, -100,    0,    0,
   -80,  -77,  -76,    0,  -74,  -73,    0,   67,  406,  136,
   140,  144,  145,    0,  165,    0,  -70,    0,    0,    0,
-    0,    0, -241,    0,    0,   36,  147,    0,
+    0,    0, -188,    0,    0,   29,  147,    0,
 };
 final static short yyrindex[] = {                         0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
@@ -306,21 +335,21 @@ static { yytable();}
 static void yytable(){
 yytable = new short[]{                         83,
    83,   83,   83,   83,  120,   83,   63,   61,   34,   66,
-   37,  152,   62,   13,  153,   92,   15,   83,   83,   83,
-   83,   35,   78,   29,   78,   78,   78,   40,   29,  129,
-   91,   69,   10,   11,   29,   70,   67,   13,   47,  119,
-   78,   78,   78,   78,  128,   79,   69,   79,   79,   79,
-   70,   48,    1,   32,   56,   54,    3,   55,   30,   57,
-  140,   38,   33,   79,   79,   79,   79,   36,   44,  116,
-   56,   54,   64,   55,   56,   57,  187,   56,   54,   57,
-   55,  113,   57,   78,   80,   82,   84,   86,   88,   76,
-   77,   45,   93,   95,   97,   99,  154,  137,  138,  155,
-  105,  107,  109,   66,   67,   13,  117,  118,   31,   69,
-   70,   71,   72,   73,   46,   38,   84,   84,   68,   84,
-   90,   84,  114,  112,  115,  121,  122,  124,  123,  125,
-  143,  126,  127,  130,   84,   84,   84,   47,  131,   56,
-   54,  132,   55,  144,   57,  135,  133,  139,  145,  146,
-   29,  134,  162,  147,  165,  149,  150,   58,   53,   59,
+   66,   67,   13,   37,   92,  129,   15,   83,   83,   83,
+   83,   35,   78,   29,   78,   78,   78,   40,   29,   91,
+  128,   69,   10,   11,   29,   70,   62,   13,   47,  119,
+   78,   78,   78,   78,   32,   79,   69,   79,   79,   79,
+   70,   48,    1,   33,    3,  116,   56,   54,   30,   55,
+  140,   57,   31,   79,   79,   79,   79,   36,   44,  187,
+   56,   54,   64,   55,   56,   57,   69,   56,   54,   57,
+   55,  113,   57,   78,   80,   82,   84,   86,   88,   67,
+   13,   45,   93,   95,   97,   99,   38,  137,  138,   70,
+  105,  107,  109,  152,  154,   71,  153,  155,   76,   77,
+  117,  118,   73,   90,   46,   72,   84,   84,   68,   84,
+  112,   84,  114,  115,   38,  121,  122,  124,  123,  126,
+  143,  125,  127,  130,   84,   84,   84,   47,  131,   56,
+   54,  145,   55,  144,   57,  133,  134,  132,  135,  139,
+   29,  146,  162,  147,  165,  149,  150,   58,   53,   59,
    48,  148,  151,   64,   64,  163,  156,  166,  157,  158,
   159,  141,   29,  161,   29,  160,  164,  167,  168,  169,
    45,   44,   46,   49,  170,  171,    5,  172,  173,   29,
@@ -393,21 +422,21 @@ static { yycheck(); }
 static void yycheck() {
 yycheck = new short[] {                         41,
    42,   43,   44,   45,   70,   47,   30,   44,    8,   44,
-   40,  259,  278,  279,  262,   44,    3,   59,   60,   61,
-   62,    8,   41,    3,   43,   44,   45,   14,    8,   44,
+  277,  278,  279,   40,   44,   44,    3,   59,   60,   61,
+   62,    8,   41,    3,   43,   44,   45,   14,    8,   59,
    59,   44,  271,  272,   14,   44,  278,  279,  265,  278,
-   59,   60,   61,   62,   59,   41,   59,   43,   44,   45,
-   59,  278,  278,  269,   42,   43,  260,   45,   40,   47,
-  126,   91,  278,   59,   60,   61,   62,  280,   41,   41,
-   42,   43,   30,   45,   42,   47,   41,   42,   43,   47,
-   45,   61,   47,   41,   42,   43,   44,   45,   46,   49,
-   50,   41,   50,   51,   52,   53,  259,  121,  122,  262,
-   58,   59,   60,  277,  278,  279,  271,  272,   40,   60,
-  276,  268,  268,   59,   41,   91,   42,   43,   44,   45,
-  278,   47,   41,  278,   41,   40,   40,   93,   41,   93,
-  130,   40,  278,  258,   60,   61,   62,   41,   59,   42,
-   43,   59,   45,  130,   47,  123,   62,   59,  278,  278,
-  130,   62,  152,  279,  154,   41,   41,   60,   61,   62,
+   59,   60,   61,   62,  269,   41,   59,   43,   44,   45,
+   59,  278,  278,  278,  260,   41,   42,   43,   40,   45,
+  126,   47,   40,   59,   60,   61,   62,  280,   41,   41,
+   42,   43,   30,   45,   42,   47,   60,   42,   43,   47,
+   45,   61,   47,   41,   42,   43,   44,   45,   46,  278,
+  279,   41,   50,   51,   52,   53,  123,  121,  122,  276,
+   58,   59,   60,  259,  259,  268,  262,  262,   49,   50,
+  271,  272,   59,  278,   41,  268,   42,   43,   44,   45,
+  278,   47,   41,   41,  123,   40,   40,  125,   41,   40,
+  130,  125,  278,  258,   60,   61,   62,   41,   59,   42,
+   43,  278,   45,  130,   47,   62,   62,   59,  123,   59,
+  130,  278,  152,  279,  154,   41,   41,   60,   61,   62,
    41,   59,  278,  121,  122,  152,   59,  154,   59,   44,
    59,  129,  152,   41,  154,   59,   59,   59,  279,  260,
    60,   61,   62,   41,  262,  262,  257,  262,  262,  169,
@@ -484,20 +513,20 @@ null,null,null,null,null,null,null,null,null,null,"'('","')'","'*'","'+'","','",
 "'-'",null,"'/'",null,"'1'","'2'",null,null,null,null,null,null,null,null,"';'",
 "'<'","'='","'>'",null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-"'['",null,"']'",null,null,null,null,null,null,null,null,null,null,null,null,
-null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-null,"'{'",null,"'}'",null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+"'{'",null,"'}'",null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
 null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-null,null,null,null,null,null,null,null,"IF","THEN","ELSE","BEGIN","END",
-"END_IF","OUTF","TYPEDEF","FUN","RET","REPEAT","WHILE","PAIR","GOTO","LONGINT",
-"DOUBLE","MENOR_IGUAL","MAYOR_IGUAL","DISTINTO","T_ASIGNACION","T_CADENA",
-"T_ID","T_CTE","T_ETIQUETA",
+null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+null,null,null,null,null,null,null,"IF","THEN","ELSE","BEGIN","END","END_IF",
+"OUTF","TYPEDEF","FUN","RET","REPEAT","WHILE","PAIR","GOTO","LONGINT","DOUBLE",
+"MENOR_IGUAL","MAYOR_IGUAL","DISTINTO","T_ASIGNACION","T_CADENA","T_ID","T_CTE",
+"T_ETIQUETA",
 };
 final static String yyrule[] = {
 "$accept : programa",
@@ -573,8 +602,8 @@ final static String yyrule[] = {
 "expresion_list : expresion_list ',' expresion",
 "expresion_list : expresion_list ',' invocacion_funcion",
 "expresion_list : invocacion_funcion",
-"acceso_par : T_ID '[' '1' ']'",
-"acceso_par : T_ID '[' '2' ']'",
+"acceso_par : T_ID '{' '1' '}'",
+"acceso_par : T_ID '{' '2' '}'",
 "goto_statement : GOTO T_ETIQUETA ';'",
 "invocacion_funcion : T_ID '(' parametro_real ')' ';'",
 "parametro_real : expresion",
@@ -587,43 +616,35 @@ final static String yyrule[] = {
 "expresion : acceso_par",
 };
 
-//#line 270 "gramatica.y"
+//#line 300 "gramatica.y"
+
 
 int yylex() {
-	
-	SymbolTable st = new SymbolTable();
-	try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt"))) {
-	    Lexer lexer = new Lexer(st); // Asumiendo que tienes una clase Lexer
-	    Pair token;
-	    while ((token = lexer.analyze(reader)) != null) {
-	        System.out.println("Token: " + token);
-	        if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
-	    		yylval = new ParserVal(token.getLexema());
-	    		
-	    	}
-	    		
-	       	return  token.getToken();//arreglar 
-	    }
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
+    try {
+        Pair token = lexer.analyze(reader);  // Sigue desde donde se quedó
+        System.out.println("Pair: "+ token);
+        if (token != null) {
+            System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
 
-	System.out.println(st.toString());
-	//preguntar si hay un puntero a la TS, si es asi hago un new yylva = new Parser(lexema que le paso )
-	return -1;
-	
-	
-	
-	
+            // Dependiendo del token, rellena el valor en yylval
+            if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
+                yylval = new ParserVal(token.getLexema());
+            }
+
+            return token.getToken();  // Devuelve el token al parser
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;  // Indicar fin de archivo o error
 }
+
 
 public static void main(String[] args) {
-	
-	Parser parser= new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
+    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
     parser.run();
-        
 }
-//#line 553 "Parser.java"
+//#line 596 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -648,6 +669,10 @@ int yym;       //
 int yystate;   //current parsing state from state table
 String yys;    //current token string
 
+//## run() --- for Thread #######################################
+public void yyerror(String s) {
+  System.err.println("Error: " + s);
+}
 
 //###############################################################
 // method: yyparse : parse input and execute indicated items
@@ -662,8 +687,10 @@ boolean doaction;
   yystate=0;            //initial state
   state_push(yystate);  //save it
   val_push(yylval);     //save empty value
+  System.out.println("Antes del while");
   while (true) //until parsing is done, either correctly, or w/error
     {
+	  System.out.println("Dentro del while");
     doaction=true;
     if (yydebug) debug("loop"); 
     //#### NEXT ACTION (from reduction table)
@@ -673,6 +700,7 @@ boolean doaction;
       if (yychar < 0)      //we want a char?
         {
         yychar = yylex();  //get next token
+        System.out.println("yychar: " + yychar);
         if (yydebug) debug(" next yychar:"+yychar);
         //#### ERROR CHECK ####
         if (yychar < 0)    //it it didn't work/error
@@ -778,14 +806,27 @@ boolean doaction;
       {
 //########## USER-SUPPLIED ACTIONS ##########
 case 1:
-//#line 61 "gramatica.y"
+//#line 82 "gramatica.y"
 {  
     System.out.println("Programa compilado correctamente");
 }
 break;
+case 2:
+//#line 86 "gramatica.y"
+{System.out.println("Llegue a BEGIN sentencia END");}
+break;
+case 4:
+//#line 89 "gramatica.y"
+{System.out.println("Llegue a sentencias");}
+break;
+case 14:
+//#line 101 "gramatica.y"
+{System.out.println("Llegue a sentencia");}
+break;
 case 15:
-//#line 82 "gramatica.y"
+//#line 103 "gramatica.y"
 { 
+    System.out.println("Llegue a declaracion");
     List<String> variables = (List<String>)val_peek(1); /* Asume que lista_var devuelve una lista de variables*/
     
     for (String variable : variables) {
@@ -804,64 +845,105 @@ case 15:
     }
 }
 break;
+case 16:
+//#line 124 "gramatica.y"
+{System.out.println("declaracion_funcion");}
+break;
+case 18:
+//#line 128 "gramatica.y"
+{System.out.println("Llegue a cuerpo_funcion");}
+break;
+case 20:
+//#line 133 "gramatica.y"
+{System.out.println("Llegue a sentencia_funcion");}
+break;
 case 21:
-//#line 116 "gramatica.y"
+//#line 138 "gramatica.y"
 { 
+    System.out.println("Llegue a lista_var 1");
     /* Si ya tenemos una lista de variables, añadimos la nueva variable*/
     List<String> variables = (List<String>)val_peek(2);
     variables.add(val_peek(0).toString());
     yyval = (ParserVal) variables;  /* Devolvemos la lista actualizada*/
+    /* Creamos un ParserVal para almacenar la lista en el campo 'obj' */
+    yyval = new ParserVal();
+    yyval.obj = variables;  /* Almacenamos la lista en el campo 'obj' de ParserVal */
 }
 break;
 case 22:
-//#line 122 "gramatica.y"
+//#line 145 "gramatica.y"
 { 
-    /* Creamos una nueva lista con la primera variable*/
-    List<String> variables = new ArrayList<>();
-    variables.add(val_peek(0).toString());
-    yyval = (ParserVal) variables;  /* Devolvemos la lista*/
+	   System.out.println("Llegue a lista_var 2");
+	    /* Creamos una nueva lista con la primera variable */
+	    List<String> variables = new ArrayList<>();
+	    variables.add(val_peek(0).toString());
+	    
+	    /* Creamos un ParserVal para almacenar la lista en el campo 'obj' */
+	    yyval = new ParserVal();
+	    yyval.obj = variables;  /* Almacenamos la lista en el campo 'obj' de ParserVal */
 }
 break;
 case 23:
-//#line 129 "gramatica.y"
+//#line 153 "gramatica.y"
 { yyval = new ParserVal("double"); }
 break;
 case 24:
-//#line 130 "gramatica.y"
+//#line 154 "gramatica.y"
 { yyval = new ParserVal("longint"); }
 break;
 case 25:
-//#line 132 "gramatica.y"
+//#line 156 "gramatica.y"
 {
+        System.out.println("Llegue a tipo");
         /* Verificar si el tipo está en la tabla de tipos definidos*/
-        if (tablaTipos.containsKey(val_peek(0))) {
+        if (tablaTipos.containsKey(val_peek(0).toString())) {
             yyval = val_peek(0); /* Si el tipo está definido, se usa el nombre del tipo*/
         } else {
             yyerror("Tipo no definido: " + val_peek(0));
         }
     }
 break;
+case 31:
+//#line 175 "gramatica.y"
+{        System.out.println("Llegue a if_statement");        }
+break;
+case 33:
+//#line 179 "gramatica.y"
+{     System.out.println("Llegue a salida");   }
+break;
 case 36:
-//#line 159 "gramatica.y"
+//#line 185 "gramatica.y"
 {
+            System.out.println("Llegue a sentencia_declarativa_tipos");
         /* Guardar el nuevo tipo en la tabla de símbolos*/
-        String nombreTipo = val_peek(5).toString(); /* T_ID*/
-        String tipoBase = val_peek(3).toString(); /* tipo base (INTEGER o SINGLE)*/
-        double limiteInferior = Double.parseDouble(val_peek(2).toString()); /* Limite inferior del subrango*/
-        double limiteSuperior = Double.parseDouble(val_peek(1).toString()); /* Limite superior del subrango*/
+            String nombreTipo = val_peek(5).toString(); /* T_ID*/
+            String tipoBase = val_peek(3).toString(); /* tipo base (INTEGER o SINGLE)*/
+            double limiteInferior = Double.parseDouble(val_peek(2).toString()); /* Limite inferior del subrango*/
+            double limiteSuperior = Double.parseDouble(val_peek(1).toString()); /* Limite superior del subrango*/
 
         /* Almacenar en la tabla de símbolos*/
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
     }
 break;
 case 37:
-//#line 170 "gramatica.y"
+//#line 197 "gramatica.y"
 {
-	yyval = new ParserVal(new Subrango(Double.parseDouble(val_peek(3).toString()), Double.parseDouble(val_peek(1).toString())));
+        System.out.println("Llegue a subrango");
+
+    	yyval = new ParserVal(new Subrango(Double.parseDouble(val_peek(3).toString()), Double.parseDouble(val_peek(1).toString())));
     }
 break;
+case 38:
+//#line 205 "gramatica.y"
+{ System.out.println("Llegue a MENOR_IGUAL");
+}
+break;
+case 62:
+//#line 233 "gramatica.y"
+{System.out.println("Llegue a repeat_while");}
+break;
 case 64:
-//#line 207 "gramatica.y"
+//#line 237 "gramatica.y"
 {
 
 	if (((List<?>) val_peek(3).obj).size() != ((List<?>) val_peek(1).obj).size()){
@@ -897,14 +979,15 @@ case 64:
 }
 break;
 case 73:
-//#line 251 "gramatica.y"
-{ yyval = new ParserVal(val_peek(3).toString() + "{1}"); }
-break;
-case 74:
-//#line 252 "gramatica.y"
-{ yyval = new ParserVal(val_peek(3).toString() + "{2}"); }
-break;
-//#line 829 "Parser.java"
+	//#line 251 "gramatica.y"
+	{ yyval = new ParserVal(val_peek(3).toString() + "{1}"); }
+	break;
+	case 74:
+	//#line 252 "gramatica.y"
+	{ yyval = new ParserVal(val_peek(3).toString() + "{2}"); }
+	break;
+
+//#line 920 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####
@@ -949,10 +1032,6 @@ break;
 
 
 //## run() --- for Thread #######################################
-public void yyerror(String s) {
-    System.err.println("Error: " + s);
-}
-
 /**
  * A default run method, used for operating this parser
  * object in the background.  It is intended for extending Thread
@@ -964,39 +1043,35 @@ public void run()
 }
 //## end of method run() ########################################
 
+/* Función para verificar si el valor está dentro del rango*/
+boolean verificarRango(String tipo, double valor) {
+    if (tablaTipos.containsKey(tipo)) {
+        TipoSubrango subrango = tablaTipos.get(tipo);
+        return valor >= subrango.limiteInferior && valor <= subrango.limiteSuperior;
+    }
+    return true; /* Si no es un tipo definido por el usuario, no se verifica el rango*/
+}
+
+/* Definir rangos para tipos estándar*/
+boolean verificarRangoLongInt(double valor) {
+    return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
+}
+
+boolean verificarRangoDouble(double valor) {
+    return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
+}
+
+String obtenerTipo(String variable) {
+    /* Implementa la lógica para obtener el tipo de la variable a partir de una tabla de símbolos.*/
+    /* Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.*/
+    if (!st.hasKey(variable)) return variable;
+
+    return st.getType(variable);  /* Ejemplo*/
+}
 
 
-//## Constructors ###############################################
-/**
- * Default constructor.  Turn off with -Jnoconstruct .
 
- */
 
-	/* Función para verificar si el valor está dentro del rango*/
-	boolean verificarRango(String tipo, double valor) {
-	    if (tablaTipos.containsKey(tipo)) {
-	        TipoSubrango subrango = tablaTipos.get(tipo);
-	        return valor >= subrango.limiteInferior && valor <= subrango.limiteSuperior;
-	    }
-	    return true; /* Si no es un tipo definido por el usuario, no se verifica el rango*/
-	}
-	
-	/* Definir rangos para tipos estándar*/
-	boolean verificarRangoLongInt(double valor) {
-	    return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
-	}
-	
-	boolean verificarRangoDouble(double valor) {
-	    return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
-	}
-	
-	String obtenerTipo(String variable) {
-	    /* Implementa la lógica para obtener el tipo de la variable a partir de una tabla de símbolos.*/
-	    /* Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.*/
-	    if (!st.hasKey(variable)) return variable;
-	
-	    return st.getType(variable);  /* Ejemplo*/
-	}
 
 /**
  * Create a parser, setting the debug to true or false.

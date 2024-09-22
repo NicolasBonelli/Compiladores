@@ -16,6 +16,7 @@ public class Lexer {
 	private StringBuilder lexema;
 	final static int MAX_ID_LENGTH=15;
 	private boolean estado; 
+	private boolean finished = false;
 	public Lexer(SymbolTable tabla) {
 		reservedWords = new HashMap<>();
 	    this.tabla=tabla;
@@ -243,10 +244,10 @@ public class Lexer {
 	        
 	        while ((currentChar = reader.read()) != -1) { // Leer hasta EOF
 	            char c = (char) currentChar;
-	            System.out.println("CHAR: " + c);
+	           // System.out.println("CHAR: " + c);
 	            if (c == '\n' || c == '\r') {
 	                nmrLinea++;
-	                System.out.println("ENTRE");
+	               // System.out.println("ENTRE");
 	            }
 
 	            int actionIndex = getTSIndex(c); // Obtener índice en la tabla de símbolos
@@ -254,12 +255,16 @@ public class Lexer {
 	            if (actionIndex != -1) {
 	                actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); // Ejecutar acción
 	                currentState = transitionMatrix[currentState][actionIndex];
-	                System.out.println(currentState + " arriba");
+	                //System.out.println(currentState + " arriba");
 
 	                if (currentState == 16) { // Estado final
 	                    currentState = 0; // Resetear el estado
-	                    Pair tokenPair = new Pair(lexema.toString(), actionIndex); // Crear un Pair con el lexema y el índice de acción
+	                    Pair tokenPair = tokenList.remove(0); // Crear un Pair con el lexema y el índice de acción
 	                    lexema.setLength(0); // Limpiar el lexema para el siguiente token
+	                    if (estado) {
+	    	                reader.reset(); // Volver a la última posición marcada
+	    	                estado = false; // Reiniciar el estado para el siguiente ciclo
+	    	            }
 	                    return tokenPair; // Devolver el Pair
 	                }
 
@@ -269,17 +274,14 @@ public class Lexer {
 	                return null; // Devolver null si ocurre un error
 	            }
 
-	            // Si estado es `false`, necesitamos procesar el carácter actual de nuevo
-	            if (estado) {
-	                reader.reset(); // Volver a la última posición marcada
-	                estado = false; // Reiniciar el estado para el siguiente ciclo
-	            }
+	            
 	        }
 
 	        // Procesar cualquier carácter pendiente al final del archivo
-	        if (currentState != 0) {
+	        if (currentState != 0 && !finished) {
+	        	finished = true;
 	            actionMatrix[currentState][0].execute(this, this.lexema, '\0'); // Manejar fin de archivo
-	            Pair finalPair = new Pair(lexema.toString(), 0); // Devolver el último token o fin de archivo
+	            Pair finalPair = tokenList.remove(0); // Devolver el último token o fin de archivo
 	            return finalPair;
 	        }
 	    } catch (Exception e) {
@@ -292,7 +294,7 @@ public class Lexer {
     
 
     private int getTSIndex(char input) {
-    	System.out.println("Valor input:" + input);
+    	//System.out.println("Valor input:" + input);
         if (Character.toString(input).matches("[a-ce-zA-Z]")) { 
             return this.tabla.getValue("letra-[d]") - 1;
         } else if (input == 'd') {
@@ -314,7 +316,7 @@ public class Lexer {
         else {
         	if (tabla.hasKey(Character.toString(input))) {
         		
-        		System.out.println("Valor devuelto columna:" + String.valueOf(this.tabla.getValue(Character.toString(input)) - 1));
+        		//System.out.println("Valor devuelto columna:" + String.valueOf(this.tabla.getValue(Character.toString(input)) - 1));
         		return this.tabla.getValue(Character.toString(input)) - 1;
         	}else {
         		return -1;
@@ -331,7 +333,18 @@ public class Lexer {
     } */
 
     public static void main(String[] args) {
-    	
+     	SymbolTable st = new SymbolTable();
+    	try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt"))) {
+    	    Lexer lexer = new Lexer(st); // Asumiendo que tienes una clase Lexer
+    	    Pair token;
+    	    while ((token = lexer.analyze(reader)) != null) {
+    	        System.out.println("Token: " + token);
+    	    }
+    	} catch (IOException e) {
+    	    e.printStackTrace();
+    	}
+
+    	System.out.println(st.toString());
     }
 
 	public void setCurrentState(int i) {

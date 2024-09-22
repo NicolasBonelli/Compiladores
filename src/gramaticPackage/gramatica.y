@@ -9,17 +9,30 @@
     Lexer lexer = new Lexer(st);
     lexer.analyze("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
     // Clase para almacenar la información de los subrangos.
-    class TipoSubrango {
-        String tipoBase;
-        double limiteInferior;
-        double limiteSuperior;
+   /* Clase para almacenar la información de los subrangos.*/
+   class TipoSubrango {
+    String tipoBase;
+    double limiteInferior;
+    double limiteSuperior;
 
-        public TipoSubrango(String tipoBase, double limiteInferior, double limiteSuperior) {
-            this.tipoBase = tipoBase;
-            this.limiteInferior = limiteInferior;
-            this.limiteSuperior = limiteSuperior;
-        }
+    public TipoSubrango(String tipoBase, double limiteInferior, double limiteSuperior) {
+        this.tipoBase = tipoBase;
+        this.limiteInferior = limiteInferior;
+        this.limiteSuperior = limiteSuperior;
     }
+}
+
+class Subrango{
+    private double limiteSuperior;
+    private double limiteInferior;
+    
+    public Subrango(double limiteSuperior, double limiteInferior) {
+        this.limiteSuperior = limiteSuperior; this.limiteInferior = limiteInferior;
+    }
+}
+
+//#line 66 "Parser.java"
+
 
     // Función para verificar si el valor está dentro del rango
     boolean verificarRango(String tipo, double valor) {
@@ -46,6 +59,14 @@
 
         return tablaDeSimbolos.get(variable).tipo;  // Ejemplo
     }
+
+    public Parser(String ruta)
+{
+	tablaTipos = new HashMap<>();
+	st = new SymbolTable();
+	lexer = new Lexer(st);
+	System.out.println("SALI DEL LEXER");
+}
     
 %}
 
@@ -62,12 +83,12 @@ programa: T_ID bloque_sentencias {
     System.out.println("Programa compilado correctamente");
 };
 
-bloque_sentencias: BEGIN sentencias END;
+bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sentencia END")};
 
-sentencias: sentencias sentencia
-          | sentencia;
+sentencias: sentencias sentencia 
+          | sentencia {System.out.println("Llegue a sentencias")};
 
-sentencia: declaracion
+sentencia: declaracion 
          | asignacion
          | if_statement
          | condicion
@@ -77,9 +98,10 @@ sentencia: declaracion
          | declaracion_funcion
          | goto_statement
          | sentencia_declarativa_tipos
-         ;
+         {System.out.println("Llegue a sentencia")};
 
 declaracion: tipo lista_var ';' { 
+    System.out.println("Llegue a declaracion");
     List<String> variables = (List<String>)$2; // Asume que lista_var devuelve una lista de variables
     
     for (String variable : variables) {
@@ -99,27 +121,29 @@ declaracion: tipo lista_var ';' {
 };
 
 declaracion_funcion:
-      tipo FUN T_ID '(' tipo T_ID ')' BEGIN cuerpo_funcion END;
+      tipo FUN T_ID '(' tipo T_ID ')' BEGIN cuerpo_funcion END {System.out.println("declaracion_funcion")};
 
 cuerpo_funcion:
     cuerpo_funcion sentencias_funcion
-    | sentencias_funcion
+    | sentencias_funcion {System.out.println("Llegue a cuerpo_funcion")}
     ;
 
 
 sentencias_funcion:
-    sentencia | RET '(' expresion ')' ';' 
+    sentencia | RET '(' expresion ')' ';'  {System.out.println("Llegue a sentencia_funcion")}
     ;
 
 
 
 lista_var: lista_var ',' T_ID { 
+    System.out.println("Llegue a lista_var 1");
     // Si ya tenemos una lista de variables, añadimos la nueva variable
     List<String> variables = (List<String>)$1;
     variables.add($3);
     $$ = variables;  // Devolvemos la lista actualizada
 }
 | T_ID { 
+    System.out.println("Llegue a lista_var 2");
     // Creamos una nueva lista con la primera variable
     List<String> variables = new ArrayList<>();
     variables.add($1);
@@ -130,6 +154,7 @@ tipo: DOUBLE { $$ = "double"; }
     | LONGINT { $$ = "longint"; }
     | T_ID
     {
+        System.out.println("Llegue a tipo");
         // Verificar si el tipo está en la tabla de tipos definidos
         if (tablaTipos.containsKey($1)) {
             $$ = $1; // Si el tipo está definido, se usa el nombre del tipo
@@ -147,16 +172,18 @@ if_statement: IF '(' condicion ')' THEN bloque_sentencias END_IF ';'
             | IF '(' condicion ')' THEN bloque_sentencias ELSE bloque_sentencias END_IF ';'
             | IF '(' condicion ')' THEN sentencia ELSE bloque_sentencias END_IF ';'
             | IF '(' condicion ')' THEN sentencia ELSE sentencia END_IF ';'
+            {        System.out.println("Llegue a if_statement");        }
             ;
 
-salida: OUTF '(' T_CADENA ')' ';'
-      | OUTF '(' expresion ')' ';';
+salida: OUTF '(' T_CADENA ')' ';' 
+      | OUTF '(' expresion ')' ';' {     System.out.println("Llegue a salida");   };
 
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';'
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';'
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';'
         {
+            System.out.println("Llegue a sentencia_declarativa_tipos");
         // Guardar el nuevo tipo en la tabla de símbolos
         String nombreTipo = $2; // T_ID
         String tipoBase = $4; // tipo base (INTEGER o SINGLE)
@@ -168,12 +195,15 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';'
     };
 
 subrango: '{' T_CTE ',' T_CTE '}'{
+        System.out.println("Llegue a subrango");
+
         $$ = new Subrango(Double.parseDouble($2), Double.parseDouble($4));
     }
     ;
 
 
-condicion: expresion MENOR_IGUAL expresion
+condicion: expresion MENOR_IGUAL expresion { System.out.println("Llegue a MENOR_IGUAL");
+}
            | expresion MAYOR_IGUAL expresion
            | expresion DISTINTO expresion
            | expresion '=' expresion
@@ -200,7 +230,7 @@ condicion: expresion MENOR_IGUAL expresion
            ;
 
 
-repeat_while_statement: REPEAT bloque_sentencias WHILE '(' condicion ')' ';'
+repeat_while_statement: REPEAT bloque_sentencias WHILE '(' condicion ')' ';' {System.out.println("Llegue a repeat_while");}
            | REPEAT sentencia WHILE '(' condicion ')' ';'
            ;
 
@@ -268,8 +298,30 @@ expresion: expresion '+' expresion
 
 %%
 
+
 int yylex() {
-   	lexer.getToken();
+	
+	SymbolTable st = new SymbolTable();
+	try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt"))) {
+	    Lexer lexer = new Lexer(st); // Asumiendo que tienes una clase Lexer
+	    Pair token;
+	    while ((token = lexer.analyze(reader)) != null) {
+	        System.out.println("Token: " + token);
+	        if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
+	    		yylval = new ParserVal(token.getLexema());
+	    		
+	    	}
+	    		
+	       	return  token.getToken();//arreglar 
+	    }
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+
+	System.out.println(st.toString());
+	//preguntar si hay un puntero a la TS, si es asi hago un new yylva = new Parser(lexema que le paso )
+	return -1;
+
 }
 
 public static void main(String[] args) {

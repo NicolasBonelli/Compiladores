@@ -235,16 +235,13 @@ repeat_while_statement: REPEAT bloque_sentencias WHILE '(' condicion ')' ';' {Sy
            ;
 
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {
-
-    if ($1.size() != $3.size()){
+    if ($1.size() != $3.size()) {
         yyerror("Error: El número de variables no coincide con el número de expresiones.");
-
     } else {
-
         // Verificar si el valor asignado está dentro del rango
         for (int i = 0; i < $1.size(); i++) {
-            String variable = $1.get(i);  // IDENTIFIER_LIST
-            double valorAsignado = $3.get(i);  // expresion_list (valor)
+            String variable = (String) $1.get(i);  // IDENTIFIER_LIST
+            Object valorAsignado = $3.get(i);      // expresion_list (valor)
 
             // Obtener el tipo de la variable
             String tipoVariable = obtenerTipo(variable); // Implementa obtenerTipo() para encontrar el tipo de la variable
@@ -253,32 +250,61 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {
             if (tablaTipos.containsKey(tipoVariable)) {
                 if (!verificarRango(tipoVariable, valorAsignado)) {
                     yyerror("Valor fuera del rango para el tipo: " + tipoVariable);
+                } else {
+                    // Asignar valor a la variable en la tabla de símbolos
+                    st.update(variable, valorAsignado);
                 }
             } else {
                 // Verificar los rangos de los tipos estándar
-                if (tipoVariable.equals("longint") && !verificarRangoLongInt(valorAsignado)) {
+                if (tipoVariable.equals("longint") && !verificarRangoLongInt((Long) valorAsignado)) {
                     yyerror("Valor fuera del rango para el tipo longint");
-                } else if (tipoVariable.equals("double") && !verificarRangoDouble(valorAsignado)) {
+                } else if (tipoVariable.equals("double") && !verificarRangoDouble((Double) valorAsignado)) {
                     yyerror("Valor fuera del rango para el tipo double");
-                } else yyerror("Tipo no declarado antes");
-
+                } else if (tipoVariable.equals("int") && !verificarRangoInt((Integer) valorAsignado)) {
+                    yyerror("Valor fuera del rango para el tipo int");
+                } else {
+                    yyerror("Tipo no declarado antes para la variable: " + variable);
+                }
             }
         }
     }
-        
+       
 };
         
-IDENTIFIER_LIST: T_ID
-               | IDENTIFIER_LIST ',' T_ID;
-               | IDENTIFIER_LIST ',' acceso_par
-               | acceso_par;
+IDENTIFIER_LIST: T_ID { $$ = new ArrayList<>();
+                        $$.add($1);
+                }
+               | IDENTIFIER_LIST ',' T_ID {
+                $1.add($3);
+                $$ = $1;
+                }
+               | IDENTIFIER_LIST ',' acceso_par {
+                $1.add($3);
+                $$ = $1;
+                }
+               | acceso_par  {
+                $$ = new ArrayList<>();
+                $$.add($1);
+                };
 
-expresion_list: expresion
-              | expresion_list ',' expresion
-              | expresion_list ',' invocacion_funcion
-              | invocacion_funcion;
+expresion_list: expresion {
+                $$ = new ArrayList<>();
+                $$.add($1);
+              }
+              | expresion_list ',' expresion {
+                $1.add($3);
+                $$ = $1;
+              }
+              | expresion_list ',' invocacion_funcion {
+                $1.add($3);
+                $$ = $1;
+              }
+              | invocacion_funcion {
+                $$ = new ArrayList<>();
+                $$.add($1);
+              };
 
-acceso_par: T_ID '{' '1' '}' { $$ = $1 + "{1}"; }
+acceso_par: T_ID '{' '1' '}' { $$ = $1 + "{1}"; } 
           | T_ID '{' '2' '}' { $$ = $1 + "{2}"; };
 
 
@@ -288,13 +314,27 @@ invocacion_funcion: T_ID '(' parametro_real ')' ';';
 
 parametro_real: expresion ; 
 
-expresion: expresion '+' expresion
-         | expresion '-' expresion
-         | expresion '*' expresion
-         | expresion '/' expresion
-         | T_CTE
-         | T_ID
-         | acceso_par;
+expresion: expresion '+' expresion {
+            $$ = $1 + $3;  // Asegúrate de manejar los tipos correctamente
+        }
+         | expresion '-' expresion {
+            $$ =  $1 -  $3;
+        }
+         | expresion '*' expresion {
+            $$ =  $1 *  $3;
+        }
+         | expresion '/' expresion {
+            $$ =  $1 /  $3;
+        }
+         | T_CTE {
+            $$ = $1;  // Suponiendo que T_CTE es un número constante
+        }
+         | T_ID {
+            $$ = st.hasKey($1);  // Buscar el valor del identificador en la tabla de símbolos
+        }
+         | acceso_par{
+            $$ = st.hasKey($1);  // Manejar accesos como T_ID{1}
+        };
 
 %%
 

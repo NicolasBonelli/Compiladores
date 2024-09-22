@@ -77,6 +77,7 @@ public class Parser
 
 	    public Parser(String filePath) {
 	        this.st = new SymbolTable();
+	        this.tablaTipos= new HashMap<String,TipoSubrango>();
 	        try {
 	            this.reader = new BufferedReader(new FileReader(filePath));
 	            this.lexer = new Lexer(st);

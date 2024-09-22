@@ -76,7 +76,7 @@ public class Parser
 	    private BufferedReader reader;
 
 	    public Parser(String filePath) {
-	        SymbolTable st = new SymbolTable();
+	        this.st = new SymbolTable();
 	        try {
 	            this.reader = new BufferedReader(new FileReader(filePath));
 	            this.lexer = new Lexer(st);
@@ -630,6 +630,14 @@ int yylex() {
             if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
                 yylval = new ParserVal(token.getLexema());
             }
+            if(token.getToken()<31) {
+            	
+            	char character = token.getLexema().charAt(0);  // Obtiene el carácter en la posición 'i'
+                System.out.println("Character:" + character);
+            	int ascii = (int) character;
+                return ascii;
+            	
+            }
 
             return token.getToken();  // Devuelve el token al parser
         }
@@ -641,7 +649,7 @@ int yylex() {
 
 
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
+    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
     parser.run();
 }
 //#line 596 "Parser.java"
@@ -827,15 +835,16 @@ case 15:
 //#line 103 "gramatica.y"
 { 
     System.out.println("Llegue a declaracion");
-    List<String> variables = (List<String>)val_peek(1); /* Asume que lista_var devuelve una lista de variables*/
+    List<ParserVal> variables = new ArrayList<ParserVal>();
+    variables.add(val_peek(1)); /* Asume que lista_var devuelve una lista de variables*/
     
-    for (String variable : variables) {
+    for (ParserVal variable : variables) {
         /* Verificar si la variable ya existe en la tabla de símbolos*/
-        if (!st.hasKey(variable)) {
+        if (!st.hasKey(variable.toString())) {
             System.out.println("ERROR, la tabla de símbolos no contenía la variable: " + variable);
         } else {
             /* Actualiza el tipo de la variable si ya está en la tabla de símbolos*/
-            boolean actualizado = st.updateType(variable, val_peek(2).toString());
+            boolean actualizado = st.updateType(variable.toString(), val_peek(2).toString());
             if (actualizado) {
                 System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + val_peek(2));
             } else {

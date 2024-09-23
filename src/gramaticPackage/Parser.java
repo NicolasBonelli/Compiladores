@@ -20,14 +20,15 @@
     package gramaticPackage;
     import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 
 import Paquetecompi.Lexer;
 import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
 import gramaticPackage.*;
-   
+    
+
+    /* Clase para almacenar la información de los subrangos.*/
    /* Clase para almacenar la información de los subrangos.*/
    class TipoSubrango {
     String tipoBase;
@@ -50,10 +51,9 @@ class Subrango{
     }
 }
 
-/*#line 66 "Parser.java"*/
 
 
-   
+    
     
 //#line 87 "Parser.java"
 
@@ -62,9 +62,6 @@ class Subrango{
 
 public class Parser
 {
-	
-	
-	 
 	 private Map<String, TipoSubrango> tablaTipos;
 	 private SymbolTable st;
 	 private Lexer lexer;
@@ -81,7 +78,7 @@ public class Parser
 	        try {
 	            this.reader = new BufferedReader(new FileReader(filePath));
 	            this.lexer = new Lexer(st);
-	        } catch (IOException e) {
+	        } catch (Exception e) {
 	            e.printStackTrace();
 	        }
 	    }
@@ -617,7 +614,7 @@ final static String yyrule[] = {
 "expresion : acceso_par",
 };
 
-//#line 300 "gramatica.y"
+//#line 340 "gramatica.y"
 
 
 int yylex() {
@@ -648,12 +645,13 @@ int yylex() {
     return 0;  // Indicar fin de archivo o error
 }
 
-
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
+    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
     parser.run();
 }
-//#line 596 "Parser.java"
+
+
+//#line 600 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -668,7 +666,9 @@ String s=null;
   debug("state "+state+", reading "+ch+" ("+s+")");
 }
 
-
+public void yyerror(String s) {
+	  System.err.println("Error: " + s);
+	}
 
 
 
@@ -678,10 +678,6 @@ int yym;       //
 int yystate;   //current parsing state from state table
 String yys;    //current token string
 
-//## run() --- for Thread #######################################
-public void yyerror(String s) {
-  System.err.println("Error: " + s);
-}
 
 //###############################################################
 // method: yyparse : parse input and execute indicated items
@@ -696,10 +692,8 @@ boolean doaction;
   yystate=0;            //initial state
   state_push(yystate);  //save it
   val_push(yylval);     //save empty value
-  System.out.println("Antes del while");
   while (true) //until parsing is done, either correctly, or w/error
     {
-	  System.out.println("Dentro del while");
     doaction=true;
     if (yydebug) debug("loop"); 
     //#### NEXT ACTION (from reduction table)
@@ -709,7 +703,6 @@ boolean doaction;
       if (yychar < 0)      //we want a char?
         {
         yychar = yylex();  //get next token
-        System.out.println("yychar: " + yychar);
         if (yydebug) debug(" next yychar:"+yychar);
         //#### ERROR CHECK ####
         if (yychar < 0)    //it it didn't work/error
@@ -835,7 +828,7 @@ break;
 case 15:
 //#line 103 "gramatica.y"
 { 
-    System.out.println("Llegue a declaracion");
+	System.out.println("Llegue a declaracion");
     List<ParserVal> variables = new ArrayList<ParserVal>();
     variables.add(val_peek(1)); /* Asume que lista_var devuelve una lista de variables*/
     
@@ -870,43 +863,43 @@ break;
 case 21:
 //#line 138 "gramatica.y"
 { 
-    System.out.println("Llegue a lista_var 1");
-    /* Si ya tenemos una lista de variables, añadimos la nueva variable*/
-    List<String> variables = (List<String>)val_peek(2);
-    variables.add(val_peek(0).toString());
-    yyval = (ParserVal) variables;  /* Devolvemos la lista actualizada*/
-    /* Creamos un ParserVal para almacenar la lista en el campo 'obj' */
-    yyval = new ParserVal();
-    yyval.obj = variables;  /* Almacenamos la lista en el campo 'obj' de ParserVal */
-}
-break;
-case 22:
-//#line 145 "gramatica.y"
-{ 
-	   System.out.println("Llegue a lista_var 2");
-	    /* Creamos una nueva lista con la primera variable */
-	    List<String> variables = new ArrayList<>();
+	  System.out.println("Llegue a lista_var 1");
+	    /* Si ya tenemos una lista de variables, añadimos la nueva variable*/
+	    List<String> variables = (List<String>)val_peek(2);
 	    variables.add(val_peek(0).toString());
-	    
+	    yyval = (ParserVal) variables;  /* Devolvemos la lista actualizada*/
 	    /* Creamos un ParserVal para almacenar la lista en el campo 'obj' */
 	    yyval = new ParserVal();
 	    yyval.obj = variables;  /* Almacenamos la lista en el campo 'obj' de ParserVal */
 }
 break;
+case 22:
+//#line 145 "gramatica.y"
+{ 
+	System.out.println("Llegue a lista_var 2");
+    /* Creamos una nueva lista con la primera variable */
+    List<String> variables = new ArrayList<>();
+    variables.add(val_peek(0).toString());
+    
+    /* Creamos un ParserVal para almacenar la lista en el campo 'obj' */
+    yyval = new ParserVal();
+    yyval.obj = variables;  /* Almacenamos la lista en el campo 'obj' de ParserVal */
+}
+break;
 case 23:
-//#line 153 "gramatica.y"
-{ yyval = new ParserVal("double"); }
-break;
-case 24:
-//#line 154 "gramatica.y"
-{ yyval = new ParserVal("longint"); }
-break;
+	//#line 153 "gramatica.y"
+	{ yyval = new ParserVal("double"); }
+	break;
+	case 24:
+	//#line 154 "gramatica.y"
+	{ yyval = new ParserVal("longint"); }
+	break;
 case 25:
 //#line 156 "gramatica.y"
 {
         System.out.println("Llegue a tipo");
         /* Verificar si el tipo está en la tabla de tipos definidos*/
-        if (tablaTipos.containsKey(val_peek(0).toString())) {
+        if (tablaTipos.containsKey(val_peek(0))) {
             yyval = val_peek(0); /* Si el tipo está definido, se usa el nombre del tipo*/
         } else {
             yyerror("Tipo no definido: " + val_peek(0));
@@ -924,23 +917,24 @@ break;
 case 36:
 //#line 185 "gramatica.y"
 {
-            System.out.println("Llegue a sentencia_declarativa_tipos");
-        /* Guardar el nuevo tipo en la tabla de símbolos*/
-            String nombreTipo = val_peek(5).toString(); /* T_ID*/
-            String tipoBase = val_peek(3).toString(); /* tipo base (INTEGER o SINGLE)*/
-            double limiteInferior = Double.parseDouble(val_peek(2).toString()); /* Limite inferior del subrango*/
-            double limiteSuperior = Double.parseDouble(val_peek(1).toString()); /* Limite superior del subrango*/
+	System.out.println("Llegue a sentencia_declarativa_tipos");
+    /* Guardar el nuevo tipo en la tabla de símbolos*/
+        String nombreTipo = val_peek(5).toString(); /* T_ID*/
+        String tipoBase = val_peek(3).toString(); /* tipo base (INTEGER o SINGLE)*/
+        double limiteInferior = Double.parseDouble(val_peek(2).toString()); /* Limite inferior del subrango*/
+        double limiteSuperior = Double.parseDouble(val_peek(1).toString()); /* Limite superior del subrango*/
 
-        /* Almacenar en la tabla de símbolos*/
-        tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
+    /* Almacenar en la tabla de símbolos*/
+    tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
     }
 break;
 case 37:
 //#line 197 "gramatica.y"
 {
-        System.out.println("Llegue a subrango");
+	System.out.println("Llegue a subrango");
 
-    	yyval = new ParserVal(new Subrango(Double.parseDouble(val_peek(3).toString()), Double.parseDouble(val_peek(1).toString())));
+	yyval = new ParserVal(new Subrango(Double.parseDouble(val_peek(3).toString()), Double.parseDouble(val_peek(1).toString())));
+
     }
 break;
 case 38:
@@ -954,50 +948,150 @@ case 62:
 break;
 case 64:
 //#line 237 "gramatica.y"
-{
-
-	if (((List<?>) val_peek(3).obj).size() != ((List<?>) val_peek(1).obj).size()){
-        yyerror("Error: El número de variables no coincide con el número de expresiones.");
-
-    } else {
-
-        /* Verificar si el valor asignado está dentro del rango*/
-        for (int i = 0; i < ((List<?>) val_peek(3).obj).size(); i++) {
-            String variable = (String) ((List<?>) val_peek(3).obj).get(i);  /* IDENTIFIER_LIST*/
-            double valorAsignado = (Double) ((List<?>) val_peek(1).obj).get(i);  /* expresion_list (valor)*/
-
-            /* Obtener el tipo de la variable*/
-            String tipoVariable = obtenerTipo(variable); /* Implementa obtenerTipo() para encontrar el tipo de la variable*/
-
-            /* Verificar si es un tipo definido por el usuario*/
-            if (tablaTipos.containsKey(tipoVariable)) {
-                if (!verificarRango(tipoVariable, valorAsignado)) {
-                    yyerror("Valor fuera del rango para el tipo: " + tipoVariable);
-                }
-            } else {
-                /* Verificar los rangos de los tipos estándar*/
-                if (tipoVariable.equals("longint") && !verificarRangoLongInt(valorAsignado)) {
-                    yyerror("Valor fuera del rango para el tipo longint");
-                } else if (tipoVariable.equals("double") && !verificarRangoDouble(valorAsignado)) {
-                    yyerror("Valor fuera del rango para el tipo double");
-                } else yyerror("Tipo no declarado antes");
-
-            }
-        }
-    }
-        
+{ 
+	
+	System.out.println("Aca estaba el control de tipos");
+       
 }
+break;
+case 65:
+//#line 274 "gramatica.y"
+{ /*yyval = new ParserVal(new ArrayList<ParserVal>());  // Inicializas correctamente con una nueva lista
+	
+//Verifica que val_peek(0) no sea nulo antes de añadirlo
+if (val_peek(0) != null) {
+ ((ArrayList<ParserVal>)yyval.obj).add(val_peek(0));  // Casteas a ArrayList y añades val_peek(0)
+}  // Casteamos obj a ArrayList
+      */
+	System.out.println("IDENTIFIER_LIST: T_ID ");
+}
+break;
+case 66:
+//#line 277 "gramatica.y"
+{/*
+	yyval = new ParserVal(new ArrayList<ParserVal>());  // Inicializas con una lista vacía
+	yyval.list.add(val_peek(0));  // Añades el elemento a la lista correctamente
+	val_peek(2).list.add(val_peek(0));  // Aquí val_peek(2) ya es un ParserVal que contiene una lista*/
+	System.out.println("IDENTIFIER_LIST: IDENTIFIER_LIST ',' T_ID");
+
+
+                }
+break;
+case 67:
+//#line 281 "gramatica.y"
+{/*
+	yyval = new ParserVal(new ArrayList<ParserVal>());  // Inicializas con una lista vacía
+	yyval.list.add(val_peek(0));  // Añades el elemento a la lista correctamente
+	val_peek(2).list.add(val_peek(0));  // Aquí val_peek(2) ya es un ParserVal que contiene una lista */
+	System.out.println("IDENTIFIER_LIST: IDENTIFIER_LIST ',' acceso_par");
+
+                }
+break;
+case 68:
+//#line 285 "gramatica.y"
+{/*
+	 yyval = new ParserVal(new ArrayList<ParserVal>());  // Crear un ParserVal con un ArrayList
+	 ((ArrayList<ParserVal>)yyval.obj).add(val_peek(0)) */
+	System.out.println("IDENTIFIER_LIST: acceso_par");
+                }
+break;
+case 69:
+//#line 290 "gramatica.y"
+{/*
+	 yyval = new ParserVal(new ArrayList<ParserVal>());  // Crear un ParserVal con un ArrayList
+	 ((ArrayList<ParserVal>)yyval.obj).add(val_peek(0));
+	 */
+	 System.out.println("expresion_list: expresion");
+              }
+break;
+case 70:
+//#line 294 "gramatica.y"
+{
+	/* yyval = new ParserVal(new ArrayList<ParserVal>());  // Inicializas con una lista vacía
+	yyval.list.add(val_peek(0));  // Añades el elemento a la lista correctamente
+	val_peek(2).list.add(val_peek(0));  // Aquí val_peek(2) ya es un ParserVal que contiene una lista */
+	
+	System.out.println("expresion_list: expresion_list ',' expresion");
+              }
+break;
+case 71:
+//#line 298 "gramatica.y"
+{
+	/*
+	yyval = new ParserVal(new ArrayList<ParserVal>());  // Inicializas con una lista vacía
+	yyval.list.add(val_peek(0));  // Añades el elemento a la lista correctamente
+	val_peek(2).list.add(val_peek(0));  // Aquí val_peek(2) ya es un ParserVal que contiene una 
+
+	*/
+	
+	System.out.println("expresion_list: expresion_list ',' invocacion_funcion");
+
+              }
+break;
+case 72:
+//#line 302 "gramatica.y"
+{/*
+	yyval = new ParserVal(new ArrayList<ParserVal>());  // Crear un ParserVal con un ArrayList
+	 ((ArrayList<ParserVal>)yyval.obj).add(val_peek(0)); */
+	System.out.println("expresion_list: invocacion_funcion");
+
+              }
 break;
 case 73:
 	//#line 251 "gramatica.y"
-	{ yyval = new ParserVal(val_peek(3).toString() + "{1}"); }
-	break;
-	case 74:
-	//#line 252 "gramatica.y"
-	{ yyval = new ParserVal(val_peek(3).toString() + "{2}"); }
-	break;
+		{ yyval = new ParserVal(val_peek(3).toString() + "{1}"); }
+		break;
+		case 74:
+		//#line 252 "gramatica.y"
+		{ yyval = new ParserVal(val_peek(3).toString() + "{2}"); }
+		break;
 
-//#line 920 "Parser.java"
+case 78:
+//#line 317 "gramatica.y"
+{
+    System.out.println("Llegue a variable := expresion suma");        
+	//yyval = (Integer (val_peek(2) + val_peek(0)));  /* Asegúrate de manejar los tipos correctamente*/
+        }
+break;
+case 79:
+//#line 320 "gramatica.y"
+{
+	System.out.println("Llegue a variable := expresion resta");        
+	//yyval = (Integer (val_peek(2) - val_peek(0)));  /* Asegúrate de manejar los tipos correctamente*/        }
+}break;
+case 80:
+//#line 323 "gramatica.y"
+{
+	System.out.println("Llegue a variable := expresion multi");        
+	//yyval = (Integer (val_peek(2) * val_peek(0)));  /* Asegúrate de manejar los tipos correctamente*/
+}
+break;
+case 81:
+//#line 326 "gramatica.y"
+{
+	System.out.println("Llegue a variable := expresion division");        
+	//yyval = (Integer (val_peek(2) / val_peek(0)));  /* Asegúrate de manejar los tipos correctamente*/
+}
+break;
+case 82:
+//#line 329 "gramatica.y"
+{
+            yyval = val_peek(0);  /* Suponiendo que T_CTE es un número constante*/
+        }
+break;
+case 83:
+//#line 332 "gramatica.y"
+{
+            yyval = new ParserVal(st.hasKey(val_peek(0).toString()));  /* Buscar el valor del identificador en la tabla de símbolos*/
+        }
+break;
+case 84:
+//#line 335 "gramatica.y"
+{
+    yyval = new ParserVal(st.hasKey(val_peek(0).toString()));  /* Buscar el valor del identificador en la tabla de símbolos*/
+        }
+break;
+//#line 1024 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####
@@ -1053,6 +1147,32 @@ public void run()
 }
 //## end of method run() ########################################
 
+
+
+//## Constructors ###############################################
+/**
+ * Default constructor.  Turn off with -Jnoconstruct .
+
+ */
+public Parser()
+{
+  //nothing to do
+}
+
+
+/**
+ * Create a parser, setting the debug to true or false.
+ * @param debugMe true for debugging, false for no debug.
+ */
+public Parser(boolean debugMe)
+{
+  yydebug=debugMe;
+}
+//###############################################################
+
+/*#line 66 "Parser.java"*/
+
+
 /* Función para verificar si el valor está dentro del rango*/
 boolean verificarRango(String tipo, double valor) {
     if (tablaTipos.containsKey(tipo)) {
@@ -1078,22 +1198,6 @@ String obtenerTipo(String variable) {
 
     return st.getType(variable);  /* Ejemplo*/
 }
-
-
-
-
-
-/**
- * Create a parser, setting the debug to true or false.
- * @param debugMe true for debugging, false for no debug.
- */
-public Parser(boolean debugMe)
-{
-  yydebug=debugMe;
-}
-//###############################################################
-
-
 
 }
 //################### END OF CLASS ##############################

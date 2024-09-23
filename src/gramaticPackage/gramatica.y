@@ -340,32 +340,36 @@ expresion: expresion '+' expresion {
 
 
 int yylex() {
-	
-	SymbolTable st = new SymbolTable();
-	try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt"))) {
-	    Lexer lexer = new Lexer(st); // Asumiendo que tienes una clase Lexer
-	    Pair token;
-	    while ((token = lexer.analyze(reader)) != null) {
-	        System.out.println("Token: " + token);
-	        if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
-	    		yylval = new ParserVal(token.getLexema());
-	    		
-	    	}
-	    		
-	       	return  token.getToken();//arreglar 
-	    }
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
+    try {
+        Pair token = lexer.analyze(reader);  // Sigue desde donde se quedó
+        System.out.println("Pair: "+ token);
+        if (token != null) {
+            System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
 
-	System.out.println(st.toString());
-	//preguntar si hay un puntero a la TS, si es asi hago un new yylva = new Parser(lexema que le paso )
-	return -1;
+            // Dependiendo del token, rellena el valor en yylval
+            if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
+                yylval = new ParserVal(token.getLexema());
+            }
+            if(token.getToken()<31) {
+            	
+            	char character = token.getLexema().charAt(0);  // Obtiene el carácter en la posición 'i'
+                System.out.println("Character:" + character);
+            	int ascii = (int) character;
+                return ascii;
+            	
+            }
 
+            return token.getToken();  // Devuelve el token al parser
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;  // Indicar fin de archivo o error
 }
 
 public static void main(String[] args) {
-	Parser parser= new Parser();
+    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
     parser.run();
-        
 }
+
+

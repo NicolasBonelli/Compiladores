@@ -98,6 +98,7 @@ sentencia: declaracion
          | declaracion_funcion
          | goto_statement
          | sentencia_declarativa_tipos
+         | T_ETIQUETA
          {System.out.println("Llegue a sentencia")};
 
 declaracion: tipo lista_var ';' { 
@@ -197,8 +198,11 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';'
 subrango: '{' T_CTE ',' T_CTE '}'{
         System.out.println("Llegue a subrango");
 
-        $$ = new Subrango(Double.parseDouble($2), Double.parseDouble($4));
-    }
+        //$$ = new Subrango(Double.parseDouble($2), Double.parseDouble($4));
+    } 
+    |'{' '-' T_CTE ',' T_CTE '}'
+    |'{' T_CTE ',' '-' T_CTE '}'
+    |'{' '-' T_CTE ',' '-' T_CTE '}'
     ;
 
 
@@ -209,24 +213,6 @@ condicion: expresion MENOR_IGUAL expresion { System.out.println("Llegue a MENOR_
            | expresion '=' expresion
            | expresion '<' expresion
            | expresion '>' expresion
-           | invocacion_funcion MENOR_IGUAL expresion
-           | invocacion_funcion MAYOR_IGUAL expresion
-           | invocacion_funcion DISTINTO expresion
-           | invocacion_funcion '=' expresion
-           | invocacion_funcion '<' expresion
-           | invocacion_funcion '>' expresion
-           | expresion MENOR_IGUAL invocacion_funcion
-           | expresion MAYOR_IGUAL invocacion_funcion
-           | expresion DISTINTO invocacion_funcion
-           | expresion '=' invocacion_funcion
-           | expresion '<' invocacion_funcion
-           | expresion '>' invocacion_funcion
-           | invocacion_funcion MENOR_IGUAL invocacion_funcion
-           | invocacion_funcion MAYOR_IGUAL invocacion_funcion
-           | invocacion_funcion DISTINTO invocacion_funcion
-           | invocacion_funcion '=' invocacion_funcion
-           | invocacion_funcion '<' invocacion_funcion
-           | invocacion_funcion '>' invocacion_funcion
            ;
 
 
@@ -294,25 +280,31 @@ expresion_list: expresion {
               | expresion_list ',' expresion {
                 $1.add($3);
                 $$ = $1;
-              }
-              | expresion_list ',' invocacion_funcion {
-                $1.add($3);
-                $$ = $1;
-              }
-              | invocacion_funcion {
-                $$ = new ArrayList<>();
-                $$.add($1);
               };
 
-acceso_par: T_ID '{' '1' '}' { $$ = $1 + "{1}"; } 
-          | T_ID '{' '2' '}' { $$ = $1 + "{2}"; };
+acceso_par: T_ID '{' T_CTE '}' { 
+    // Verificar si el T_CTE es '1' o '2'
+    if (!($3.equals("1") || $3.equals("2"))) {
+        yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
+    } else {
+        $$ = $1 + "{" + $3 + "}";
+    }
+}; 
 
 
 goto_statement: GOTO T_ETIQUETA';';
 
-invocacion_funcion: T_ID '(' parametro_real ')' ';';
+invocacion_funcion: T_ID '(' parametro_real ')';
 
-parametro_real: expresion ; 
+parametro_real: expresion_aritmetica ; 
+
+expresion_aritmetica: expresion_aritmetica '+' expresion_aritmetica 
+         | expresion_aritmetica '-' expresion_aritmetica 
+         | expresion_aritmetica '*' expresion_aritmetica 
+         | expresion_aritmetica '/' expresion_aritmetica 
+         | T_CTE 
+         | T_ID 
+         | acceso_par;
 
 expresion: expresion '+' expresion {
             $$ = $1 + $3;  // Asegúrate de manejar los tipos correctamente
@@ -334,7 +326,8 @@ expresion: expresion '+' expresion {
         }
          | acceso_par{
             $$ = st.hasKey($1);  // Manejar accesos como T_ID{1}
-        };
+        }
+        | invocacion_funcion;
 
 %%
 

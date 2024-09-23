@@ -646,7 +646,7 @@ int yylex() {
 }
 
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
+    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
     parser.run();
 }
 
@@ -863,14 +863,7 @@ break;
 case 21:
 //#line 138 "gramatica.y"
 { 
-	  System.out.println("Llegue a lista_var 1");
-	    /* Si ya tenemos una lista de variables, añadimos la nueva variable*/
-	    List<String> variables = (List<String>)val_peek(2);
-	    variables.add(val_peek(0).toString());
-	    yyval = (ParserVal) variables;  /* Devolvemos la lista actualizada*/
-	    /* Creamos un ParserVal para almacenar la lista en el campo 'obj' */
-	    yyval = new ParserVal();
-	    yyval.obj = variables;  /* Almacenamos la lista en el campo 'obj' de ParserVal */
+	 System.out.println("Llegue a asignacion multiple");
 }
 break;
 case 22:
@@ -917,23 +910,27 @@ break;
 case 36:
 //#line 185 "gramatica.y"
 {
-	System.out.println("Llegue a sentencia_declarativa_tipos");
-    /* Guardar el nuevo tipo en la tabla de símbolos*/
-        String nombreTipo = val_peek(5).toString(); /* T_ID*/
-        String tipoBase = val_peek(3).toString(); /* tipo base (INTEGER o SINGLE)*/
-        double limiteInferior = Double.parseDouble(val_peek(2).toString()); /* Limite inferior del subrango*/
-        double limiteSuperior = Double.parseDouble(val_peek(1).toString()); /* Limite superior del subrango*/
+System.out.println("Llegue a sentencia_declarativa_tipos");
+    
+    // Obtener el nombre del tipo desde T_ID
+    String nombreTipo = val_peek(5).sval; /* T_ID*/
 
-    /* Almacenar en la tabla de símbolos*/
+    // Obtener el tipo base (INTEGER o SINGLE)
+    String tipoBase = val_peek(3).sval; /* tipo base (INTEGER o SINGLE)*/
+    // Limite inferior del subrango (asegúrate de que sea numérico)
+    double limiteInferior = ((ParserVal) val_peek(2)).dval; /* Limite inferior */
+    // Limite superior del subrango (asegúrate de que sea numérico)
+    double limiteSuperior = ((ParserVal) val_peek(1)).dval; /* Limite superior */
+    // Almacenar en la tabla de tipos
     tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
-    }
+}
 break;
 case 37:
 //#line 197 "gramatica.y"
 {
 	System.out.println("Llegue a subrango");
 
-	yyval = new ParserVal(new Subrango(Double.parseDouble(val_peek(3).toString()), Double.parseDouble(val_peek(1).toString())));
+	//yyval = new ParserVal(new Subrango(Double.parseDouble(val_peek(3).toString()), Double.parseDouble(val_peek(1).toString())));
 
     }
 break;
@@ -1039,12 +1036,17 @@ case 72:
 break;
 case 73:
 	//#line 251 "gramatica.y"
-		{ yyval = new ParserVal(val_peek(3).toString() + "{1}"); }
-		break;
-		case 74:
-		//#line 252 "gramatica.y"
-		{ yyval = new ParserVal(val_peek(3).toString() + "{2}"); }
-		break;
+	System.out.println("Llegue a acceso_par");
+
+    // Verificar si T_CTE es '1' o '2'
+    String valor = val_peek(1).sval;  // Acceder al valor de T_CTE como String
+    if (!valor.equals("1") && !valor.equals("2")) {
+        yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
+    } else {
+        // Si es correcto, concatenar
+        String resultado = val_peek(3).sval + "{" + valor + "}";
+        System.out.println("Acceso válido: " + resultado);
+    }
 
 case 78:
 //#line 317 "gramatica.y"

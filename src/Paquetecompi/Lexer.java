@@ -10,7 +10,7 @@ public class Lexer {
 	private HashMap<String, Integer> reservedWords; //reservadas
 	private  SymbolTable tabla;
 	 Map<String, TipoSubrango> tablaTipos = new HashMap<>();
-	static int nmrLinea;
+	public static int nmrLinea;
 	private int currentState = 0;
 	private ArrayList<Pair> tokenList;
 	private StringBuilder lexema;

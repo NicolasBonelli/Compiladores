@@ -513,7 +513,7 @@ final static String yyrule[] = {
 //#line 259 "gramatica.y"
 
 public void yyerror(String s) {
-    System.err.println("Error: " + s);
+    System.err.println("Error en linea: " + Lexer.nmrLinea + " String: " +s);
   }
 
 int yylex() {
@@ -768,20 +768,22 @@ break;
 case 15:
 //#line 76 "gramatica.y"
 { 
-    System.out.println("Llegue a declaracion");
-    List<String> variables = (List<String>)val_peek(1); /* Asume que lista_var devuelve una lista de variables*/
+	System.out.println("Llegue a declaracion");
+    List<ParserVal> variables = new ArrayList<ParserVal>();
+    variables.add(val_peek(1)); /* Asume que lista_var devuelve una lista de variables*/
     
-    for (String variable : variables) {
+
+    for (ParserVal variable : variables) {
         /* Verificar si la variable ya existe en la tabla de símbolos*/
-        if (!st.hasKey(variable)) {
-            System.out.println("ERROR, la tabla de símbolos no contenía la variable: " + variable);
+        if (!st.hasKey(variable.sval)) {
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " ERROR, la tabla de símbolos no contenía la variable: " + variable);
         } else {
             /* Actualiza el tipo de la variable si ya está en la tabla de símbolos*/
-            boolean actualizado = st.updateType(variable, val_peek(2).sval);
+            boolean actualizado = st.updateType(variable.sval, val_peek(2).toString());
             if (actualizado) {
                 System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + val_peek(2));
             } else {
-                System.out.println("Error al actualizar el tipo de la variable: " + variable);
+                System.out.println("Error en linea: " + Lexer.nmrLinea + " Error al actualizar el tipo de la variable: " + variable);
             }
         }
     }
@@ -827,7 +829,7 @@ case 23:
         if (tablaTipos.containsKey(val_peek(0).sval)) {
             yyval = val_peek(0); /* Si el tipo está definido, se usa el nombre del tipo*/
         } else {
-            yyerror("Tipo no definido: " + val_peek(0));
+            yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0));
         }
     }
 break;
@@ -842,8 +844,8 @@ case 31:
         /* Guardar el nuevo tipo en la tabla de símbolos*/
         String nombreTipo = val_peek(5).sval; /* T_ID*/
         String tipoBase = val_peek(3).sval; /* tipo base (INTEGER o SINGLE)*/
-        double limiteInferior = val_peek(2).dval; /* Limite inferior del subrango*/
-        double limiteSuperior = val_peek(1).dval; /* Limite superior del subrango*/
+        double limiteInferior = Double.parseDouble(val_peek(2).sval); /* Limite inferior del subrango*/
+        double limiteSuperior = Double.parseDouble(val_peek(1).sval); /* Limite superior del subrango*/
 
         /* Almacenar en la tabla de símbolos*/
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
@@ -859,11 +861,11 @@ case 32:
 break;
 case 37:
 //#line 166 "gramatica.y"
-{System.err.println("Falta expresion del lado derecho de la comparacion");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Falta expresion del lado derecho de la comparacion");}
 break;
 case 38:
 //#line 167 "gramatica.y"
-{System.err.println("Falta expresion del lado izquierdo de la comparacion");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Falta expresion del lado izquierdo de la comparacion");}
 break;
 case 45:
 //#line 178 "gramatica.y"
@@ -908,28 +910,28 @@ case 52:
 { 
     /* Verificar si el T_CTE es '1' o '2'*/
     /* */
-    if (!(val_peek(1).equals("1") || val_peek(1).equals("2"))) {
-        yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
+    if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
+        yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Solo se permite 1 o 2 dentro de las llaves.");
     } else {
-        yyval.sval = val_peek(3) + "{" + val_peek(1) + "}";
+        yyval.sval = val_peek(3).sval + "{" + val_peek(1).sval + "}";
     }
 }
 break;
 case 54:
 //#line 209 "gramatica.y"
-{System.err.println("Error: hay goto sin etiqueta"); }
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Error: hay goto sin etiqueta"); }
 break;
 case 65:
 //#line 223 "gramatica.y"
-{System.err.println("Error: Dos o mas operadores juntos");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Error: Dos o mas operadores juntos");}
 break;
 case 66:
 //#line 224 "gramatica.y"
-{System.err.println("Error: Dos o mas operadores juntos");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Error: Dos o mas operadores juntos");}
 break;
 case 67:
 //#line 225 "gramatica.y"
-{System.err.println("Error: Dos o mas operadores juntos");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + "Error: Dos o mas operadores juntos");}
 break;
 case 74:
 //#line 229 "gramatica.y"
@@ -978,15 +980,15 @@ case 82:
 break;
 case 83:
 //#line 247 "gramatica.y"
-{System.err.println("Error: Dos o mas operadores juntos");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Dos o mas operadores juntos");}
 break;
 case 84:
 //#line 248 "gramatica.y"
-{System.err.println("Error: Dos o mas operadores juntos");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Dos o mas operadores juntos");}
 break;
 case 85:
 //#line 249 "gramatica.y"
-{System.err.println("Error: Dos o mas operadores juntos");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea/2 + " Dos o mas operadores juntos");}
 break;
 case 86:
 //#line 253 "gramatica.y"
@@ -1016,10 +1018,9 @@ break;
         if (yydebug)
           yylexdebug(yystate,yychar);
         }
-      if (yychar == 0)  {        //Good exit (if lex returns 0 ;-)
-    	  System.out.println(st);
-    	  break;           //quit the loop--all DONE
-         }      
+      if (yychar == 0)   {       //Good exit (if lex returns 0 ;-)
+    	 System.out.println(st); 
+         break;           }      //quit the loop--all DONE
       }//if yystate
     else                        //else not done yet
       {                         //get next state and push, for next yydefred[]

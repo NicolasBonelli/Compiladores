@@ -36,10 +36,7 @@ class Subrango{
 //#line 66 "Parser.java"
 
 
-   
 
-
-    
 %}
 
 %token IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET REPEAT WHILE PAIR GOTO
@@ -80,14 +77,14 @@ declaracion: tipo lista_var ';' {
     for (String variable : variables) {
         // Verificar si la variable ya existe en la tabla de símbolos
         if (!st.hasKey(variable)) {
-            System.out.println("ERROR, la tabla de símbolos no contenía la variable: " + variable);
+            System.out.println("Error en linea: " + Lexer.nmrLinea + " ERROR, la tabla de símbolos no contenía la variable: " + variable);
         } else {
             // Actualiza el tipo de la variable si ya está en la tabla de símbolos
             boolean actualizado = st.updateType(variable, $1);
             if (actualizado) {
                 System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + $1);
             } else {
-                System.out.println("Error al actualizar el tipo de la variable: " + variable);
+                System.out.println("Error en linea: " + Lexer.nmrLinea + " Error al actualizar el tipo de la variable: " + variable);
             }
         }
     }
@@ -118,7 +115,7 @@ tipo: DOUBLE { $$ = "double"; }
         if (tablaTipos.containsKey($1)) {
             $$ = $1; // Si el tipo está definido, se usa el nombre del tipo
         } else {
-            yyerror("Tipo no definido: " + $1);
+            yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + $1);
         }
     }
     ;
@@ -163,8 +160,8 @@ subrango: '{' T_CTE ',' T_CTE '}'{
     ;
 
 
-condicion: expresion comparador expresion | expresion comparador {System.err.println("Falta expresion del lado derecho de la comparacion");}
-         | comparador expresion {System.err.println("Falta expresion del lado izquierdo de la comparacion");};
+condicion: expresion comparador expresion | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta expresion del lado derecho de la comparacion");}
+         | comparador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta expresion del lado izquierdo de la comparacion");};
 
 comparador:    MENOR_IGUAL  
             |  MAYOR_IGUAL 
@@ -199,16 +196,24 @@ acceso_par: T_ID '{' T_CTE '}' {
     // Verificar si el T_CTE es '1' o '2'
     /* */
     if (!($3.equals("1") || $3.equals("2"))) {
-        yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
+        yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Solo se permite 1 o 2 dentro de las llaves.");
     } else {
         $$ = $1 + "{" + $3 + "}";
     }
 }; 
 
 
-goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error: hay goto sin etiqueta"); };
+goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); };
 
-invocacion_funcion: T_ID '(' parametro_real ')';
+invocacion_funcion: 
+      T_ID '(' parametro_real ')' {
+      }
+    | T_ID '(' parametro_real { System.err.println("Error en línea: " + Lexer.nmrLinea + " Falta cierre de paréntesis en la invocación de la función."); }
+    | T_ID parametro_real ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " Falta apertura de paréntesis en la invocación de la función."); }
+    | T_ID '(' ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " La invocación de la función no puede tener parámetros vacíos."); }
+    | T_ID '(' operador ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " Parámetro no válido en la invocación de la función."); }
+    | T_ID operador '(' parametro_real ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " Nombre de función no válido, se esperaba un identificador."); }
+    ;
 
 parametro_real: expresion_aritmetica ; 
 
@@ -220,9 +225,9 @@ expresion_aritmetica: expresion_aritmetica '+' expresion_aritmetica
          | T_ID 
          | acceso_par
          | unaria;
-         | expresion_aritmetica '+' operador expresion_aritmetica {System.err.println("Error: Dos o mas operadores juntos");}
-         | expresion_aritmetica '*' operador expresion_aritmetica {System.err.println("Error: Dos o mas operadores juntos");}
-         | expresion_aritmetica '/' operador expresion_aritmetica {System.err.println("Error: Dos o mas operadores juntos");};
+         | expresion_aritmetica '+' operador expresion_aritmetica {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: Dos o mas operadores juntos");}
+         | expresion_aritmetica '*' operador expresion_aritmetica {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: Dos o mas operadores juntos");}
+         | expresion_aritmetica '/' operador expresion_aritmetica {System.err.println("Error en linea: " + Lexer.nmrLinea + "Error: Dos o mas operadores juntos");};
 
 operador: '+' | '*' | '/' | operador '+' | operador '/' | operador '*';
 
@@ -244,10 +249,10 @@ expresion: expresion '+' expresion {
         }
         | unaria { // Se añade la regla para operadores unarios
         }
-        | expresion '+' operador expresion {System.err.println("Error: Dos o mas operadores juntos");}
-        | expresion '*' operador expresion {System.err.println("Error: Dos o mas operadores juntos");}
-        | expresion '/' operador expresion {System.err.println("Error: Dos o mas operadores juntos");};
-
+        | expresion '+' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
+        | expresion '*' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
+        | expresion '/' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");};
+        
         ;
 
 unaria: '-' expresion { // Esta regla maneja específicamente el '-' unario
@@ -258,7 +263,7 @@ unaria: '-' expresion { // Esta regla maneja específicamente el '-' unario
 %%
 
 public void yyerror(String s) {
-    System.err.println("Error: " + s);
+    System.err.println("Error en linea: " + Lexer.nmrLinea + " String: " +s);
   }
 
 int yylex() {

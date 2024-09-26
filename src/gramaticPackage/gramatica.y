@@ -48,9 +48,14 @@ class Subrango{
 
 %%
 
-programa: T_ID bloque_sentencias {  
+programa: T_ID bloque_sentencias {
     System.out.println("Programa compilado correctamente");
+} 
+| T_ID { 
+    System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
 };
+
+
 
 bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sentencia END");};
 
@@ -91,7 +96,22 @@ declaracion: tipo lista_var ';' {
 };
 
 declaracion_funcion:
-      tipo FUN T_ID '(' tipo T_ID ')' bloque_sentencias {System.out.println("declaracion_funcion");};
+    tipo FUN T_ID '(' tipo T_ID ')' bloque_sentencias {
+        System.out.println("Declaración de función correcta");
+      }
+    | tipo FUN T_ID '(' tipo T_ID ')' {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaración de función.");
+      }
+    | tipo FUN T_ID '(' tipo ')' bloque_sentencias {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el identificador del argumento de la función.");
+      }
+    | tipo T_ID '(' tipo T_ID ')' bloque_sentencias {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta palabra reservada FUN");
+        
+      }
+    |tipo FUN  '(' tipo T_ID ')' bloque_sentencias {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el identificador de la funcion");
+      };
 
     
 
@@ -118,26 +138,68 @@ tipo: DOUBLE { $$ = "double"; }
             yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + $1);
         }
     }
-    ;
+    | error {
+    System.err.println("Error en línea: " + Lexer.nmrLinea + " - Tipo no válido o no declarado.");
+    };
+    
 
 
 if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'
-            ;
+            | IF '(' condicion ')' THEN repeat_sentencia END_IF {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el punto y coma al final de la sentencia IF.");
+            }
+            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF  {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el punto y coma al final de la sentencia IF.");
+            }
+            
+            | IF '('  ')' THEN repeat_sentencia END_IF ';' {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
+            }
+            | IF '('  ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
+            }
+
+            | IF '('condicion  ')'  repeat_sentencia END_IF ';' {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
+            }
+            | IF '(' condicion ')'  repeat_sentencia ELSE repeat_sentencia END_IF ';' {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
+            }
+            
+             | IF '('condicion  ')' THEN END_IF ';' {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
+            }
+            | IF '(' condicion ')'THEN   ELSE  END_IF ';' {
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
+            };
+            
 
 
-repeat_while_statement: REPEAT repeat_sentencia WHILE '(' condicion ')' ';';
+repeat_while_statement: REPEAT repeat_sentencia WHILE '(' condicion ')' ';'
+    | REPEAT repeat_sentencia WHILE '(' condicion ')' {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el punto y coma al final de la sentencia WHILE.");
+    }
+    | REPEAT WHILE '(' condicion ')' {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaración REPEAT.");
+    }
+    | REPEAT repeat_sentencia WHILE '('  ')' ';'{
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta la condicion del WHILE.");
+    }
+    ;
+
 
 
 
 salida: OUTF '(' T_CADENA ')' ';' 
-      | OUTF '(' expresion ')' ';' {     System.out.println("Llegue a salida");   };
+      | OUTF '(' expresion ')' ';' {     
+        System.out.println("Llegue a salida");   
+        }
+      | OUTF '(' expresion ')' {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el punto y coma en la salida.");
+        };      
 
-
-sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';'
-        | TYPEDEF PAIR '<' LONGINT '>' T_ID ';'
-        | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';'
-        {
+sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
             System.out.println("Llegue a sentencia_declarativa_tipos");
         // Guardar el nuevo tipo en la tabla de símbolos
         String nombreTipo = $2; // T_ID
@@ -147,7 +209,16 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';'
 
         // Almacenar en la tabla de símbolos
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
-    };
+        }
+        | TYPEDEF PAIR '<' LONGINT '>' T_ID ';'
+        | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';'
+        | TYPEDEF T_ID T_ASIGNACION tipo subrango {
+            System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el punto y coma al final de la declaración de tipo.");
+        }
+        | TYPEDEF PAIR '<' T_ID '>' T_ID ';' {
+            System.err.println("Error en línea: " + Lexer.nmrLinea + " - Solo se pueden declarar pares de tipos basicos como LONGINT y DOUBLE");
+        }
+        ;
 
 subrango: '{' T_CTE ',' T_CTE '}'{
         System.out.println("Llegue a subrango");
@@ -157,7 +228,9 @@ subrango: '{' T_CTE ',' T_CTE '}'{
     |'{' '-' T_CTE ',' T_CTE '}'
     |'{' T_CTE ',' '-' T_CTE '}'
     |'{' '-' T_CTE ',' '-' T_CTE '}'
-    ;
+    | error {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
+    };
 
 
 condicion: expresion comparador expresion | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta expresion del lado derecho de la comparacion");}
@@ -207,13 +280,7 @@ goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en line
 
 invocacion_funcion: 
       T_ID '(' parametro_real ')' {
-      }
-    | T_ID '(' parametro_real { System.err.println("Error en línea: " + Lexer.nmrLinea + " Falta cierre de paréntesis en la invocación de la función."); }
-    | T_ID parametro_real ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " Falta apertura de paréntesis en la invocación de la función."); }
-    | T_ID '(' ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " La invocación de la función no puede tener parámetros vacíos."); }
-    | T_ID '(' operador ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " Parámetro no válido en la invocación de la función."); }
-    | T_ID operador '(' parametro_real ')' { System.err.println("Error en línea: " + Lexer.nmrLinea + " Nombre de función no válido, se esperaba un identificador."); }
-    ;
+      };
 
 parametro_real: expresion_aritmetica ; 
 

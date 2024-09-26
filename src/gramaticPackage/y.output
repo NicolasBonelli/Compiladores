@@ -1,117 +1,138 @@
    0  $accept : programa $end
 
    1  programa : T_ID bloque_sentencias
+   2           | T_ID
 
-   2  bloque_sentencias : BEGIN sentencias END
+   3  bloque_sentencias : BEGIN sentencias END
 
-   3  sentencias : sentencias sentencia
-   4             | sentencia
+   4  sentencias : sentencias sentencia
+   5             | sentencia
 
-   5  sentencia : declaracion
-   6            | asignacion
-   7            | if_statement
-   8            | repeat_while_statement
-   9            | salida
-  10            | declaracion_funcion
-  11            | goto_statement
-  12            | sentencia_declarativa_tipos
-  13            | T_ETIQUETA
-  14            | RET '(' expresion ')' ';'
+   6  sentencia : declaracion
+   7            | asignacion
+   8            | if_statement
+   9            | repeat_while_statement
+  10            | salida
+  11            | declaracion_funcion
+  12            | goto_statement
+  13            | sentencia_declarativa_tipos
+  14            | T_ETIQUETA
+  15            | RET '(' expresion ')' ';'
 
-  15  declaracion : tipo lista_var ';'
+  16  declaracion : tipo lista_var ';'
 
-  16  declaracion_funcion : tipo FUN T_ID '(' tipo T_ID ')' bloque_sentencias
+  17  declaracion_funcion : tipo FUN T_ID '(' tipo T_ID ')' bloque_sentencias
+  18                      | tipo FUN T_ID '(' tipo T_ID ')'
+  19                      | tipo FUN T_ID '(' tipo ')' bloque_sentencias
+  20                      | tipo T_ID '(' tipo T_ID ')' bloque_sentencias
+  21                      | tipo FUN '(' tipo T_ID ')' bloque_sentencias
 
-  17  repeat_sentencia : bloque_sentencias
-  18                   | sentencia
+  22  repeat_sentencia : bloque_sentencias
+  23                   | sentencia
 
-  19  lista_var : lista_var ',' T_ID
-  20            | T_ID
+  24  lista_var : lista_var ',' T_ID
+  25            | T_ID
 
-  21  tipo : DOUBLE
-  22       | LONGINT
-  23       | T_ID
+  26  tipo : DOUBLE
+  27       | LONGINT
+  28       | T_ID
+  29       | error
 
-  24  if_statement : IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
-  25               | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'
+  30  if_statement : IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
+  31               | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'
+  32               | IF '(' condicion ')' THEN repeat_sentencia END_IF
+  33               | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF
+  34               | IF '(' ')' THEN repeat_sentencia END_IF ';'
+  35               | IF '(' ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'
+  36               | IF '(' condicion ')' repeat_sentencia END_IF ';'
+  37               | IF '(' condicion ')' repeat_sentencia ELSE repeat_sentencia END_IF ';'
+  38               | IF '(' condicion ')' THEN END_IF ';'
+  39               | IF '(' condicion ')' THEN ELSE END_IF ';'
 
-  26  repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion ')' ';'
+  40  repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion ')' ';'
+  41                         | REPEAT repeat_sentencia WHILE '(' condicion ')'
+  42                         | REPEAT WHILE '(' condicion ')'
+  43                         | REPEAT repeat_sentencia WHILE '(' ')' ';'
 
-  27  salida : OUTF '(' T_CADENA ')' ';'
-  28         | OUTF '(' expresion ')' ';'
+  44  salida : OUTF '(' T_CADENA ')' ';'
+  45         | OUTF '(' expresion ')' ';'
+  46         | OUTF '(' expresion ')'
 
-  29  sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo subrango ';'
-  30                              | TYPEDEF PAIR '<' LONGINT '>' T_ID ';'
-  31                              | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';'
+  47  sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo subrango ';'
+  48                              | TYPEDEF PAIR '<' LONGINT '>' T_ID ';'
+  49                              | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';'
+  50                              | TYPEDEF T_ID T_ASIGNACION tipo subrango
+  51                              | TYPEDEF PAIR '<' T_ID '>' T_ID ';'
 
-  32  subrango : '{' T_CTE ',' T_CTE '}'
-  33           | '{' '-' T_CTE ',' T_CTE '}'
-  34           | '{' T_CTE ',' '-' T_CTE '}'
-  35           | '{' '-' T_CTE ',' '-' T_CTE '}'
+  52  subrango : '{' T_CTE ',' T_CTE '}'
+  53           | '{' '-' T_CTE ',' T_CTE '}'
+  54           | '{' T_CTE ',' '-' T_CTE '}'
+  55           | '{' '-' T_CTE ',' '-' T_CTE '}'
+  56           | error
 
-  36  condicion : expresion comparador expresion
-  37            | expresion comparador
-  38            | comparador expresion
+  57  condicion : expresion comparador expresion
+  58            | expresion comparador
+  59            | comparador expresion
 
-  39  comparador : MENOR_IGUAL
-  40             | MAYOR_IGUAL
-  41             | DISTINTO
-  42             | '='
-  43             | '<'
-  44             | '>'
+  60  comparador : MENOR_IGUAL
+  61             | MAYOR_IGUAL
+  62             | DISTINTO
+  63             | '='
+  64             | '<'
+  65             | '>'
 
-  45  asignacion : IDENTIFIER_LIST T_ASIGNACION expresion_list ';'
+  66  asignacion : IDENTIFIER_LIST T_ASIGNACION expresion_list ';'
 
-  46  IDENTIFIER_LIST : T_ID
-  47                  | IDENTIFIER_LIST ',' T_ID
-  48                  | IDENTIFIER_LIST ',' acceso_par
-  49                  | acceso_par
+  67  IDENTIFIER_LIST : T_ID
+  68                  | IDENTIFIER_LIST ',' T_ID
+  69                  | IDENTIFIER_LIST ',' acceso_par
+  70                  | acceso_par
 
-  50  expresion_list : expresion
-  51                 | expresion_list ',' expresion
+  71  expresion_list : expresion
+  72                 | expresion_list ',' expresion
 
-  52  acceso_par : T_ID '{' T_CTE '}'
+  73  acceso_par : T_ID '{' T_CTE '}'
 
-  53  goto_statement : GOTO T_ETIQUETA ';'
-  54                 | GOTO ';'
+  74  goto_statement : GOTO T_ETIQUETA ';'
+  75                 | GOTO ';'
 
-  55  invocacion_funcion : T_ID '(' parametro_real ')'
+  76  invocacion_funcion : T_ID '(' parametro_real ')'
 
-  56  parametro_real : expresion_aritmetica
+  77  parametro_real : expresion_aritmetica
 
-  57  expresion_aritmetica : expresion_aritmetica '+' expresion_aritmetica
-  58                       | expresion_aritmetica '-' expresion_aritmetica
-  59                       | expresion_aritmetica '*' expresion_aritmetica
-  60                       | expresion_aritmetica '/' expresion_aritmetica
-  61                       | T_CTE
-  62                       | T_ID
-  63                       | acceso_par
-  64                       | unaria
-  65                       | expresion_aritmetica '+' operador expresion_aritmetica
-  66                       | expresion_aritmetica '*' operador expresion_aritmetica
-  67                       | expresion_aritmetica '/' operador expresion_aritmetica
+  78  expresion_aritmetica : expresion_aritmetica '+' expresion_aritmetica
+  79                       | expresion_aritmetica '-' expresion_aritmetica
+  80                       | expresion_aritmetica '*' expresion_aritmetica
+  81                       | expresion_aritmetica '/' expresion_aritmetica
+  82                       | T_CTE
+  83                       | T_ID
+  84                       | acceso_par
+  85                       | unaria
+  86                       | expresion_aritmetica '+' operador expresion_aritmetica
+  87                       | expresion_aritmetica '*' operador expresion_aritmetica
+  88                       | expresion_aritmetica '/' operador expresion_aritmetica
 
-  68  operador : '+'
-  69           | '*'
-  70           | '/'
-  71           | operador '+'
-  72           | operador '/'
-  73           | operador '*'
+  89  operador : '+'
+  90           | '*'
+  91           | '/'
+  92           | operador '+'
+  93           | operador '/'
+  94           | operador '*'
 
-  74  expresion : expresion '+' expresion
-  75            | expresion '-' expresion
-  76            | expresion '*' expresion
-  77            | expresion '/' expresion
-  78            | T_CTE
-  79            | T_ID
-  80            | acceso_par
-  81            | invocacion_funcion
-  82            | unaria
-  83            | expresion '+' operador expresion
-  84            | expresion '*' operador expresion
-  85            | expresion '/' operador expresion
+  95  expresion : expresion '+' expresion
+  96            | expresion '-' expresion
+  97            | expresion '*' expresion
+  98            | expresion '/' expresion
+  99            | T_CTE
+ 100            | T_ID
+ 101            | acceso_par
+ 102            | invocacion_funcion
+ 103            | unaria
+ 104            | expresion '+' operador expresion
+ 105            | expresion '*' operador expresion
+ 106            | expresion '/' operador expresion
 
-  86  unaria : '-' expresion
+ 107  unaria : '-' expresion
 
 state 0
 	$accept : . programa $end  (0)
@@ -124,9 +145,10 @@ state 0
 
 state 1
 	programa : T_ID . bloque_sentencias  (1)
+	programa : T_ID .  (2)
 
 	BEGIN  shift 3
-	.  error
+	$end  reduce 2
 
 	bloque_sentencias  goto 4
 
@@ -138,33 +160,34 @@ state 2
 
 
 state 3
-	bloque_sentencias : BEGIN . sentencias END  (2)
+	bloque_sentencias : BEGIN . sentencias END  (3)
 
-	IF  shift 5
-	OUTF  shift 6
-	TYPEDEF  shift 7
-	RET  shift 8
-	REPEAT  shift 9
-	GOTO  shift 10
-	LONGINT  shift 11
-	DOUBLE  shift 12
-	T_ID  shift 13
-	T_ETIQUETA  shift 14
+	error  shift 5
+	IF  shift 6
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
 	.  error
 
-	sentencias  goto 15
-	sentencia  goto 16
-	declaracion  goto 17
-	asignacion  goto 18
-	if_statement  goto 19
-	repeat_while_statement  goto 20
-	salida  goto 21
-	declaracion_funcion  goto 22
-	goto_statement  goto 23
-	sentencia_declarativa_tipos  goto 24
-	tipo  goto 25
-	IDENTIFIER_LIST  goto 26
-	acceso_par  goto 27
+	sentencias  goto 16
+	sentencia  goto 17
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
 
 
 state 4
@@ -174,1831 +197,2452 @@ state 4
 
 
 state 5
-	if_statement : IF . '(' condicion ')' THEN repeat_sentencia END_IF ';'  (24)
-	if_statement : IF . '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (25)
+	tipo : error .  (29)
 
-	'('  shift 28
-	.  error
+	.  reduce 29
 
 
 state 6
-	salida : OUTF . '(' T_CADENA ')' ';'  (27)
-	salida : OUTF . '(' expresion ')' ';'  (28)
+	if_statement : IF . '(' condicion ')' THEN repeat_sentencia END_IF ';'  (30)
+	if_statement : IF . '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (31)
+	if_statement : IF . '(' condicion ')' THEN repeat_sentencia END_IF  (32)
+	if_statement : IF . '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF  (33)
+	if_statement : IF . '(' ')' THEN repeat_sentencia END_IF ';'  (34)
+	if_statement : IF . '(' ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (35)
+	if_statement : IF . '(' condicion ')' repeat_sentencia END_IF ';'  (36)
+	if_statement : IF . '(' condicion ')' repeat_sentencia ELSE repeat_sentencia END_IF ';'  (37)
+	if_statement : IF . '(' condicion ')' THEN END_IF ';'  (38)
+	if_statement : IF . '(' condicion ')' THEN ELSE END_IF ';'  (39)
 
 	'('  shift 29
 	.  error
 
 
 state 7
-	sentencia_declarativa_tipos : TYPEDEF . T_ID T_ASIGNACION tipo subrango ';'  (29)
-	sentencia_declarativa_tipos : TYPEDEF . PAIR '<' LONGINT '>' T_ID ';'  (30)
-	sentencia_declarativa_tipos : TYPEDEF . PAIR '<' DOUBLE '>' T_ID ';'  (31)
+	salida : OUTF . '(' T_CADENA ')' ';'  (44)
+	salida : OUTF . '(' expresion ')' ';'  (45)
+	salida : OUTF . '(' expresion ')'  (46)
 
-	PAIR  shift 30
-	T_ID  shift 31
+	'('  shift 30
 	.  error
 
 
 state 8
-	sentencia : RET . '(' expresion ')' ';'  (14)
+	sentencia_declarativa_tipos : TYPEDEF . T_ID T_ASIGNACION tipo subrango ';'  (47)
+	sentencia_declarativa_tipos : TYPEDEF . PAIR '<' LONGINT '>' T_ID ';'  (48)
+	sentencia_declarativa_tipos : TYPEDEF . PAIR '<' DOUBLE '>' T_ID ';'  (49)
+	sentencia_declarativa_tipos : TYPEDEF . T_ID T_ASIGNACION tipo subrango  (50)
+	sentencia_declarativa_tipos : TYPEDEF . PAIR '<' T_ID '>' T_ID ';'  (51)
 
-	'('  shift 32
+	PAIR  shift 31
+	T_ID  shift 32
 	.  error
 
 
 state 9
-	repeat_while_statement : REPEAT . repeat_sentencia WHILE '(' condicion ')' ';'  (26)
+	sentencia : RET . '(' expresion ')' ';'  (15)
 
-	IF  shift 5
-	BEGIN  shift 3
-	OUTF  shift 6
-	TYPEDEF  shift 7
-	RET  shift 8
-	REPEAT  shift 9
-	GOTO  shift 10
-	LONGINT  shift 11
-	DOUBLE  shift 12
-	T_ID  shift 13
-	T_ETIQUETA  shift 14
+	'('  shift 33
 	.  error
-
-	bloque_sentencias  goto 33
-	sentencia  goto 34
-	declaracion  goto 17
-	asignacion  goto 18
-	if_statement  goto 19
-	repeat_while_statement  goto 20
-	salida  goto 21
-	declaracion_funcion  goto 22
-	goto_statement  goto 23
-	sentencia_declarativa_tipos  goto 24
-	tipo  goto 25
-	repeat_sentencia  goto 35
-	IDENTIFIER_LIST  goto 26
-	acceso_par  goto 27
 
 
 state 10
-	goto_statement : GOTO . T_ETIQUETA ';'  (53)
-	goto_statement : GOTO . ';'  (54)
+	repeat_while_statement : REPEAT . repeat_sentencia WHILE '(' condicion ')' ';'  (40)
+	repeat_while_statement : REPEAT . repeat_sentencia WHILE '(' condicion ')'  (41)
+	repeat_while_statement : REPEAT . WHILE '(' condicion ')'  (42)
+	repeat_while_statement : REPEAT . repeat_sentencia WHILE '(' ')' ';'  (43)
 
-	T_ETIQUETA  shift 36
-	';'  shift 37
+	error  shift 5
+	IF  shift 6
+	BEGIN  shift 3
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	WHILE  shift 34
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
 	.  error
+
+	bloque_sentencias  goto 35
+	sentencia  goto 36
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	repeat_sentencia  goto 37
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
 
 
 state 11
-	tipo : LONGINT .  (22)
+	goto_statement : GOTO . T_ETIQUETA ';'  (74)
+	goto_statement : GOTO . ';'  (75)
 
-	.  reduce 22
+	T_ETIQUETA  shift 38
+	';'  shift 39
+	.  error
 
 
 state 12
-	tipo : DOUBLE .  (21)
+	tipo : LONGINT .  (27)
 
-	.  reduce 21
+	.  reduce 27
 
 
 state 13
-	tipo : T_ID .  (23)
-	IDENTIFIER_LIST : T_ID .  (46)
-	acceso_par : T_ID . '{' T_CTE '}'  (52)
+	tipo : DOUBLE .  (26)
 
-	'{'  shift 38
-	FUN  reduce 23
-	T_ASIGNACION  reduce 46
-	T_ID  reduce 23
-	','  reduce 46
+	.  reduce 26
 
 
 state 14
-	sentencia : T_ETIQUETA .  (13)
+	tipo : T_ID .  (28)
+	IDENTIFIER_LIST : T_ID .  (67)
+	acceso_par : T_ID . '{' T_CTE '}'  (73)
 
-	.  reduce 13
+	'{'  shift 40
+	FUN  reduce 28
+	T_ASIGNACION  reduce 67
+	T_ID  reduce 28
+	','  reduce 67
 
 
 state 15
-	bloque_sentencias : BEGIN sentencias . END  (2)
-	sentencias : sentencias . sentencia  (3)
+	sentencia : T_ETIQUETA .  (14)
 
-	IF  shift 5
-	END  shift 39
-	OUTF  shift 6
-	TYPEDEF  shift 7
-	RET  shift 8
-	REPEAT  shift 9
-	GOTO  shift 10
-	LONGINT  shift 11
-	DOUBLE  shift 12
-	T_ID  shift 13
-	T_ETIQUETA  shift 14
-	.  error
-
-	sentencia  goto 40
-	declaracion  goto 17
-	asignacion  goto 18
-	if_statement  goto 19
-	repeat_while_statement  goto 20
-	salida  goto 21
-	declaracion_funcion  goto 22
-	goto_statement  goto 23
-	sentencia_declarativa_tipos  goto 24
-	tipo  goto 25
-	IDENTIFIER_LIST  goto 26
-	acceso_par  goto 27
+	.  reduce 14
 
 
 state 16
-	sentencias : sentencia .  (4)
+	bloque_sentencias : BEGIN sentencias . END  (3)
+	sentencias : sentencias . sentencia  (4)
 
-	.  reduce 4
+	error  shift 5
+	IF  shift 6
+	END  shift 41
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
+	.  error
+
+	sentencia  goto 42
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
 
 
 state 17
-	sentencia : declaracion .  (5)
+	sentencias : sentencia .  (5)
 
 	.  reduce 5
 
 
 state 18
-	sentencia : asignacion .  (6)
+	sentencia : declaracion .  (6)
 
 	.  reduce 6
 
 
 state 19
-	sentencia : if_statement .  (7)
+	sentencia : asignacion .  (7)
 
 	.  reduce 7
 
 
 state 20
-	sentencia : repeat_while_statement .  (8)
+	sentencia : if_statement .  (8)
 
 	.  reduce 8
 
 
 state 21
-	sentencia : salida .  (9)
+	sentencia : repeat_while_statement .  (9)
 
 	.  reduce 9
 
 
 state 22
-	sentencia : declaracion_funcion .  (10)
+	sentencia : salida .  (10)
 
 	.  reduce 10
 
 
 state 23
-	sentencia : goto_statement .  (11)
+	sentencia : declaracion_funcion .  (11)
 
 	.  reduce 11
 
 
 state 24
-	sentencia : sentencia_declarativa_tipos .  (12)
+	sentencia : goto_statement .  (12)
 
 	.  reduce 12
 
 
 state 25
-	declaracion : tipo . lista_var ';'  (15)
-	declaracion_funcion : tipo . FUN T_ID '(' tipo T_ID ')' bloque_sentencias  (16)
+	sentencia : sentencia_declarativa_tipos .  (13)
 
-	FUN  shift 41
-	T_ID  shift 42
-	.  error
-
-	lista_var  goto 43
+	.  reduce 13
 
 
 state 26
-	asignacion : IDENTIFIER_LIST . T_ASIGNACION expresion_list ';'  (45)
-	IDENTIFIER_LIST : IDENTIFIER_LIST . ',' T_ID  (47)
-	IDENTIFIER_LIST : IDENTIFIER_LIST . ',' acceso_par  (48)
+	declaracion : tipo . lista_var ';'  (16)
+	declaracion_funcion : tipo . FUN T_ID '(' tipo T_ID ')' bloque_sentencias  (17)
+	declaracion_funcion : tipo . FUN T_ID '(' tipo T_ID ')'  (18)
+	declaracion_funcion : tipo . FUN T_ID '(' tipo ')' bloque_sentencias  (19)
+	declaracion_funcion : tipo . T_ID '(' tipo T_ID ')' bloque_sentencias  (20)
+	declaracion_funcion : tipo . FUN '(' tipo T_ID ')' bloque_sentencias  (21)
 
-	T_ASIGNACION  shift 44
-	','  shift 45
+	FUN  shift 43
+	T_ID  shift 44
 	.  error
+
+	lista_var  goto 45
 
 
 state 27
-	IDENTIFIER_LIST : acceso_par .  (49)
+	asignacion : IDENTIFIER_LIST . T_ASIGNACION expresion_list ';'  (66)
+	IDENTIFIER_LIST : IDENTIFIER_LIST . ',' T_ID  (68)
+	IDENTIFIER_LIST : IDENTIFIER_LIST . ',' acceso_par  (69)
 
-	.  reduce 49
+	T_ASIGNACION  shift 46
+	','  shift 47
+	.  error
 
 
 state 28
-	if_statement : IF '(' . condicion ')' THEN repeat_sentencia END_IF ';'  (24)
-	if_statement : IF '(' . condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (25)
-
-	MENOR_IGUAL  shift 46
-	MAYOR_IGUAL  shift 47
-	DISTINTO  shift 48
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	'<'  shift 52
-	'>'  shift 53
-	'='  shift 54
-	.  error
-
-	expresion  goto 55
-	condicion  goto 56
-	comparador  goto 57
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 29
-	salida : OUTF '(' . T_CADENA ')' ';'  (27)
-	salida : OUTF '(' . expresion ')' ';'  (28)
-
-	T_CADENA  shift 61
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	.  error
-
-	expresion  goto 62
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 30
-	sentencia_declarativa_tipos : TYPEDEF PAIR . '<' LONGINT '>' T_ID ';'  (30)
-	sentencia_declarativa_tipos : TYPEDEF PAIR . '<' DOUBLE '>' T_ID ';'  (31)
-
-	'<'  shift 63
-	.  error
-
-
-state 31
-	sentencia_declarativa_tipos : TYPEDEF T_ID . T_ASIGNACION tipo subrango ';'  (29)
-
-	T_ASIGNACION  shift 64
-	.  error
-
-
-state 32
-	sentencia : RET '(' . expresion ')' ';'  (14)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	.  error
-
-	expresion  goto 65
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 33
-	repeat_sentencia : bloque_sentencias .  (17)
-
-	.  reduce 17
-
-
-state 34
-	repeat_sentencia : sentencia .  (18)
-
-	.  reduce 18
-
-
-state 35
-	repeat_while_statement : REPEAT repeat_sentencia . WHILE '(' condicion ')' ';'  (26)
-
-	WHILE  shift 66
-	.  error
-
-
-state 36
-	goto_statement : GOTO T_ETIQUETA . ';'  (53)
-
-	';'  shift 67
-	.  error
-
-
-state 37
-	goto_statement : GOTO ';' .  (54)
-
-	.  reduce 54
-
-
-state 38
-	acceso_par : T_ID '{' . T_CTE '}'  (52)
-
-	T_CTE  shift 68
-	.  error
-
-
-state 39
-	bloque_sentencias : BEGIN sentencias END .  (2)
-
-	.  reduce 2
-
-
-state 40
-	sentencias : sentencias sentencia .  (3)
-
-	.  reduce 3
-
-
-state 41
-	declaracion_funcion : tipo FUN . T_ID '(' tipo T_ID ')' bloque_sentencias  (16)
-
-	T_ID  shift 69
-	.  error
-
-
-state 42
-	lista_var : T_ID .  (20)
-
-	.  reduce 20
-
-
-state 43
-	declaracion : tipo lista_var . ';'  (15)
-	lista_var : lista_var . ',' T_ID  (19)
-
-	';'  shift 70
-	','  shift 71
-	.  error
-
-
-state 44
-	asignacion : IDENTIFIER_LIST T_ASIGNACION . expresion_list ';'  (45)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	.  error
-
-	expresion  goto 72
-	expresion_list  goto 73
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 45
-	IDENTIFIER_LIST : IDENTIFIER_LIST ',' . T_ID  (47)
-	IDENTIFIER_LIST : IDENTIFIER_LIST ',' . acceso_par  (48)
-
-	T_ID  shift 74
-	.  error
-
-	acceso_par  goto 75
-
-
-state 46
-	comparador : MENOR_IGUAL .  (39)
-
-	.  reduce 39
-
-
-state 47
-	comparador : MAYOR_IGUAL .  (40)
-
-	.  reduce 40
-
-
-state 48
-	comparador : DISTINTO .  (41)
-
-	.  reduce 41
-
-
-state 49
-	acceso_par : T_ID . '{' T_CTE '}'  (52)
-	invocacion_funcion : T_ID . '(' parametro_real ')'  (55)
-	expresion : T_ID .  (79)
-
-	'('  shift 76
-	'{'  shift 38
-	MENOR_IGUAL  reduce 79
-	MAYOR_IGUAL  reduce 79
-	DISTINTO  reduce 79
-	'+'  reduce 79
-	'-'  reduce 79
-	'*'  reduce 79
-	'/'  reduce 79
-	')'  reduce 79
-	';'  reduce 79
-	','  reduce 79
-	'<'  reduce 79
-	'>'  reduce 79
-	'='  reduce 79
-
-
-state 50
-	expresion : T_CTE .  (78)
-
-	.  reduce 78
-
-
-state 51
-	unaria : '-' . expresion  (86)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	.  error
-
-	expresion  goto 77
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 52
-	comparador : '<' .  (43)
-
-	.  reduce 43
-
-
-state 53
-	comparador : '>' .  (44)
-
-	.  reduce 44
-
-
-state 54
-	comparador : '=' .  (42)
-
-	.  reduce 42
-
-
-state 55
-	condicion : expresion . comparador expresion  (36)
-	condicion : expresion . comparador  (37)
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	MENOR_IGUAL  shift 46
-	MAYOR_IGUAL  shift 47
-	DISTINTO  shift 48
-	'+'  shift 78
-	'-'  shift 79
-	'*'  shift 80
-	'/'  shift 81
-	'<'  shift 52
-	'>'  shift 53
-	'='  shift 54
-	.  error
-
-	comparador  goto 82
-
-
-state 56
-	if_statement : IF '(' condicion . ')' THEN repeat_sentencia END_IF ';'  (24)
-	if_statement : IF '(' condicion . ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (25)
-
-	')'  shift 83
-	.  error
-
-
-state 57
-	condicion : comparador . expresion  (38)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	.  error
-
-	expresion  goto 84
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 58
-	expresion : acceso_par .  (80)
-
-	.  reduce 80
-
-
-state 59
-	expresion : invocacion_funcion .  (81)
-
-	.  reduce 81
-
-
-state 60
-	expresion : unaria .  (82)
-
-	.  reduce 82
-
-
-state 61
-	salida : OUTF '(' T_CADENA . ')' ';'  (27)
-
-	')'  shift 85
-	.  error
-
-
-state 62
-	salida : OUTF '(' expresion . ')' ';'  (28)
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	'+'  shift 78
-	'-'  shift 79
-	'*'  shift 80
-	'/'  shift 81
-	')'  shift 86
-	.  error
-
-
-state 63
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' . LONGINT '>' T_ID ';'  (30)
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' . DOUBLE '>' T_ID ';'  (31)
-
-	LONGINT  shift 87
-	DOUBLE  shift 88
-	.  error
-
-
-state 64
-	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION . tipo subrango ';'  (29)
-
-	LONGINT  shift 11
-	DOUBLE  shift 12
-	T_ID  shift 89
-	.  error
-
-	tipo  goto 90
-
-
-state 65
-	sentencia : RET '(' expresion . ')' ';'  (14)
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	'+'  shift 78
-	'-'  shift 79
-	'*'  shift 80
-	'/'  shift 81
-	')'  shift 91
-	.  error
-
-
-state 66
-	repeat_while_statement : REPEAT repeat_sentencia WHILE . '(' condicion ')' ';'  (26)
-
-	'('  shift 92
-	.  error
-
-
-state 67
-	goto_statement : GOTO T_ETIQUETA ';' .  (53)
-
-	.  reduce 53
-
-
-state 68
-	acceso_par : T_ID '{' T_CTE . '}'  (52)
-
-	'}'  shift 93
-	.  error
-
-
-state 69
-	declaracion_funcion : tipo FUN T_ID . '(' tipo T_ID ')' bloque_sentencias  (16)
-
-	'('  shift 94
-	.  error
-
-
-state 70
-	declaracion : tipo lista_var ';' .  (15)
-
-	.  reduce 15
-
-
-state 71
-	lista_var : lista_var ',' . T_ID  (19)
-
-	T_ID  shift 95
-	.  error
-
-
-state 72
-	expresion_list : expresion .  (50)
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	'+'  shift 78
-	'-'  shift 79
-	'*'  shift 80
-	'/'  shift 81
-	';'  reduce 50
-	','  reduce 50
-
-
-state 73
-	asignacion : IDENTIFIER_LIST T_ASIGNACION expresion_list . ';'  (45)
-	expresion_list : expresion_list . ',' expresion  (51)
-
-	';'  shift 96
-	','  shift 97
-	.  error
-
-
-state 74
-	IDENTIFIER_LIST : IDENTIFIER_LIST ',' T_ID .  (47)
-	acceso_par : T_ID . '{' T_CTE '}'  (52)
-
-	'{'  shift 38
-	T_ASIGNACION  reduce 47
-	','  reduce 47
-
-
-state 75
-	IDENTIFIER_LIST : IDENTIFIER_LIST ',' acceso_par .  (48)
-
-	.  reduce 48
-
-
-state 76
-	invocacion_funcion : T_ID '(' . parametro_real ')'  (55)
-
-	T_ID  shift 98
-	T_CTE  shift 99
-	'-'  shift 51
-	.  error
-
-	acceso_par  goto 100
-	parametro_real  goto 101
-	expresion_aritmetica  goto 102
-	unaria  goto 103
-
-
-state 77
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-	unaria : '-' expresion .  (86)
-
-	'*'  shift 80
-	'/'  shift 81
-	MENOR_IGUAL  reduce 86
-	MAYOR_IGUAL  reduce 86
-	DISTINTO  reduce 86
-	'+'  reduce 86
-	'-'  reduce 86
-	')'  reduce 86
-	';'  reduce 86
-	','  reduce 86
-	'<'  reduce 86
-	'>'  reduce 86
-	'='  reduce 86
-
-
-state 78
-	expresion : expresion '+' . expresion  (74)
-	expresion : expresion '+' . operador expresion  (83)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'+'  shift 104
-	'-'  shift 51
-	'*'  shift 105
-	'/'  shift 106
-	.  error
-
-	expresion  goto 107
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-	operador  goto 108
-
-
-state 79
-	expresion : expresion '-' . expresion  (75)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	.  error
-
-	expresion  goto 109
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 80
-	expresion : expresion '*' . expresion  (76)
-	expresion : expresion '*' . operador expresion  (84)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'+'  shift 104
-	'-'  shift 51
-	'*'  shift 105
-	'/'  shift 106
-	.  error
-
-	expresion  goto 110
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-	operador  goto 111
-
-
-state 81
-	expresion : expresion '/' . expresion  (77)
-	expresion : expresion '/' . operador expresion  (85)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'+'  shift 104
-	'-'  shift 51
-	'*'  shift 105
-	'/'  shift 106
-	.  error
-
-	expresion  goto 112
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-	operador  goto 113
-
-
-state 82
-	condicion : expresion comparador . expresion  (36)
-	condicion : expresion comparador .  (37)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	')'  reduce 37
-
-	expresion  goto 114
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 83
-	if_statement : IF '(' condicion ')' . THEN repeat_sentencia END_IF ';'  (24)
-	if_statement : IF '(' condicion ')' . THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (25)
-
-	THEN  shift 115
-	.  error
-
-
-state 84
-	condicion : comparador expresion .  (38)
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	'+'  shift 78
-	'-'  shift 79
-	'*'  shift 80
-	'/'  shift 81
-	')'  reduce 38
-
-
-state 85
-	salida : OUTF '(' T_CADENA ')' . ';'  (27)
-
-	';'  shift 116
-	.  error
-
-
-state 86
-	salida : OUTF '(' expresion ')' . ';'  (28)
-
-	';'  shift 117
-	.  error
-
-
-state 87
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT . '>' T_ID ';'  (30)
-
-	'>'  shift 118
-	.  error
-
-
-state 88
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE . '>' T_ID ';'  (31)
-
-	'>'  shift 119
-	.  error
-
-
-state 89
-	tipo : T_ID .  (23)
-
-	.  reduce 23
-
-
-state 90
-	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo . subrango ';'  (29)
-
-	'{'  shift 120
-	.  error
-
-	subrango  goto 121
-
-
-state 91
-	sentencia : RET '(' expresion ')' . ';'  (14)
-
-	';'  shift 122
-	.  error
-
-
-state 92
-	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' . condicion ')' ';'  (26)
-
-	MENOR_IGUAL  shift 46
-	MAYOR_IGUAL  shift 47
-	DISTINTO  shift 48
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	'<'  shift 52
-	'>'  shift 53
-	'='  shift 54
-	.  error
-
-	expresion  goto 55
-	condicion  goto 123
-	comparador  goto 57
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 93
-	acceso_par : T_ID '{' T_CTE '}' .  (52)
-
-	.  reduce 52
-
-
-state 94
-	declaracion_funcion : tipo FUN T_ID '(' . tipo T_ID ')' bloque_sentencias  (16)
-
-	LONGINT  shift 11
-	DOUBLE  shift 12
-	T_ID  shift 89
-	.  error
-
-	tipo  goto 124
-
-
-state 95
-	lista_var : lista_var ',' T_ID .  (19)
-
-	.  reduce 19
-
-
-state 96
-	asignacion : IDENTIFIER_LIST T_ASIGNACION expresion_list ';' .  (45)
-
-	.  reduce 45
-
-
-state 97
-	expresion_list : expresion_list ',' . expresion  (51)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'-'  shift 51
-	.  error
-
-	expresion  goto 125
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 98
-	acceso_par : T_ID . '{' T_CTE '}'  (52)
-	expresion_aritmetica : T_ID .  (62)
-
-	'{'  shift 38
-	'+'  reduce 62
-	'-'  reduce 62
-	'*'  reduce 62
-	'/'  reduce 62
-	')'  reduce 62
-
-
-state 99
-	expresion_aritmetica : T_CTE .  (61)
-
-	.  reduce 61
-
-
-state 100
-	expresion_aritmetica : acceso_par .  (63)
-
-	.  reduce 63
-
-
-state 101
-	invocacion_funcion : T_ID '(' parametro_real . ')'  (55)
-
-	')'  shift 126
-	.  error
-
-
-state 102
-	parametro_real : expresion_aritmetica .  (56)
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
-
-	'+'  shift 127
-	'-'  shift 128
-	'*'  shift 129
-	'/'  shift 130
-	')'  reduce 56
-
-
-state 103
-	expresion_aritmetica : unaria .  (64)
-
-	.  reduce 64
-
-
-state 104
-	operador : '+' .  (68)
-
-	.  reduce 68
-
-
-state 105
-	operador : '*' .  (69)
-
-	.  reduce 69
-
-
-state 106
-	operador : '/' .  (70)
+	IDENTIFIER_LIST : acceso_par .  (70)
 
 	.  reduce 70
 
 
-state 107
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion '+' expresion .  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
+state 29
+	if_statement : IF '(' . condicion ')' THEN repeat_sentencia END_IF ';'  (30)
+	if_statement : IF '(' . condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (31)
+	if_statement : IF '(' . condicion ')' THEN repeat_sentencia END_IF  (32)
+	if_statement : IF '(' . condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF  (33)
+	if_statement : IF '(' . ')' THEN repeat_sentencia END_IF ';'  (34)
+	if_statement : IF '(' . ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (35)
+	if_statement : IF '(' . condicion ')' repeat_sentencia END_IF ';'  (36)
+	if_statement : IF '(' . condicion ')' repeat_sentencia ELSE repeat_sentencia END_IF ';'  (37)
+	if_statement : IF '(' . condicion ')' THEN END_IF ';'  (38)
+	if_statement : IF '(' . condicion ')' THEN ELSE END_IF ';'  (39)
 
-	'*'  shift 80
-	'/'  shift 81
-	MENOR_IGUAL  reduce 74
-	MAYOR_IGUAL  reduce 74
-	DISTINTO  reduce 74
-	'+'  reduce 74
-	'-'  reduce 74
-	')'  reduce 74
-	';'  reduce 74
-	','  reduce 74
-	'<'  reduce 74
-	'>'  reduce 74
-	'='  reduce 74
-
-
-state 108
-	operador : operador . '+'  (71)
-	operador : operador . '/'  (72)
-	operador : operador . '*'  (73)
-	expresion : expresion '+' operador . expresion  (83)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'+'  shift 131
-	'-'  shift 51
-	'*'  shift 132
-	'/'  shift 133
+	MENOR_IGUAL  shift 48
+	MAYOR_IGUAL  shift 49
+	DISTINTO  shift 50
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
+	')'  shift 54
+	'<'  shift 55
+	'>'  shift 56
+	'='  shift 57
 	.  error
 
-	expresion  goto 134
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
+	expresion  goto 58
+	condicion  goto 59
+	comparador  goto 60
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
 
 
-state 109
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion '-' expresion .  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
+state 30
+	salida : OUTF '(' . T_CADENA ')' ';'  (44)
+	salida : OUTF '(' . expresion ')' ';'  (45)
+	salida : OUTF '(' . expresion ')'  (46)
 
-	'*'  shift 80
-	'/'  shift 81
-	MENOR_IGUAL  reduce 75
-	MAYOR_IGUAL  reduce 75
-	DISTINTO  reduce 75
-	'+'  reduce 75
-	'-'  reduce 75
-	')'  reduce 75
-	';'  reduce 75
-	','  reduce 75
-	'<'  reduce 75
-	'>'  reduce 75
-	'='  reduce 75
-
-
-state 110
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion '*' expresion .  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	.  reduce 76
-
-
-state 111
-	operador : operador . '+'  (71)
-	operador : operador . '/'  (72)
-	operador : operador . '*'  (73)
-	expresion : expresion '*' operador . expresion  (84)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'+'  shift 131
-	'-'  shift 51
-	'*'  shift 132
-	'/'  shift 133
+	T_CADENA  shift 64
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
 	.  error
 
-	expresion  goto 135
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
+	expresion  goto 65
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
 
 
-state 112
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion '/' expresion .  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
+state 31
+	sentencia_declarativa_tipos : TYPEDEF PAIR . '<' LONGINT '>' T_ID ';'  (48)
+	sentencia_declarativa_tipos : TYPEDEF PAIR . '<' DOUBLE '>' T_ID ';'  (49)
+	sentencia_declarativa_tipos : TYPEDEF PAIR . '<' T_ID '>' T_ID ';'  (51)
 
-	.  reduce 77
-
-
-state 113
-	operador : operador . '+'  (71)
-	operador : operador . '/'  (72)
-	operador : operador . '*'  (73)
-	expresion : expresion '/' operador . expresion  (85)
-
-	T_ID  shift 49
-	T_CTE  shift 50
-	'+'  shift 131
-	'-'  shift 51
-	'*'  shift 132
-	'/'  shift 133
-	.  error
-
-	expresion  goto 136
-	acceso_par  goto 58
-	invocacion_funcion  goto 59
-	unaria  goto 60
-
-
-state 114
-	condicion : expresion comparador expresion .  (36)
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	'+'  shift 78
-	'-'  shift 79
-	'*'  shift 80
-	'/'  shift 81
-	')'  reduce 36
-
-
-state 115
-	if_statement : IF '(' condicion ')' THEN . repeat_sentencia END_IF ';'  (24)
-	if_statement : IF '(' condicion ')' THEN . repeat_sentencia ELSE repeat_sentencia END_IF ';'  (25)
-
-	IF  shift 5
-	BEGIN  shift 3
-	OUTF  shift 6
-	TYPEDEF  shift 7
-	RET  shift 8
-	REPEAT  shift 9
-	GOTO  shift 10
-	LONGINT  shift 11
-	DOUBLE  shift 12
-	T_ID  shift 13
-	T_ETIQUETA  shift 14
-	.  error
-
-	bloque_sentencias  goto 33
-	sentencia  goto 34
-	declaracion  goto 17
-	asignacion  goto 18
-	if_statement  goto 19
-	repeat_while_statement  goto 20
-	salida  goto 21
-	declaracion_funcion  goto 22
-	goto_statement  goto 23
-	sentencia_declarativa_tipos  goto 24
-	tipo  goto 25
-	repeat_sentencia  goto 137
-	IDENTIFIER_LIST  goto 26
-	acceso_par  goto 27
-
-
-state 116
-	salida : OUTF '(' T_CADENA ')' ';' .  (27)
-
-	.  reduce 27
-
-
-state 117
-	salida : OUTF '(' expresion ')' ';' .  (28)
-
-	.  reduce 28
-
-
-state 118
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT '>' . T_ID ';'  (30)
-
-	T_ID  shift 138
+	'<'  shift 66
 	.  error
 
 
-state 119
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE '>' . T_ID ';'  (31)
+state 32
+	sentencia_declarativa_tipos : TYPEDEF T_ID . T_ASIGNACION tipo subrango ';'  (47)
+	sentencia_declarativa_tipos : TYPEDEF T_ID . T_ASIGNACION tipo subrango  (50)
 
-	T_ID  shift 139
+	T_ASIGNACION  shift 67
 	.  error
 
 
-state 120
-	subrango : '{' . T_CTE ',' T_CTE '}'  (32)
-	subrango : '{' . '-' T_CTE ',' T_CTE '}'  (33)
-	subrango : '{' . T_CTE ',' '-' T_CTE '}'  (34)
-	subrango : '{' . '-' T_CTE ',' '-' T_CTE '}'  (35)
+state 33
+	sentencia : RET '(' . expresion ')' ';'  (15)
 
-	T_CTE  shift 140
-	'-'  shift 141
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
+	.  error
+
+	expresion  goto 68
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 34
+	repeat_while_statement : REPEAT WHILE . '(' condicion ')'  (42)
+
+	'('  shift 69
 	.  error
 
 
-state 121
-	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo subrango . ';'  (29)
+state 35
+	repeat_sentencia : bloque_sentencias .  (22)
 
-	';'  shift 142
+	.  reduce 22
+
+
+state 36
+	repeat_sentencia : sentencia .  (23)
+
+	.  reduce 23
+
+
+state 37
+	repeat_while_statement : REPEAT repeat_sentencia . WHILE '(' condicion ')' ';'  (40)
+	repeat_while_statement : REPEAT repeat_sentencia . WHILE '(' condicion ')'  (41)
+	repeat_while_statement : REPEAT repeat_sentencia . WHILE '(' ')' ';'  (43)
+
+	WHILE  shift 70
 	.  error
 
 
-state 122
-	sentencia : RET '(' expresion ')' ';' .  (14)
+state 38
+	goto_statement : GOTO T_ETIQUETA . ';'  (74)
 
-	.  reduce 14
-
-
-state 123
-	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion . ')' ';'  (26)
-
-	')'  shift 143
+	';'  shift 71
 	.  error
 
 
-state 124
-	declaracion_funcion : tipo FUN T_ID '(' tipo . T_ID ')' bloque_sentencias  (16)
+state 39
+	goto_statement : GOTO ';' .  (75)
 
-	T_ID  shift 144
+	.  reduce 75
+
+
+state 40
+	acceso_par : T_ID '{' . T_CTE '}'  (73)
+
+	T_CTE  shift 72
 	.  error
 
 
-state 125
-	expresion_list : expresion_list ',' expresion .  (51)
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
+state 41
+	bloque_sentencias : BEGIN sentencias END .  (3)
 
-	'+'  shift 78
-	'-'  shift 79
-	'*'  shift 80
-	'/'  shift 81
-	';'  reduce 51
-	','  reduce 51
+	.  reduce 3
 
 
-state 126
-	invocacion_funcion : T_ID '(' parametro_real ')' .  (55)
+state 42
+	sentencias : sentencias sentencia .  (4)
 
-	.  reduce 55
-
-
-state 127
-	expresion_aritmetica : expresion_aritmetica '+' . expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica '+' . operador expresion_aritmetica  (65)
-
-	T_ID  shift 98
-	T_CTE  shift 99
-	'+'  shift 104
-	'-'  shift 51
-	'*'  shift 105
-	'/'  shift 106
-	.  error
-
-	acceso_par  goto 100
-	expresion_aritmetica  goto 145
-	unaria  goto 103
-	operador  goto 146
+	.  reduce 4
 
 
-state 128
-	expresion_aritmetica : expresion_aritmetica '-' . expresion_aritmetica  (58)
+state 43
+	declaracion_funcion : tipo FUN . T_ID '(' tipo T_ID ')' bloque_sentencias  (17)
+	declaracion_funcion : tipo FUN . T_ID '(' tipo T_ID ')'  (18)
+	declaracion_funcion : tipo FUN . T_ID '(' tipo ')' bloque_sentencias  (19)
+	declaracion_funcion : tipo FUN . '(' tipo T_ID ')' bloque_sentencias  (21)
 
-	T_ID  shift 98
-	T_CTE  shift 99
-	'-'  shift 51
-	.  error
-
-	acceso_par  goto 100
-	expresion_aritmetica  goto 147
-	unaria  goto 103
-
-
-state 129
-	expresion_aritmetica : expresion_aritmetica '*' . expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica '*' . operador expresion_aritmetica  (66)
-
-	T_ID  shift 98
-	T_CTE  shift 99
-	'+'  shift 104
-	'-'  shift 51
-	'*'  shift 105
-	'/'  shift 106
-	.  error
-
-	acceso_par  goto 100
-	expresion_aritmetica  goto 148
-	unaria  goto 103
-	operador  goto 149
-
-
-state 130
-	expresion_aritmetica : expresion_aritmetica '/' . expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica '/' . operador expresion_aritmetica  (67)
-
-	T_ID  shift 98
-	T_CTE  shift 99
-	'+'  shift 104
-	'-'  shift 51
-	'*'  shift 105
-	'/'  shift 106
-	.  error
-
-	acceso_par  goto 100
-	expresion_aritmetica  goto 150
-	unaria  goto 103
-	operador  goto 151
-
-
-state 131
-	operador : operador '+' .  (71)
-
-	.  reduce 71
-
-
-state 132
-	operador : operador '*' .  (73)
-
-	.  reduce 73
-
-
-state 133
-	operador : operador '/' .  (72)
-
-	.  reduce 72
-
-
-state 134
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion '+' operador expresion .  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	'*'  shift 80
-	'/'  shift 81
-	MENOR_IGUAL  reduce 83
-	MAYOR_IGUAL  reduce 83
-	DISTINTO  reduce 83
-	'+'  reduce 83
-	'-'  reduce 83
-	')'  reduce 83
-	';'  reduce 83
-	','  reduce 83
-	'<'  reduce 83
-	'>'  reduce 83
-	'='  reduce 83
-
-
-state 135
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion '*' operador expresion .  (84)
-	expresion : expresion . '/' operador expresion  (85)
-
-	.  reduce 84
-
-
-state 136
-	expresion : expresion . '+' expresion  (74)
-	expresion : expresion . '-' expresion  (75)
-	expresion : expresion . '*' expresion  (76)
-	expresion : expresion . '/' expresion  (77)
-	expresion : expresion . '+' operador expresion  (83)
-	expresion : expresion . '*' operador expresion  (84)
-	expresion : expresion . '/' operador expresion  (85)
-	expresion : expresion '/' operador expresion .  (85)
-
-	.  reduce 85
-
-
-state 137
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia . END_IF ';'  (24)
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia . ELSE repeat_sentencia END_IF ';'  (25)
-
-	ELSE  shift 152
-	END_IF  shift 153
+	T_ID  shift 73
+	'('  shift 74
 	.  error
 
 
-state 138
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT '>' T_ID . ';'  (30)
+state 44
+	declaracion_funcion : tipo T_ID . '(' tipo T_ID ')' bloque_sentencias  (20)
+	lista_var : T_ID .  (25)
 
-	';'  shift 154
+	'('  shift 75
+	';'  reduce 25
+	','  reduce 25
+
+
+state 45
+	declaracion : tipo lista_var . ';'  (16)
+	lista_var : lista_var . ',' T_ID  (24)
+
+	';'  shift 76
+	','  shift 77
 	.  error
 
 
-state 139
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE '>' T_ID . ';'  (31)
+state 46
+	asignacion : IDENTIFIER_LIST T_ASIGNACION . expresion_list ';'  (66)
 
-	';'  shift 155
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
 	.  error
 
+	expresion  goto 78
+	expresion_list  goto 79
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
 
-state 140
-	subrango : '{' T_CTE . ',' T_CTE '}'  (32)
-	subrango : '{' T_CTE . ',' '-' T_CTE '}'  (34)
 
-	','  shift 156
+state 47
+	IDENTIFIER_LIST : IDENTIFIER_LIST ',' . T_ID  (68)
+	IDENTIFIER_LIST : IDENTIFIER_LIST ',' . acceso_par  (69)
+
+	T_ID  shift 80
 	.  error
 
-
-state 141
-	subrango : '{' '-' . T_CTE ',' T_CTE '}'  (33)
-	subrango : '{' '-' . T_CTE ',' '-' T_CTE '}'  (35)
-
-	T_CTE  shift 157
-	.  error
+	acceso_par  goto 81
 
 
-state 142
-	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo subrango ';' .  (29)
-
-	.  reduce 29
-
-
-state 143
-	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion ')' . ';'  (26)
-
-	';'  shift 158
-	.  error
-
-
-state 144
-	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID . ')' bloque_sentencias  (16)
-
-	')'  shift 159
-	.  error
-
-
-state 145
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica '+' expresion_aritmetica .  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
-
-	'*'  shift 129
-	'/'  shift 130
-	'+'  reduce 57
-	'-'  reduce 57
-	')'  reduce 57
-
-
-state 146
-	expresion_aritmetica : expresion_aritmetica '+' operador . expresion_aritmetica  (65)
-	operador : operador . '+'  (71)
-	operador : operador . '/'  (72)
-	operador : operador . '*'  (73)
-
-	T_ID  shift 98
-	T_CTE  shift 99
-	'+'  shift 131
-	'-'  shift 51
-	'*'  shift 132
-	'/'  shift 133
-	.  error
-
-	acceso_par  goto 100
-	expresion_aritmetica  goto 160
-	unaria  goto 103
-
-
-state 147
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica '-' expresion_aritmetica .  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
-
-	'*'  shift 129
-	'/'  shift 130
-	'+'  reduce 58
-	'-'  reduce 58
-	')'  reduce 58
-
-
-state 148
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica '*' expresion_aritmetica .  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
-
-	.  reduce 59
-
-
-state 149
-	expresion_aritmetica : expresion_aritmetica '*' operador . expresion_aritmetica  (66)
-	operador : operador . '+'  (71)
-	operador : operador . '/'  (72)
-	operador : operador . '*'  (73)
-
-	T_ID  shift 98
-	T_CTE  shift 99
-	'+'  shift 131
-	'-'  shift 51
-	'*'  shift 132
-	'/'  shift 133
-	.  error
-
-	acceso_par  goto 100
-	expresion_aritmetica  goto 161
-	unaria  goto 103
-
-
-state 150
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica '/' expresion_aritmetica .  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
+state 48
+	comparador : MENOR_IGUAL .  (60)
 
 	.  reduce 60
 
 
-state 151
-	expresion_aritmetica : expresion_aritmetica '/' operador . expresion_aritmetica  (67)
-	operador : operador . '+'  (71)
-	operador : operador . '/'  (72)
-	operador : operador . '*'  (73)
+state 49
+	comparador : MAYOR_IGUAL .  (61)
 
-	T_ID  shift 98
-	T_CTE  shift 99
-	'+'  shift 131
-	'-'  shift 51
-	'*'  shift 132
-	'/'  shift 133
+	.  reduce 61
+
+
+state 50
+	comparador : DISTINTO .  (62)
+
+	.  reduce 62
+
+
+state 51
+	acceso_par : T_ID . '{' T_CTE '}'  (73)
+	invocacion_funcion : T_ID . '(' parametro_real ')'  (76)
+	expresion : T_ID .  (100)
+
+	'('  shift 82
+	'{'  shift 40
+	MENOR_IGUAL  reduce 100
+	MAYOR_IGUAL  reduce 100
+	DISTINTO  reduce 100
+	'+'  reduce 100
+	'-'  reduce 100
+	'*'  reduce 100
+	'/'  reduce 100
+	')'  reduce 100
+	';'  reduce 100
+	','  reduce 100
+	'<'  reduce 100
+	'>'  reduce 100
+	'='  reduce 100
+
+
+state 52
+	expresion : T_CTE .  (99)
+
+	.  reduce 99
+
+
+state 53
+	unaria : '-' . expresion  (107)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
 	.  error
 
-	acceso_par  goto 100
-	expresion_aritmetica  goto 162
-	unaria  goto 103
+	expresion  goto 83
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
 
 
-state 152
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE . repeat_sentencia END_IF ';'  (25)
+state 54
+	if_statement : IF '(' ')' . THEN repeat_sentencia END_IF ';'  (34)
+	if_statement : IF '(' ')' . THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (35)
 
-	IF  shift 5
-	BEGIN  shift 3
-	OUTF  shift 6
-	TYPEDEF  shift 7
-	RET  shift 8
-	REPEAT  shift 9
-	GOTO  shift 10
-	LONGINT  shift 11
-	DOUBLE  shift 12
-	T_ID  shift 13
-	T_ETIQUETA  shift 14
-	.  error
-
-	bloque_sentencias  goto 33
-	sentencia  goto 34
-	declaracion  goto 17
-	asignacion  goto 18
-	if_statement  goto 19
-	repeat_while_statement  goto 20
-	salida  goto 21
-	declaracion_funcion  goto 22
-	goto_statement  goto 23
-	sentencia_declarativa_tipos  goto 24
-	tipo  goto 25
-	repeat_sentencia  goto 163
-	IDENTIFIER_LIST  goto 26
-	acceso_par  goto 27
-
-
-state 153
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia END_IF . ';'  (24)
-
-	';'  shift 164
-	.  error
-
-
-state 154
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT '>' T_ID ';' .  (30)
-
-	.  reduce 30
-
-
-state 155
-	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' .  (31)
-
-	.  reduce 31
-
-
-state 156
-	subrango : '{' T_CTE ',' . T_CTE '}'  (32)
-	subrango : '{' T_CTE ',' . '-' T_CTE '}'  (34)
-
-	T_CTE  shift 165
-	'-'  shift 166
+	THEN  shift 84
 	.  error
 
 
-state 157
-	subrango : '{' '-' T_CTE . ',' T_CTE '}'  (33)
-	subrango : '{' '-' T_CTE . ',' '-' T_CTE '}'  (35)
+state 55
+	comparador : '<' .  (64)
 
-	','  shift 167
+	.  reduce 64
+
+
+state 56
+	comparador : '>' .  (65)
+
+	.  reduce 65
+
+
+state 57
+	comparador : '=' .  (63)
+
+	.  reduce 63
+
+
+state 58
+	condicion : expresion . comparador expresion  (57)
+	condicion : expresion . comparador  (58)
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	MENOR_IGUAL  shift 48
+	MAYOR_IGUAL  shift 49
+	DISTINTO  shift 50
+	'+'  shift 85
+	'-'  shift 86
+	'*'  shift 87
+	'/'  shift 88
+	'<'  shift 55
+	'>'  shift 56
+	'='  shift 57
+	.  error
+
+	comparador  goto 89
+
+
+state 59
+	if_statement : IF '(' condicion . ')' THEN repeat_sentencia END_IF ';'  (30)
+	if_statement : IF '(' condicion . ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (31)
+	if_statement : IF '(' condicion . ')' THEN repeat_sentencia END_IF  (32)
+	if_statement : IF '(' condicion . ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF  (33)
+	if_statement : IF '(' condicion . ')' repeat_sentencia END_IF ';'  (36)
+	if_statement : IF '(' condicion . ')' repeat_sentencia ELSE repeat_sentencia END_IF ';'  (37)
+	if_statement : IF '(' condicion . ')' THEN END_IF ';'  (38)
+	if_statement : IF '(' condicion . ')' THEN ELSE END_IF ';'  (39)
+
+	')'  shift 90
 	.  error
 
 
-state 158
-	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion ')' ';' .  (26)
+state 60
+	condicion : comparador . expresion  (59)
 
-	.  reduce 26
-
-
-state 159
-	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID ')' . bloque_sentencias  (16)
-
-	BEGIN  shift 3
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
 	.  error
 
-	bloque_sentencias  goto 168
+	expresion  goto 91
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
 
 
-state 160
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica '+' operador expresion_aritmetica .  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
+state 61
+	expresion : acceso_par .  (101)
 
-	'*'  shift 129
-	'/'  shift 130
-	'+'  reduce 65
-	'-'  reduce 65
-	')'  reduce 65
+	.  reduce 101
 
 
-state 161
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica '*' operador expresion_aritmetica .  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
+state 62
+	expresion : invocacion_funcion .  (102)
 
-	.  reduce 66
+	.  reduce 102
 
 
-state 162
-	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (57)
-	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (58)
-	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (59)
-	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (60)
-	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (65)
-	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (66)
-	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (67)
-	expresion_aritmetica : expresion_aritmetica '/' operador expresion_aritmetica .  (67)
+state 63
+	expresion : unaria .  (103)
 
-	.  reduce 67
+	.  reduce 103
 
 
-state 163
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia . END_IF ';'  (25)
+state 64
+	salida : OUTF '(' T_CADENA . ')' ';'  (44)
 
-	END_IF  shift 169
+	')'  shift 92
 	.  error
 
 
-state 164
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia END_IF ';' .  (24)
+state 65
+	salida : OUTF '(' expresion . ')' ';'  (45)
+	salida : OUTF '(' expresion . ')'  (46)
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
 
-	.  reduce 24
-
-
-state 165
-	subrango : '{' T_CTE ',' T_CTE . '}'  (32)
-
-	'}'  shift 170
+	'+'  shift 85
+	'-'  shift 86
+	'*'  shift 87
+	'/'  shift 88
+	')'  shift 93
 	.  error
 
 
-state 166
-	subrango : '{' T_CTE ',' '-' . T_CTE '}'  (34)
+state 66
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' . LONGINT '>' T_ID ';'  (48)
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' . DOUBLE '>' T_ID ';'  (49)
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' . T_ID '>' T_ID ';'  (51)
 
-	T_CTE  shift 171
+	LONGINT  shift 94
+	DOUBLE  shift 95
+	T_ID  shift 96
 	.  error
 
 
-state 167
-	subrango : '{' '-' T_CTE ',' . T_CTE '}'  (33)
-	subrango : '{' '-' T_CTE ',' . '-' T_CTE '}'  (35)
+state 67
+	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION . tipo subrango ';'  (47)
+	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION . tipo subrango  (50)
 
-	T_CTE  shift 172
-	'-'  shift 173
+	error  shift 5
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 97
+	.  error
+
+	tipo  goto 98
+
+
+state 68
+	sentencia : RET '(' expresion . ')' ';'  (15)
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	'+'  shift 85
+	'-'  shift 86
+	'*'  shift 87
+	'/'  shift 88
+	')'  shift 99
 	.  error
 
 
-state 168
-	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID ')' bloque_sentencias .  (16)
+state 69
+	repeat_while_statement : REPEAT WHILE '(' . condicion ')'  (42)
+
+	MENOR_IGUAL  shift 48
+	MAYOR_IGUAL  shift 49
+	DISTINTO  shift 50
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
+	'<'  shift 55
+	'>'  shift 56
+	'='  shift 57
+	.  error
+
+	expresion  goto 58
+	condicion  goto 100
+	comparador  goto 60
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 70
+	repeat_while_statement : REPEAT repeat_sentencia WHILE . '(' condicion ')' ';'  (40)
+	repeat_while_statement : REPEAT repeat_sentencia WHILE . '(' condicion ')'  (41)
+	repeat_while_statement : REPEAT repeat_sentencia WHILE . '(' ')' ';'  (43)
+
+	'('  shift 101
+	.  error
+
+
+state 71
+	goto_statement : GOTO T_ETIQUETA ';' .  (74)
+
+	.  reduce 74
+
+
+state 72
+	acceso_par : T_ID '{' T_CTE . '}'  (73)
+
+	'}'  shift 102
+	.  error
+
+
+state 73
+	declaracion_funcion : tipo FUN T_ID . '(' tipo T_ID ')' bloque_sentencias  (17)
+	declaracion_funcion : tipo FUN T_ID . '(' tipo T_ID ')'  (18)
+	declaracion_funcion : tipo FUN T_ID . '(' tipo ')' bloque_sentencias  (19)
+
+	'('  shift 103
+	.  error
+
+
+state 74
+	declaracion_funcion : tipo FUN '(' . tipo T_ID ')' bloque_sentencias  (21)
+
+	error  shift 5
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 97
+	.  error
+
+	tipo  goto 104
+
+
+state 75
+	declaracion_funcion : tipo T_ID '(' . tipo T_ID ')' bloque_sentencias  (20)
+
+	error  shift 5
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 97
+	.  error
+
+	tipo  goto 105
+
+
+state 76
+	declaracion : tipo lista_var ';' .  (16)
 
 	.  reduce 16
 
 
-state 169
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF . ';'  (25)
+state 77
+	lista_var : lista_var ',' . T_ID  (24)
 
-	';'  shift 174
+	T_ID  shift 106
 	.  error
 
 
-state 170
-	subrango : '{' T_CTE ',' T_CTE '}' .  (32)
+state 78
+	expresion_list : expresion .  (71)
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
 
-	.  reduce 32
+	'+'  shift 85
+	'-'  shift 86
+	'*'  shift 87
+	'/'  shift 88
+	';'  reduce 71
+	','  reduce 71
+
+
+state 79
+	asignacion : IDENTIFIER_LIST T_ASIGNACION expresion_list . ';'  (66)
+	expresion_list : expresion_list . ',' expresion  (72)
+
+	';'  shift 107
+	','  shift 108
+	.  error
+
+
+state 80
+	IDENTIFIER_LIST : IDENTIFIER_LIST ',' T_ID .  (68)
+	acceso_par : T_ID . '{' T_CTE '}'  (73)
+
+	'{'  shift 40
+	T_ASIGNACION  reduce 68
+	','  reduce 68
+
+
+state 81
+	IDENTIFIER_LIST : IDENTIFIER_LIST ',' acceso_par .  (69)
+
+	.  reduce 69
+
+
+state 82
+	invocacion_funcion : T_ID '(' . parametro_real ')'  (76)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'-'  shift 53
+	.  error
+
+	acceso_par  goto 111
+	parametro_real  goto 112
+	expresion_aritmetica  goto 113
+	unaria  goto 114
+
+
+state 83
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+	unaria : '-' expresion .  (107)
+
+	'*'  shift 87
+	'/'  shift 88
+	MENOR_IGUAL  reduce 107
+	MAYOR_IGUAL  reduce 107
+	DISTINTO  reduce 107
+	'+'  reduce 107
+	'-'  reduce 107
+	')'  reduce 107
+	';'  reduce 107
+	','  reduce 107
+	'<'  reduce 107
+	'>'  reduce 107
+	'='  reduce 107
+
+
+state 84
+	if_statement : IF '(' ')' THEN . repeat_sentencia END_IF ';'  (34)
+	if_statement : IF '(' ')' THEN . repeat_sentencia ELSE repeat_sentencia END_IF ';'  (35)
+
+	error  shift 5
+	IF  shift 6
+	BEGIN  shift 3
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
+	.  error
+
+	bloque_sentencias  goto 35
+	sentencia  goto 36
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	repeat_sentencia  goto 115
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
+
+
+state 85
+	expresion : expresion '+' . expresion  (95)
+	expresion : expresion '+' . operador expresion  (104)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'+'  shift 116
+	'-'  shift 53
+	'*'  shift 117
+	'/'  shift 118
+	.  error
+
+	expresion  goto 119
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+	operador  goto 120
+
+
+state 86
+	expresion : expresion '-' . expresion  (96)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
+	.  error
+
+	expresion  goto 121
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 87
+	expresion : expresion '*' . expresion  (97)
+	expresion : expresion '*' . operador expresion  (105)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'+'  shift 116
+	'-'  shift 53
+	'*'  shift 117
+	'/'  shift 118
+	.  error
+
+	expresion  goto 122
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+	operador  goto 123
+
+
+state 88
+	expresion : expresion '/' . expresion  (98)
+	expresion : expresion '/' . operador expresion  (106)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'+'  shift 116
+	'-'  shift 53
+	'*'  shift 117
+	'/'  shift 118
+	.  error
+
+	expresion  goto 124
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+	operador  goto 125
+
+
+state 89
+	condicion : expresion comparador . expresion  (57)
+	condicion : expresion comparador .  (58)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
+	')'  reduce 58
+
+	expresion  goto 126
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 90
+	if_statement : IF '(' condicion ')' . THEN repeat_sentencia END_IF ';'  (30)
+	if_statement : IF '(' condicion ')' . THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'  (31)
+	if_statement : IF '(' condicion ')' . THEN repeat_sentencia END_IF  (32)
+	if_statement : IF '(' condicion ')' . THEN repeat_sentencia ELSE repeat_sentencia END_IF  (33)
+	if_statement : IF '(' condicion ')' . repeat_sentencia END_IF ';'  (36)
+	if_statement : IF '(' condicion ')' . repeat_sentencia ELSE repeat_sentencia END_IF ';'  (37)
+	if_statement : IF '(' condicion ')' . THEN END_IF ';'  (38)
+	if_statement : IF '(' condicion ')' . THEN ELSE END_IF ';'  (39)
+
+	error  shift 5
+	IF  shift 6
+	THEN  shift 127
+	BEGIN  shift 3
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
+	.  error
+
+	bloque_sentencias  goto 35
+	sentencia  goto 36
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	repeat_sentencia  goto 128
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
+
+
+state 91
+	condicion : comparador expresion .  (59)
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	'+'  shift 85
+	'-'  shift 86
+	'*'  shift 87
+	'/'  shift 88
+	')'  reduce 59
+
+
+state 92
+	salida : OUTF '(' T_CADENA ')' . ';'  (44)
+
+	';'  shift 129
+	.  error
+
+
+state 93
+	salida : OUTF '(' expresion ')' . ';'  (45)
+	salida : OUTF '(' expresion ')' .  (46)
+
+	';'  shift 130
+	error  reduce 46
+	IF  reduce 46
+	ELSE  reduce 46
+	END  reduce 46
+	END_IF  reduce 46
+	OUTF  reduce 46
+	TYPEDEF  reduce 46
+	RET  reduce 46
+	REPEAT  reduce 46
+	WHILE  reduce 46
+	GOTO  reduce 46
+	LONGINT  reduce 46
+	DOUBLE  reduce 46
+	T_ID  reduce 46
+	T_ETIQUETA  reduce 46
+
+
+state 94
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT . '>' T_ID ';'  (48)
+
+	'>'  shift 131
+	.  error
+
+
+state 95
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE . '>' T_ID ';'  (49)
+
+	'>'  shift 132
+	.  error
+
+
+state 96
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' T_ID . '>' T_ID ';'  (51)
+
+	'>'  shift 133
+	.  error
+
+
+state 97
+	tipo : T_ID .  (28)
+
+	.  reduce 28
+
+
+state 98
+	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo . subrango ';'  (47)
+	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo . subrango  (50)
+
+	error  shift 134
+	'{'  shift 135
+	.  error
+
+	subrango  goto 136
+
+
+state 99
+	sentencia : RET '(' expresion ')' . ';'  (15)
+
+	';'  shift 137
+	.  error
+
+
+state 100
+	repeat_while_statement : REPEAT WHILE '(' condicion . ')'  (42)
+
+	')'  shift 138
+	.  error
+
+
+state 101
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' . condicion ')' ';'  (40)
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' . condicion ')'  (41)
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' . ')' ';'  (43)
+
+	MENOR_IGUAL  shift 48
+	MAYOR_IGUAL  shift 49
+	DISTINTO  shift 50
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
+	')'  shift 139
+	'<'  shift 55
+	'>'  shift 56
+	'='  shift 57
+	.  error
+
+	expresion  goto 58
+	condicion  goto 140
+	comparador  goto 60
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 102
+	acceso_par : T_ID '{' T_CTE '}' .  (73)
+
+	.  reduce 73
+
+
+state 103
+	declaracion_funcion : tipo FUN T_ID '(' . tipo T_ID ')' bloque_sentencias  (17)
+	declaracion_funcion : tipo FUN T_ID '(' . tipo T_ID ')'  (18)
+	declaracion_funcion : tipo FUN T_ID '(' . tipo ')' bloque_sentencias  (19)
+
+	error  shift 5
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 97
+	.  error
+
+	tipo  goto 141
+
+
+state 104
+	declaracion_funcion : tipo FUN '(' tipo . T_ID ')' bloque_sentencias  (21)
+
+	T_ID  shift 142
+	.  error
+
+
+state 105
+	declaracion_funcion : tipo T_ID '(' tipo . T_ID ')' bloque_sentencias  (20)
+
+	T_ID  shift 143
+	.  error
+
+
+state 106
+	lista_var : lista_var ',' T_ID .  (24)
+
+	.  reduce 24
+
+
+state 107
+	asignacion : IDENTIFIER_LIST T_ASIGNACION expresion_list ';' .  (66)
+
+	.  reduce 66
+
+
+state 108
+	expresion_list : expresion_list ',' . expresion  (72)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'-'  shift 53
+	.  error
+
+	expresion  goto 144
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 109
+	acceso_par : T_ID . '{' T_CTE '}'  (73)
+	expresion_aritmetica : T_ID .  (83)
+
+	'{'  shift 40
+	'+'  reduce 83
+	'-'  reduce 83
+	'*'  reduce 83
+	'/'  reduce 83
+	')'  reduce 83
+
+
+state 110
+	expresion_aritmetica : T_CTE .  (82)
+
+	.  reduce 82
+
+
+state 111
+	expresion_aritmetica : acceso_par .  (84)
+
+	.  reduce 84
+
+
+state 112
+	invocacion_funcion : T_ID '(' parametro_real . ')'  (76)
+
+	')'  shift 145
+	.  error
+
+
+state 113
+	parametro_real : expresion_aritmetica .  (77)
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+
+	'+'  shift 146
+	'-'  shift 147
+	'*'  shift 148
+	'/'  shift 149
+	')'  reduce 77
+
+
+state 114
+	expresion_aritmetica : unaria .  (85)
+
+	.  reduce 85
+
+
+state 115
+	if_statement : IF '(' ')' THEN repeat_sentencia . END_IF ';'  (34)
+	if_statement : IF '(' ')' THEN repeat_sentencia . ELSE repeat_sentencia END_IF ';'  (35)
+
+	ELSE  shift 150
+	END_IF  shift 151
+	.  error
+
+
+state 116
+	operador : '+' .  (89)
+
+	.  reduce 89
+
+
+state 117
+	operador : '*' .  (90)
+
+	.  reduce 90
+
+
+state 118
+	operador : '/' .  (91)
+
+	.  reduce 91
+
+
+state 119
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion '+' expresion .  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	'*'  shift 87
+	'/'  shift 88
+	MENOR_IGUAL  reduce 95
+	MAYOR_IGUAL  reduce 95
+	DISTINTO  reduce 95
+	'+'  reduce 95
+	'-'  reduce 95
+	')'  reduce 95
+	';'  reduce 95
+	','  reduce 95
+	'<'  reduce 95
+	'>'  reduce 95
+	'='  reduce 95
+
+
+state 120
+	operador : operador . '+'  (92)
+	operador : operador . '/'  (93)
+	operador : operador . '*'  (94)
+	expresion : expresion '+' operador . expresion  (104)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'+'  shift 152
+	'-'  shift 53
+	'*'  shift 153
+	'/'  shift 154
+	.  error
+
+	expresion  goto 155
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 121
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion '-' expresion .  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	'*'  shift 87
+	'/'  shift 88
+	MENOR_IGUAL  reduce 96
+	MAYOR_IGUAL  reduce 96
+	DISTINTO  reduce 96
+	'+'  reduce 96
+	'-'  reduce 96
+	')'  reduce 96
+	';'  reduce 96
+	','  reduce 96
+	'<'  reduce 96
+	'>'  reduce 96
+	'='  reduce 96
+
+
+state 122
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion '*' expresion .  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	.  reduce 97
+
+
+state 123
+	operador : operador . '+'  (92)
+	operador : operador . '/'  (93)
+	operador : operador . '*'  (94)
+	expresion : expresion '*' operador . expresion  (105)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'+'  shift 152
+	'-'  shift 53
+	'*'  shift 153
+	'/'  shift 154
+	.  error
+
+	expresion  goto 156
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 124
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion '/' expresion .  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	.  reduce 98
+
+
+state 125
+	operador : operador . '+'  (92)
+	operador : operador . '/'  (93)
+	operador : operador . '*'  (94)
+	expresion : expresion '/' operador . expresion  (106)
+
+	T_ID  shift 51
+	T_CTE  shift 52
+	'+'  shift 152
+	'-'  shift 53
+	'*'  shift 153
+	'/'  shift 154
+	.  error
+
+	expresion  goto 157
+	acceso_par  goto 61
+	invocacion_funcion  goto 62
+	unaria  goto 63
+
+
+state 126
+	condicion : expresion comparador expresion .  (57)
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	'+'  shift 85
+	'-'  shift 86
+	'*'  shift 87
+	'/'  shift 88
+	')'  reduce 57
+
+
+state 127
+	if_statement : IF '(' condicion ')' THEN . repeat_sentencia END_IF ';'  (30)
+	if_statement : IF '(' condicion ')' THEN . repeat_sentencia ELSE repeat_sentencia END_IF ';'  (31)
+	if_statement : IF '(' condicion ')' THEN . repeat_sentencia END_IF  (32)
+	if_statement : IF '(' condicion ')' THEN . repeat_sentencia ELSE repeat_sentencia END_IF  (33)
+	if_statement : IF '(' condicion ')' THEN . END_IF ';'  (38)
+	if_statement : IF '(' condicion ')' THEN . ELSE END_IF ';'  (39)
+
+	error  shift 5
+	IF  shift 6
+	ELSE  shift 158
+	BEGIN  shift 3
+	END_IF  shift 159
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
+	.  error
+
+	bloque_sentencias  goto 35
+	sentencia  goto 36
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	repeat_sentencia  goto 160
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
+
+
+state 128
+	if_statement : IF '(' condicion ')' repeat_sentencia . END_IF ';'  (36)
+	if_statement : IF '(' condicion ')' repeat_sentencia . ELSE repeat_sentencia END_IF ';'  (37)
+
+	ELSE  shift 161
+	END_IF  shift 162
+	.  error
+
+
+state 129
+	salida : OUTF '(' T_CADENA ')' ';' .  (44)
+
+	.  reduce 44
+
+
+state 130
+	salida : OUTF '(' expresion ')' ';' .  (45)
+
+	.  reduce 45
+
+
+state 131
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT '>' . T_ID ';'  (48)
+
+	T_ID  shift 163
+	.  error
+
+
+state 132
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE '>' . T_ID ';'  (49)
+
+	T_ID  shift 164
+	.  error
+
+
+state 133
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' T_ID '>' . T_ID ';'  (51)
+
+	T_ID  shift 165
+	.  error
+
+
+state 134
+	subrango : error .  (56)
+
+	.  reduce 56
+
+
+state 135
+	subrango : '{' . T_CTE ',' T_CTE '}'  (52)
+	subrango : '{' . '-' T_CTE ',' T_CTE '}'  (53)
+	subrango : '{' . T_CTE ',' '-' T_CTE '}'  (54)
+	subrango : '{' . '-' T_CTE ',' '-' T_CTE '}'  (55)
+
+	T_CTE  shift 166
+	'-'  shift 167
+	.  error
+
+
+state 136
+	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo subrango . ';'  (47)
+	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo subrango .  (50)
+
+	';'  shift 168
+	error  reduce 50
+	IF  reduce 50
+	ELSE  reduce 50
+	END  reduce 50
+	END_IF  reduce 50
+	OUTF  reduce 50
+	TYPEDEF  reduce 50
+	RET  reduce 50
+	REPEAT  reduce 50
+	WHILE  reduce 50
+	GOTO  reduce 50
+	LONGINT  reduce 50
+	DOUBLE  reduce 50
+	T_ID  reduce 50
+	T_ETIQUETA  reduce 50
+
+
+state 137
+	sentencia : RET '(' expresion ')' ';' .  (15)
+
+	.  reduce 15
+
+
+state 138
+	repeat_while_statement : REPEAT WHILE '(' condicion ')' .  (42)
+
+	.  reduce 42
+
+
+state 139
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' ')' . ';'  (43)
+
+	';'  shift 169
+	.  error
+
+
+state 140
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion . ')' ';'  (40)
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion . ')'  (41)
+
+	')'  shift 170
+	.  error
+
+
+state 141
+	declaracion_funcion : tipo FUN T_ID '(' tipo . T_ID ')' bloque_sentencias  (17)
+	declaracion_funcion : tipo FUN T_ID '(' tipo . T_ID ')'  (18)
+	declaracion_funcion : tipo FUN T_ID '(' tipo . ')' bloque_sentencias  (19)
+
+	T_ID  shift 171
+	')'  shift 172
+	.  error
+
+
+state 142
+	declaracion_funcion : tipo FUN '(' tipo T_ID . ')' bloque_sentencias  (21)
+
+	')'  shift 173
+	.  error
+
+
+state 143
+	declaracion_funcion : tipo T_ID '(' tipo T_ID . ')' bloque_sentencias  (20)
+
+	')'  shift 174
+	.  error
+
+
+state 144
+	expresion_list : expresion_list ',' expresion .  (72)
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	'+'  shift 85
+	'-'  shift 86
+	'*'  shift 87
+	'/'  shift 88
+	';'  reduce 72
+	','  reduce 72
+
+
+state 145
+	invocacion_funcion : T_ID '(' parametro_real ')' .  (76)
+
+	.  reduce 76
+
+
+state 146
+	expresion_aritmetica : expresion_aritmetica '+' . expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica '+' . operador expresion_aritmetica  (86)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'+'  shift 116
+	'-'  shift 53
+	'*'  shift 117
+	'/'  shift 118
+	.  error
+
+	acceso_par  goto 111
+	expresion_aritmetica  goto 175
+	unaria  goto 114
+	operador  goto 176
+
+
+state 147
+	expresion_aritmetica : expresion_aritmetica '-' . expresion_aritmetica  (79)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'-'  shift 53
+	.  error
+
+	acceso_par  goto 111
+	expresion_aritmetica  goto 177
+	unaria  goto 114
+
+
+state 148
+	expresion_aritmetica : expresion_aritmetica '*' . expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica '*' . operador expresion_aritmetica  (87)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'+'  shift 116
+	'-'  shift 53
+	'*'  shift 117
+	'/'  shift 118
+	.  error
+
+	acceso_par  goto 111
+	expresion_aritmetica  goto 178
+	unaria  goto 114
+	operador  goto 179
+
+
+state 149
+	expresion_aritmetica : expresion_aritmetica '/' . expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica '/' . operador expresion_aritmetica  (88)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'+'  shift 116
+	'-'  shift 53
+	'*'  shift 117
+	'/'  shift 118
+	.  error
+
+	acceso_par  goto 111
+	expresion_aritmetica  goto 180
+	unaria  goto 114
+	operador  goto 181
+
+
+state 150
+	if_statement : IF '(' ')' THEN repeat_sentencia ELSE . repeat_sentencia END_IF ';'  (35)
+
+	error  shift 5
+	IF  shift 6
+	BEGIN  shift 3
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
+	.  error
+
+	bloque_sentencias  goto 35
+	sentencia  goto 36
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	repeat_sentencia  goto 182
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
+
+
+state 151
+	if_statement : IF '(' ')' THEN repeat_sentencia END_IF . ';'  (34)
+
+	';'  shift 183
+	.  error
+
+
+state 152
+	operador : operador '+' .  (92)
+
+	.  reduce 92
+
+
+state 153
+	operador : operador '*' .  (94)
+
+	.  reduce 94
+
+
+state 154
+	operador : operador '/' .  (93)
+
+	.  reduce 93
+
+
+state 155
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion '+' operador expresion .  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	'*'  shift 87
+	'/'  shift 88
+	MENOR_IGUAL  reduce 104
+	MAYOR_IGUAL  reduce 104
+	DISTINTO  reduce 104
+	'+'  reduce 104
+	'-'  reduce 104
+	')'  reduce 104
+	';'  reduce 104
+	','  reduce 104
+	'<'  reduce 104
+	'>'  reduce 104
+	'='  reduce 104
+
+
+state 156
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion '*' operador expresion .  (105)
+	expresion : expresion . '/' operador expresion  (106)
+
+	.  reduce 105
+
+
+state 157
+	expresion : expresion . '+' expresion  (95)
+	expresion : expresion . '-' expresion  (96)
+	expresion : expresion . '*' expresion  (97)
+	expresion : expresion . '/' expresion  (98)
+	expresion : expresion . '+' operador expresion  (104)
+	expresion : expresion . '*' operador expresion  (105)
+	expresion : expresion . '/' operador expresion  (106)
+	expresion : expresion '/' operador expresion .  (106)
+
+	.  reduce 106
+
+
+state 158
+	if_statement : IF '(' condicion ')' THEN ELSE . END_IF ';'  (39)
+
+	END_IF  shift 184
+	.  error
+
+
+state 159
+	if_statement : IF '(' condicion ')' THEN END_IF . ';'  (38)
+
+	';'  shift 185
+	.  error
+
+
+state 160
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia . END_IF ';'  (30)
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia . ELSE repeat_sentencia END_IF ';'  (31)
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia . END_IF  (32)
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia . ELSE repeat_sentencia END_IF  (33)
+
+	ELSE  shift 186
+	END_IF  shift 187
+	.  error
+
+
+state 161
+	if_statement : IF '(' condicion ')' repeat_sentencia ELSE . repeat_sentencia END_IF ';'  (37)
+
+	error  shift 5
+	IF  shift 6
+	BEGIN  shift 3
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
+	.  error
+
+	bloque_sentencias  goto 35
+	sentencia  goto 36
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	repeat_sentencia  goto 188
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
+
+
+state 162
+	if_statement : IF '(' condicion ')' repeat_sentencia END_IF . ';'  (36)
+
+	';'  shift 189
+	.  error
+
+
+state 163
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT '>' T_ID . ';'  (48)
+
+	';'  shift 190
+	.  error
+
+
+state 164
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE '>' T_ID . ';'  (49)
+
+	';'  shift 191
+	.  error
+
+
+state 165
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' T_ID '>' T_ID . ';'  (51)
+
+	';'  shift 192
+	.  error
+
+
+state 166
+	subrango : '{' T_CTE . ',' T_CTE '}'  (52)
+	subrango : '{' T_CTE . ',' '-' T_CTE '}'  (54)
+
+	','  shift 193
+	.  error
+
+
+state 167
+	subrango : '{' '-' . T_CTE ',' T_CTE '}'  (53)
+	subrango : '{' '-' . T_CTE ',' '-' T_CTE '}'  (55)
+
+	T_CTE  shift 194
+	.  error
+
+
+state 168
+	sentencia_declarativa_tipos : TYPEDEF T_ID T_ASIGNACION tipo subrango ';' .  (47)
+
+	.  reduce 47
+
+
+state 169
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' ')' ';' .  (43)
+
+	.  reduce 43
+
+
+state 170
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion ')' . ';'  (40)
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion ')' .  (41)
+
+	';'  shift 195
+	error  reduce 41
+	IF  reduce 41
+	ELSE  reduce 41
+	END  reduce 41
+	END_IF  reduce 41
+	OUTF  reduce 41
+	TYPEDEF  reduce 41
+	RET  reduce 41
+	REPEAT  reduce 41
+	WHILE  reduce 41
+	GOTO  reduce 41
+	LONGINT  reduce 41
+	DOUBLE  reduce 41
+	T_ID  reduce 41
+	T_ETIQUETA  reduce 41
 
 
 state 171
-	subrango : '{' T_CTE ',' '-' T_CTE . '}'  (34)
+	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID . ')' bloque_sentencias  (17)
+	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID . ')'  (18)
 
-	'}'  shift 175
+	')'  shift 196
 	.  error
 
 
 state 172
-	subrango : '{' '-' T_CTE ',' T_CTE . '}'  (33)
+	declaracion_funcion : tipo FUN T_ID '(' tipo ')' . bloque_sentencias  (19)
 
-	'}'  shift 176
+	BEGIN  shift 3
 	.  error
+
+	bloque_sentencias  goto 197
 
 
 state 173
-	subrango : '{' '-' T_CTE ',' '-' . T_CTE '}'  (35)
+	declaracion_funcion : tipo FUN '(' tipo T_ID ')' . bloque_sentencias  (21)
 
-	T_CTE  shift 177
+	BEGIN  shift 3
 	.  error
+
+	bloque_sentencias  goto 198
 
 
 state 174
-	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' .  (25)
+	declaracion_funcion : tipo T_ID '(' tipo T_ID ')' . bloque_sentencias  (20)
 
-	.  reduce 25
+	BEGIN  shift 3
+	.  error
+
+	bloque_sentencias  goto 199
 
 
 state 175
-	subrango : '{' T_CTE ',' '-' T_CTE '}' .  (34)
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica '+' expresion_aritmetica .  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+
+	'*'  shift 148
+	'/'  shift 149
+	'+'  reduce 78
+	'-'  reduce 78
+	')'  reduce 78
+
+
+state 176
+	expresion_aritmetica : expresion_aritmetica '+' operador . expresion_aritmetica  (86)
+	operador : operador . '+'  (92)
+	operador : operador . '/'  (93)
+	operador : operador . '*'  (94)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'+'  shift 152
+	'-'  shift 53
+	'*'  shift 153
+	'/'  shift 154
+	.  error
+
+	acceso_par  goto 111
+	expresion_aritmetica  goto 200
+	unaria  goto 114
+
+
+state 177
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica '-' expresion_aritmetica .  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+
+	'*'  shift 148
+	'/'  shift 149
+	'+'  reduce 79
+	'-'  reduce 79
+	')'  reduce 79
+
+
+state 178
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica '*' expresion_aritmetica .  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+
+	.  reduce 80
+
+
+state 179
+	expresion_aritmetica : expresion_aritmetica '*' operador . expresion_aritmetica  (87)
+	operador : operador . '+'  (92)
+	operador : operador . '/'  (93)
+	operador : operador . '*'  (94)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'+'  shift 152
+	'-'  shift 53
+	'*'  shift 153
+	'/'  shift 154
+	.  error
+
+	acceso_par  goto 111
+	expresion_aritmetica  goto 201
+	unaria  goto 114
+
+
+state 180
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica '/' expresion_aritmetica .  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+
+	.  reduce 81
+
+
+state 181
+	expresion_aritmetica : expresion_aritmetica '/' operador . expresion_aritmetica  (88)
+	operador : operador . '+'  (92)
+	operador : operador . '/'  (93)
+	operador : operador . '*'  (94)
+
+	T_ID  shift 109
+	T_CTE  shift 110
+	'+'  shift 152
+	'-'  shift 53
+	'*'  shift 153
+	'/'  shift 154
+	.  error
+
+	acceso_par  goto 111
+	expresion_aritmetica  goto 202
+	unaria  goto 114
+
+
+state 182
+	if_statement : IF '(' ')' THEN repeat_sentencia ELSE repeat_sentencia . END_IF ';'  (35)
+
+	END_IF  shift 203
+	.  error
+
+
+state 183
+	if_statement : IF '(' ')' THEN repeat_sentencia END_IF ';' .  (34)
 
 	.  reduce 34
 
 
-state 176
-	subrango : '{' '-' T_CTE ',' T_CTE '}' .  (33)
+state 184
+	if_statement : IF '(' condicion ')' THEN ELSE END_IF . ';'  (39)
 
-	.  reduce 33
-
-
-state 177
-	subrango : '{' '-' T_CTE ',' '-' T_CTE . '}'  (35)
-
-	'}'  shift 178
+	';'  shift 204
 	.  error
 
 
-state 178
-	subrango : '{' '-' T_CTE ',' '-' T_CTE '}' .  (35)
+state 185
+	if_statement : IF '(' condicion ')' THEN END_IF ';' .  (38)
+
+	.  reduce 38
+
+
+state 186
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE . repeat_sentencia END_IF ';'  (31)
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE . repeat_sentencia END_IF  (33)
+
+	error  shift 5
+	IF  shift 6
+	BEGIN  shift 3
+	OUTF  shift 7
+	TYPEDEF  shift 8
+	RET  shift 9
+	REPEAT  shift 10
+	GOTO  shift 11
+	LONGINT  shift 12
+	DOUBLE  shift 13
+	T_ID  shift 14
+	T_ETIQUETA  shift 15
+	.  error
+
+	bloque_sentencias  goto 35
+	sentencia  goto 36
+	declaracion  goto 18
+	asignacion  goto 19
+	if_statement  goto 20
+	repeat_while_statement  goto 21
+	salida  goto 22
+	declaracion_funcion  goto 23
+	goto_statement  goto 24
+	sentencia_declarativa_tipos  goto 25
+	tipo  goto 26
+	repeat_sentencia  goto 205
+	IDENTIFIER_LIST  goto 27
+	acceso_par  goto 28
+
+
+state 187
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia END_IF . ';'  (30)
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia END_IF .  (32)
+
+	';'  shift 206
+	error  reduce 32
+	IF  reduce 32
+	ELSE  reduce 32
+	END  reduce 32
+	END_IF  reduce 32
+	OUTF  reduce 32
+	TYPEDEF  reduce 32
+	RET  reduce 32
+	REPEAT  reduce 32
+	WHILE  reduce 32
+	GOTO  reduce 32
+	LONGINT  reduce 32
+	DOUBLE  reduce 32
+	T_ID  reduce 32
+	T_ETIQUETA  reduce 32
+
+
+state 188
+	if_statement : IF '(' condicion ')' repeat_sentencia ELSE repeat_sentencia . END_IF ';'  (37)
+
+	END_IF  shift 207
+	.  error
+
+
+state 189
+	if_statement : IF '(' condicion ')' repeat_sentencia END_IF ';' .  (36)
+
+	.  reduce 36
+
+
+state 190
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' LONGINT '>' T_ID ';' .  (48)
+
+	.  reduce 48
+
+
+state 191
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' .  (49)
+
+	.  reduce 49
+
+
+state 192
+	sentencia_declarativa_tipos : TYPEDEF PAIR '<' T_ID '>' T_ID ';' .  (51)
+
+	.  reduce 51
+
+
+state 193
+	subrango : '{' T_CTE ',' . T_CTE '}'  (52)
+	subrango : '{' T_CTE ',' . '-' T_CTE '}'  (54)
+
+	T_CTE  shift 208
+	'-'  shift 209
+	.  error
+
+
+state 194
+	subrango : '{' '-' T_CTE . ',' T_CTE '}'  (53)
+	subrango : '{' '-' T_CTE . ',' '-' T_CTE '}'  (55)
+
+	','  shift 210
+	.  error
+
+
+state 195
+	repeat_while_statement : REPEAT repeat_sentencia WHILE '(' condicion ')' ';' .  (40)
+
+	.  reduce 40
+
+
+state 196
+	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID ')' . bloque_sentencias  (17)
+	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID ')' .  (18)
+
+	BEGIN  shift 3
+	error  reduce 18
+	IF  reduce 18
+	ELSE  reduce 18
+	END  reduce 18
+	END_IF  reduce 18
+	OUTF  reduce 18
+	TYPEDEF  reduce 18
+	RET  reduce 18
+	REPEAT  reduce 18
+	WHILE  reduce 18
+	GOTO  reduce 18
+	LONGINT  reduce 18
+	DOUBLE  reduce 18
+	T_ID  reduce 18
+	T_ETIQUETA  reduce 18
+
+	bloque_sentencias  goto 211
+
+
+state 197
+	declaracion_funcion : tipo FUN T_ID '(' tipo ')' bloque_sentencias .  (19)
+
+	.  reduce 19
+
+
+state 198
+	declaracion_funcion : tipo FUN '(' tipo T_ID ')' bloque_sentencias .  (21)
+
+	.  reduce 21
+
+
+state 199
+	declaracion_funcion : tipo T_ID '(' tipo T_ID ')' bloque_sentencias .  (20)
+
+	.  reduce 20
+
+
+state 200
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica '+' operador expresion_aritmetica .  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+
+	'*'  shift 148
+	'/'  shift 149
+	'+'  reduce 86
+	'-'  reduce 86
+	')'  reduce 86
+
+
+state 201
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica '*' operador expresion_aritmetica .  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+
+	.  reduce 87
+
+
+state 202
+	expresion_aritmetica : expresion_aritmetica . '+' expresion_aritmetica  (78)
+	expresion_aritmetica : expresion_aritmetica . '-' expresion_aritmetica  (79)
+	expresion_aritmetica : expresion_aritmetica . '*' expresion_aritmetica  (80)
+	expresion_aritmetica : expresion_aritmetica . '/' expresion_aritmetica  (81)
+	expresion_aritmetica : expresion_aritmetica . '+' operador expresion_aritmetica  (86)
+	expresion_aritmetica : expresion_aritmetica . '*' operador expresion_aritmetica  (87)
+	expresion_aritmetica : expresion_aritmetica . '/' operador expresion_aritmetica  (88)
+	expresion_aritmetica : expresion_aritmetica '/' operador expresion_aritmetica .  (88)
+
+	.  reduce 88
+
+
+state 203
+	if_statement : IF '(' ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF . ';'  (35)
+
+	';'  shift 212
+	.  error
+
+
+state 204
+	if_statement : IF '(' condicion ')' THEN ELSE END_IF ';' .  (39)
+
+	.  reduce 39
+
+
+state 205
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia . END_IF ';'  (31)
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia . END_IF  (33)
+
+	END_IF  shift 213
+	.  error
+
+
+state 206
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia END_IF ';' .  (30)
+
+	.  reduce 30
+
+
+state 207
+	if_statement : IF '(' condicion ')' repeat_sentencia ELSE repeat_sentencia END_IF . ';'  (37)
+
+	';'  shift 214
+	.  error
+
+
+state 208
+	subrango : '{' T_CTE ',' T_CTE . '}'  (52)
+
+	'}'  shift 215
+	.  error
+
+
+state 209
+	subrango : '{' T_CTE ',' '-' . T_CTE '}'  (54)
+
+	T_CTE  shift 216
+	.  error
+
+
+state 210
+	subrango : '{' '-' T_CTE ',' . T_CTE '}'  (53)
+	subrango : '{' '-' T_CTE ',' . '-' T_CTE '}'  (55)
+
+	T_CTE  shift 217
+	'-'  shift 218
+	.  error
+
+
+state 211
+	declaracion_funcion : tipo FUN T_ID '(' tipo T_ID ')' bloque_sentencias .  (17)
+
+	.  reduce 17
+
+
+state 212
+	if_statement : IF '(' ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' .  (35)
 
 	.  reduce 35
 
 
+state 213
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF . ';'  (31)
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF .  (33)
+
+	';'  shift 219
+	error  reduce 33
+	IF  reduce 33
+	ELSE  reduce 33
+	END  reduce 33
+	END_IF  reduce 33
+	OUTF  reduce 33
+	TYPEDEF  reduce 33
+	RET  reduce 33
+	REPEAT  reduce 33
+	WHILE  reduce 33
+	GOTO  reduce 33
+	LONGINT  reduce 33
+	DOUBLE  reduce 33
+	T_ID  reduce 33
+	T_ETIQUETA  reduce 33
+
+
+state 214
+	if_statement : IF '(' condicion ')' repeat_sentencia ELSE repeat_sentencia END_IF ';' .  (37)
+
+	.  reduce 37
+
+
+state 215
+	subrango : '{' T_CTE ',' T_CTE '}' .  (52)
+
+	.  reduce 52
+
+
+state 216
+	subrango : '{' T_CTE ',' '-' T_CTE . '}'  (54)
+
+	'}'  shift 220
+	.  error
+
+
+state 217
+	subrango : '{' '-' T_CTE ',' T_CTE . '}'  (53)
+
+	'}'  shift 221
+	.  error
+
+
+state 218
+	subrango : '{' '-' T_CTE ',' '-' . T_CTE '}'  (55)
+
+	T_CTE  shift 222
+	.  error
+
+
+state 219
+	if_statement : IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' .  (31)
+
+	.  reduce 31
+
+
+state 220
+	subrango : '{' T_CTE ',' '-' T_CTE '}' .  (54)
+
+	.  reduce 54
+
+
+state 221
+	subrango : '{' '-' T_CTE ',' T_CTE '}' .  (53)
+
+	.  reduce 53
+
+
+state 222
+	subrango : '{' '-' T_CTE ',' '-' T_CTE . '}'  (55)
+
+	'}'  shift 223
+	.  error
+
+
+state 223
+	subrango : '{' '-' T_CTE ',' '-' T_CTE '}' .  (55)
+
+	.  reduce 55
+
+
 39 terminals, 28 nonterminals
-87 grammar rules, 179 states
+108 grammar rules, 224 states

@@ -8,8 +8,8 @@ import java.util.Map;
 
 public class Lexer {
 	private HashMap<String, Integer> reservedWords; //reservadas
-	private SymbolTable tabla;
-	Map<String, TipoSubrango> tablaTipos = new HashMap<>();
+	private  SymbolTable tabla;
+	 Map<String, TipoSubrango> tablaTipos = new HashMap<>();
 	static int nmrLinea;
 	private int currentState = 0;
 	private ArrayList<Pair> tokenList;
@@ -26,7 +26,7 @@ public class Lexer {
 	    Lexer.nmrLinea = 1;
 	    this.tokenList=new ArrayList<Pair>();
 	    this.lexema=new StringBuilder();
-	    this.tablaTipos= new HashMap<>();
+	    tablaTipos= new HashMap<>();
 	    
 	}
 	private int[][] transitionMatrix = {

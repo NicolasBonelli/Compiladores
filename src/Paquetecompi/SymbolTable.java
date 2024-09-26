@@ -50,8 +50,6 @@ public class SymbolTable {
 	        return nombre.hashCode();  // El hashCode se basa solo en el nombre
 	    }
 
-	   
-
 	    @Override
 	    public String toString() {
 	        return "Symbol{" + "nombre='" + nombre + '\'' + ", tipo='" + tipo + '\'' + '}';

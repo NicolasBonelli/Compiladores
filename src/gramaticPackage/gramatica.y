@@ -45,7 +45,6 @@ class Subrango{
 %left '+' '-'
 %left '*' '/'
 
-
 %%
 
 programa: T_ID bloque_sentencias {
@@ -57,7 +56,8 @@ programa: T_ID bloque_sentencias {
 
 
 
-bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sentencia END");};
+bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sentencia END");}
+                | BEGIN END {System.out.println("Error en línea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");} //PROBAR SI ANDA;
 
 sentencias: sentencias sentencia 
           | sentencia {System.out.println("Llegue a sentencias");};
@@ -172,7 +172,11 @@ if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             }
             | IF '(' condicion ')'THEN   ELSE  END_IF ';' {
                 System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
-            };
+            }
+            | error{
+                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Mal declarado el IF.");
+            }
+            ;//PROBAR SI ANDA lo de error
             
 
 
@@ -197,7 +201,10 @@ salida: OUTF '(' T_CADENA ')' ';'
         }
       | OUTF '(' expresion ')' {
         System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el punto y coma en la salida.");
-        };      
+        }
+      | OUTF '(' T_CADENA ')' {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el punto y coma en la salida.");
+      };   //PROBAR   
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
             System.out.println("Llegue a sentencia_declarativa_tipos");
@@ -225,12 +232,12 @@ subrango: '{' T_CTE ',' T_CTE '}'{
 
         //$$ = new Subrango(Double.parseDouble($2), Double.parseDouble($4));
     } 
-    |'{' '-' T_CTE ',' T_CTE '}'
-    |'{' T_CTE ',' '-' T_CTE '}'
-    |'{' '-' T_CTE ',' '-' T_CTE '}'
+    |'{' '-' T_CTE ',' T_CTE '}'{ System.out.println("Llegue a subrango con - en el primero");}
+    |'{' T_CTE ',' '-' T_CTE '}'{System.out.println("Llegue a subrango con - en el segundo");}
+    |'{' '-' T_CTE ',' '-' T_CTE '}'{System.out.println("Llegue a subrango con - en los dos");}
     | error {
         System.err.println("Error en línea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
-    };
+    };//PROBAR TODO
 
 
 condicion: expresion comparador expresion | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta expresion del lado derecho de la comparacion");}
@@ -246,8 +253,7 @@ comparador:    MENOR_IGUAL
 
            
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {
-    
-       
+          
 };
         
 IDENTIFIER_LIST: T_ID { 
@@ -260,27 +266,49 @@ IDENTIFIER_LIST: T_ID {
                | acceso_par  {
                 };
 
-expresion_list: expresion {
-                }
-              | expresion_list ',' expresion {
-                };
+expresion_list: 
+      expresion {
+      }
+    | expresion_list ',' expresion {
+      }
+    | expresion_list ',' { 
+          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta expresión después de la coma."); 
+      }
+    | ',' expresion { 
+          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta expresión antes de la coma."); 
+      }
+    ;
 
-acceso_par: T_ID '{' T_CTE '}' { 
-    // Verificar si el T_CTE es '1' o '2'
-    /* */
-    if (!($3.equals("1") || $3.equals("2"))) {
-        yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Solo se permite 1 o 2 dentro de las llaves.");
-    } else {
-        $$ = $1 + "{" + $3 + "}";
+acceso_par: 
+      T_ID '{' T_CTE '}' {
+          // Verificar si el T_CTE es '1' o '2'
+          if (!($3.equals("1") || $3.equals("2"))) {
+              yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Solo se permite 1 o 2 dentro de las llaves.");
+          } else {
+              $$ = $1 + "{" + $3 + "}";
+          }
+      }
+    | T_ID '{' '}' { 
+          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta constante dentro de las llaves."); 
+      }
+    | T_ID '{' T_CTE { 
+          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta cierre de llave en acceso a parámetros."); 
+      }
+    | T_ID T_CTE '}' { 
+          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta apertura de llave en acceso a parámetros."); 
     }
-}; 
+    ;
 
 
 goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); };
 
 invocacion_funcion: 
       T_ID '(' parametro_real ')' {
-      };
+      }
+      | error {
+        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida");
+        }
+      ; //PROBAR SI SE ROMPE LO DE OUTF CON CADENA
 
 parametro_real: expresion_aritmetica ; 
 

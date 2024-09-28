@@ -57,15 +57,15 @@ programa: T_ID bloque_sentencias {
     System.out.println("Programa compilado correctamente");
 } 
 | T_ID { 
-    System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
+    System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
 } 
-| bloque_sentencias {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el nombre del programa");}
+| bloque_sentencias {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del programa");}
 
 
 
 bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sentencia END");}
-                | BEGIN END {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
-                | error {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan Delimitador o Bloque de Sentencia");};
+                | BEGIN END {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
+                | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan Delimitador o Bloque de Sentencia");};
                 
 sentencias: sentencias sentencia 
           | sentencia {System.out.println("Llegue a sentencias");};
@@ -80,7 +80,7 @@ sentencia: declaracion
          | sentencia_declarativa_tipos
          | T_ETIQUETA
          | RET '(' expresion ')' ';'
-         | RET '(' expresion ')' {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
+         | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
          {System.out.println("Llegue a sentencia");};
 
 
@@ -104,7 +104,7 @@ declaracion: tipo lista_var ';' {
         }
     }
 } | 
-    tipo lista_var {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");};
+    tipo lista_var {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");};
 
 
 
@@ -113,7 +113,7 @@ lista_var: lista_var ',' T_ID {
 }
 | T_ID { 
     
-} | error { System.err.println("Error en línea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables");};
+} | error { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables");};
 
 
 declaracion_funcion:
@@ -122,20 +122,20 @@ declaracion_funcion:
     }
     
     | tipo FUN T_ID '(' parametros_error ')' bloque_sentencias {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Error en la cantidad de parámetros de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parámetros de la función.");
     }
 
     // Errores adicionales que ya tenías
     | tipo FUN T_ID '(' tipo ')' bloque_sentencias {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el nombre del parámetro de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parámetro de la función.");
     }
 
     | tipo T_ID '(' tipo T_ID ')' bloque_sentencias {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta palabra reservada FUN.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta palabra reservada FUN.");
     }
 
     | tipo FUN '(' tipo T_ID ')' bloque_sentencias {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el nombre de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la función.");
     };
 
 parametro:
@@ -145,13 +145,13 @@ parametro:
 
 parametros_error:
     parametro ',' parametro {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
     }
     | parametros_error ','  parametro{
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
     }
     | /* vacío */ {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - La función debe tener un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función debe tener un parámetro.");
     };
 
 repeat_sentencia: bloque_sentencias {}
@@ -177,49 +177,51 @@ tipo: DOUBLE { yyval.sval = "double"; }
 if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'
             | IF '(' condicion ')' THEN repeat_sentencia END_IF {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
             }
             | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF  {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
             }
             
             | IF '('  ')' THEN repeat_sentencia END_IF ';' {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
             }
             | IF '('  ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
             }
 
             | IF '('condicion  ')'  repeat_sentencia END_IF ';' {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
             }
             | IF '(' condicion ')'  repeat_sentencia ELSE repeat_sentencia END_IF ';' {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
             }
             
              | IF '('condicion  ')' THEN END_IF ';' {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
             }
             | IF '(' condicion ')' THEN   ELSE  END_IF ';' {
-                System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
             }
-            | IF  condicion  THEN repeat_sentencia END_IF ';' {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");};
+            | IF  condicion  THEN repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
+            | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");};
             
             
 
 
 repeat_while_statement: REPEAT repeat_sentencia WHILE '(' condicion ')' ';'
     | REPEAT repeat_sentencia WHILE '(' condicion ')' {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia WHILE.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia WHILE.");
     }
     | REPEAT WHILE '(' condicion ')' {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaración REPEAT.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaración REPEAT.");
     }
     | REPEAT repeat_sentencia WHILE '('  ')' ';'{
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta la condicion del WHILE.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del WHILE.");
     }
-    | REPEAT repeat_sentencia WHILE  condicion  ';' {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta () en la sentencia while");};
+    | REPEAT repeat_sentencia WHILE  condicion  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta () en la sentencia while");}
+    | REPEAT repeat_sentencia error '(' condicion ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta while en el bucle repeat");}
+    ;
 
 
 
@@ -229,13 +231,13 @@ salida: OUTF '(' T_CADENA ')' ';'
         System.out.println("Llegue a salida");   
         }
       | OUTF '(' expresion ')' {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
         }
       | OUTF '(' T_CADENA ')' {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
       } 
-      | OUTF '('  ')' ';' {System.err.println("Error en línea: " + Lexer.nmrLinea + " - OUTF no puede ser vacio");}  
-      | OUTF '(' sentencia ')' ';' {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Parámetro incorrecto en sentencia OUTF");};
+      | OUTF '('  ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - OUTF no puede ser vacio");}  
+      | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro incorrecto en sentencia OUTF");};
 
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
@@ -270,14 +272,30 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
 
         }
+        | TYPEDEF PAIR '<'  '>' T_ID ';' {
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaración de tipo.");
+        }
+        | TYPEDEF PAIR  DOUBLE  T_ID ';' {
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaración de tipo.");
+        }
+        | TYPEDEF PAIR  LONGINT  T_ID ';' {
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaración de tipo.");
+        }
         | TYPEDEF T_ID T_ASIGNACION tipo subrango {
-            System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaración de tipo.");
         }
         | TYPEDEF PAIR '<' T_ID '>' T_ID ';' {
-            System.err.println("Error en línea: " + Lexer.nmrLinea + " - Solo se pueden declarar pares de tipos basicos como LONGINT y DOUBLE");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Solo se pueden declarar pares de tipos basicos como LONGINT y DOUBLE");
         }
-        | TYPEDEF PAIR '<' LONGINT '>' T_ID {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");}
-        | TYPEDEF PAIR '<' DOUBLE '>' T_ID {System.err.println("Error en línea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");};
+        | TYPEDEF PAIR '<' LONGINT '>' T_ID {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");}
+        | TYPEDEF PAIR '<' DOUBLE '>' T_ID {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");};
+        | TYPEDEF  '<' LONGINT '>' T_ID ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el PAIR en la sentencia de declaracion de par");}
+        | TYPEDEF  '<' DOUBLE '>' T_ID ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el PAIR en la sentencia de declaracion de par");};
+        | TYPEDEF PAIR '<' LONGINT '>'  ';' { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el identificador en la sentencia de declaracion de par");}
+        | TYPEDEF PAIR '<' DOUBLE '>'  ';' { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el identificador en la sentencia de declaracion de par");}
+        | TYPEDEF  T_ASIGNACION tipo subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del tipo definido");}
+        | TYPEDEF T_ID T_ASIGNACION  subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el tipo base del nuevo tipo");}
+        | TYPEDEF T_ID  T_ASIGNACION tipo  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el subrango del nuevo tipo");}
 
 subrango: '{' T_CTE ',' T_CTE '}'{
         System.out.println("Llegue a subrango");
@@ -304,13 +322,16 @@ subrango: '{' T_CTE ',' T_CTE '}'{
     |'{' '-' T_CTE ',' T_CTE '}'{ System.out.println("Llegue a subrango con - en el primero");}
     |'{' T_CTE ',' '-' T_CTE '}'{System.out.println("Llegue a subrango con - en el segundo");}
     |'{' '-' T_CTE ',' '-' T_CTE '}'{System.out.println("Llegue a subrango con - en los dos");}
-    | error {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
+    |'{' '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " -Falta el rango en el subrango");}
+    |
+     error {
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
     };//PROBAR TODO
 
 
-condicion: expresion comparador expresion | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta expresion del lado derecho de la comparacion");}
-         | comparador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta expresion del lado izquierdo de la comparacion");};
+condicion: expresion comparador expresion 
+         | expresion error expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta comparador en la expresion");}
+         ;
 
 comparador:    MENOR_IGUAL  
             |  MAYOR_IGUAL 
@@ -324,56 +345,49 @@ comparador:    MENOR_IGUAL
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {} 
           | IDENTIFIER_LIST T_ASIGNACION expresion_list {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion");};
         
-IDENTIFIER_LIST: T_ID { 
-                }
-               | IDENTIFIER_LIST ',' T_ID {
+IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
                
                 }
                | IDENTIFIER_LIST ',' acceso_par {
                 }
+
+                | T_ID { 
+                }
+               
+               
                | acceso_par  {
-                };
+                }
+               ;
 
 expresion_list: 
       expresion {
       }
     | expresion_list ',' expresion {
       }
-    
     ;
 
+
+
+
 acceso_par: 
-      T_ID '{' T_CTE '}' {
-                    /* Verificar si el T_CTE es '1' o '2'*/
-          if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
-              yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Solo se permite 1 o 2 dentro de las llaves.");
-          } else {
-              yyval.sval = val_peek(3) + "{" + val_peek(1) + "}";
+    T_ID '{' "1" '}' {
           
-      }
     }
-    | T_ID '{' '}' { 
-          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta constante dentro de las llaves."); 
-      }
-    | T_ID '{' T_CTE { 
-          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta cierre de llave en acceso a parámetros."); 
-      }
-    | T_ID T_CTE '}' { 
-          yyerror("Error en linea: " + Lexer.nmrLinea + " Error: Falta apertura de llave en acceso a parámetros."); 
-    }
+    | T_ID '{' "2" '}'{}
+    |T_ID '{' error '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " Solo se puede acceder a un par con 1 o 2");}
     ;
 
 
 goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); }
-              | GOTO T_ETIQUETA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");};
-
+              | GOTO T_ETIQUETA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");}
+              | GOTO error {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
 invocacion_funcion: 
       T_ID '(' parametro_real ')' {
       }
       | error {
-        System.err.println("Error en línea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida"); //CAMBIAR
         }
-      ; //PROBAR SI SE ROMPE LO DE OUTF CON CADENA
+      ; 
 
 parametro_real: expresion_aritmetica ; 
 
@@ -412,7 +426,7 @@ expresion: expresion '+' expresion {
         | expresion '+' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
         | expresion '*' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
         | expresion '/' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
-        | {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");};
+          
         ;
 
 unaria: '-' expresion { // Esta regla maneja específicamente el '-' unario
@@ -456,7 +470,7 @@ int yylex() {
 
 
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
+    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
     parser.run();
 }
 

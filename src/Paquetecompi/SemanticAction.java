@@ -66,13 +66,14 @@ class AS3 extends SemanticAction {
             lex.addToken(new Pair(lexeme.toString(), valorTabla));
         } else {
             if (token.length() > Lexer.MAX_ID_LENGTH) {
-                System.out.println("Advertencia: Identificador demasiado largo en la línea " + lex.getNroLinea());
                 token = lexeme.substring(0, 15).toUpperCase();
+                System.err.println("Linea: " + Lexer.nmrLinea + ": El identificador " + lexeme.toString() +"  fue truncado a: " + token);
+
             }
             if (!lex.containsSymbol(token)) {
                 lex.insertSymbolTable(token, "String", SymbolTable.identifierValue);
             }
-            lex.addToken(new Pair(lexeme.toString(), SymbolTable.identifierValue));
+            lex.addToken(new Pair(token, SymbolTable.identifierValue));
         }
 
         // Limpiar lexema después de procesar el token

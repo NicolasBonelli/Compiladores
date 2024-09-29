@@ -67,8 +67,8 @@ bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sent
                 | BEGIN END {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
                 | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan Delimitador o Bloque de Sentencia");};
                 
-sentencias: sentencias sentencia 
-          | sentencia {System.out.println("Llegue a sentencias");};
+sentencias:  sentencia
+          | sentencias sentencia {System.out.println("Llegue a sentencias");};
 
 sentencia: declaracion 
          | asignacion
@@ -111,9 +111,11 @@ declaracion: tipo lista_var ';' {
 lista_var: lista_var ',' T_ID { 
    
 }
-| T_ID { 
+  | T_ID { 
     
-} | error { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables");};
+} | error { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables");}
+
+;
 
 
 declaracion_funcion:
@@ -155,7 +157,7 @@ parametros_error:
     };
 
 repeat_sentencia: bloque_sentencias {}
-                | sentencia;{}
+                | sentencia {} ;
 
 
 
@@ -165,6 +167,7 @@ tipo: DOUBLE { yyval.sval = "double"; }
     {
         System.out.println("Llegue a tipo");
         /* Verificar si el tipo está en la tabla de tipos definidos*/
+        System.out.println(val_peek(0).sval);
         if (tablaTipos.containsKey(val_peek(0).sval)) {
             yyval = val_peek(0); /* Si el tipo está definido, se usa el nombre del tipo*/
         } else {
@@ -204,7 +207,10 @@ if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
             }
             | IF  condicion  THEN repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");};
+            | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
+            | IF '(' condicion ')' THEN repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            ;
             
             
 
@@ -330,7 +336,9 @@ subrango: '{' T_CTE ',' T_CTE '}'{
 
 
 condicion: expresion comparador expresion 
-         | expresion error expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta comparador en la expresion");}
+         | expresion error expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta comparador en la condicion");}
+         | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 2da expresion en la condicion");}
+         | comparador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 1da expresion en la condicion");}
          ;
 
 comparador:    MENOR_IGUAL  
@@ -381,10 +389,12 @@ acceso_par:
 goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); }
               | GOTO T_ETIQUETA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");}
               | GOTO error {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
+
+
 invocacion_funcion: 
       T_ID '(' parametro_real ')' {
       }
-      | error {
+      | T_ID '(' error ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida"); //CAMBIAR
         }
       ; 
@@ -398,12 +408,9 @@ expresion_aritmetica: expresion_aritmetica '+' expresion_aritmetica
          | T_CTE 
          | T_ID 
          | acceso_par
-         | unaria;
-         | expresion_aritmetica '+' operador expresion_aritmetica {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: Dos o mas operadores juntos");}
-         | expresion_aritmetica '*' operador expresion_aritmetica {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: Dos o mas operadores juntos");}
-         | expresion_aritmetica '/' operador expresion_aritmetica {System.err.println("Error en linea: " + Lexer.nmrLinea + "Error: Dos o mas operadores juntos");};
-
-operador: '+' | '*' | '/' | operador '+' | operador '/' | operador '*';
+         | unaria
+         
+       ;
 
 expresion: expresion '+' expresion {
         }
@@ -414,19 +421,20 @@ expresion: expresion '+' expresion {
          | expresion '/' expresion {
         }
          | T_CTE {
+                    
         }
          | T_ID {
+           
         }
          | acceso_par{
+              
         }
         | invocacion_funcion{
+                    
         }
         | unaria { // Se añade la regla para operadores unarios
         }
-        | expresion '+' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
-        | expresion '*' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
-        | expresion '/' operador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Dos o mas operadores juntos");}
-          
+        | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
         ;
 
 unaria: '-' expresion { // Esta regla maneja específicamente el '-' unario
@@ -470,7 +478,7 @@ int yylex() {
 
 
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
+    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
     parser.run();
 }
 
@@ -502,10 +510,10 @@ String obtenerTipo(String variable) {
 }
 
 
-private Map<String, TipoSubrango> tablaTipos;
-	 private SymbolTable st;
-	 private Lexer lexer;
-	    private BufferedReader reader;
+    private Map<String, TipoSubrango> tablaTipos;
+	private SymbolTable st;
+	private Lexer lexer;
+	private BufferedReader reader;
 
 	    public Parser(String filePath) {
 	        this.st = new SymbolTable();

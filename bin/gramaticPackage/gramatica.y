@@ -51,6 +51,7 @@ class Subrango{
 %left '+' '-'
 %left '*' '/'
 
+ 
 %%
 
 programa: T_ID bloque_sentencias {
@@ -104,7 +105,7 @@ declaracion: tipo lista_var ';' {
         }
     }
 } | 
-    tipo lista_var {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");};
+    tipo lista_var error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");};
 
 
 
@@ -113,7 +114,7 @@ lista_var: lista_var ',' T_ID {
 }
   | T_ID { 
     
-} | error { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables");}
+} |lista_var  T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
 
 ;
 
@@ -350,31 +351,30 @@ comparador:    MENOR_IGUAL
            ;
 
            
-asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {} 
-          | IDENTIFIER_LIST T_ASIGNACION expresion_list {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion");};
-        
+asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
+          | IDENTIFIER_LIST T_ASIGNACION expresion_list ';' { /* Acción correcta */ }
+          ;
+
+expresion_list: expresion{}
+              | expresion_list ',' expresion{}
+              ;
+             
+
 IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
                
                 }
                | IDENTIFIER_LIST ',' acceso_par {
                 }
-
-                | T_ID { 
+               | error  T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
+               | T_ID { 
                 }
                
                
                | acceso_par  {
                 }
+               
+               
                ;
-
-expresion_list: 
-      expresion {
-      }
-    | expresion_list ',' expresion {
-      }
-    ;
-
-
 
 
 acceso_par: 
@@ -478,7 +478,7 @@ int yylex() {
 
 
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt");
+    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
     parser.run();
 }
 

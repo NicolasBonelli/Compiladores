@@ -42,7 +42,7 @@ public class SymbolTable {
 	        if (o == null || getClass() != o.getClass()) return false;
 
 	        Symbol symbol = (Symbol) o;
-	        return nombre.equals(symbol.nombre);  // Comparar solo por nombre
+	        return nombre.equals(symbol.nombre);  // Comparamos solo por nombre
 	    }
 
 	    @Override
@@ -70,10 +70,10 @@ public class SymbolTable {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) {
 	            symbol.setTipo(nuevoTipo); // Actualiza el tipo del símbolo
-	            return true;  // Tipo actualizado exitosamente
+	            return true; 
 	        }
 	    }
-	    return false;  // No se encontró el símbolo
+	    return false;  // No se encontro el símbolo
 	}
 	public Integer getValue(String clave) {
 		Symbol sym= new Symbol(clave,null);
@@ -91,7 +91,7 @@ public class SymbolTable {
 	            return symbol.getTipo(); // Si el nombre coincide, devolvemos el tipo
 	        }
 	    }
-	    return null; // Si no se encuentra el símbolo, retornamos null o podrías lanzar una excepción si es necesario
+	    return null; 
 	}
 	public boolean hasKey(String key) {
 		Symbol sym= new Symbol(key,null);

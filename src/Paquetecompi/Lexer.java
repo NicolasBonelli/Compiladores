@@ -129,7 +129,7 @@ public class Lexer {
     }
 
     String obtenerTipo(String variable) {
-        /* Implementa la lógica para obtener el tipo de la variable a partir de una tabla de símbolos.*/
+        
         /* Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.*/
         if (tabla.hasKey(variable)) return variable;
 
@@ -165,9 +165,9 @@ public class Lexer {
 	
     
 	private void initializeReservedSymbols() {
-		this.tabla.addValue("bl",null,1); //espacio alt 32
-		this.tabla.addValue("tab",null,2); //tab facil alt 09
-		this.tabla.addValue("nl",null,3);	// /n ??
+		this.tabla.addValue("bl",null,1); 
+		this.tabla.addValue("tab",null,2); 
+		this.tabla.addValue("nl",null,3);	
 		this.tabla.addValue("letra-[d]",null,4);
 		this.tabla.addValue("_",null,5);
 		this.tabla.addValue("0",null,6);
@@ -224,7 +224,7 @@ public class Lexer {
     
     
 
-    // Otras acciones semánticas implementadas de manera similar...
+    
     
     public boolean isEstado() {
 		return estado;
@@ -240,14 +240,14 @@ public class Lexer {
 	public Pair analyze(BufferedReader reader) {
 	    try {
 	        int currentChar;
-	        //reader.mark(1); // Marcar la posición actual en el archivo
+	        
 	        
 	        while ((currentChar = reader.read()) != -1) { // Leer hasta EOF
 	            char c = (char) currentChar;
-	           // System.out.println("CHAR: " + c);
+	         
 	            if (c == '\n' || c == '\r') {
 	                nmrLinea++;
-	               // System.out.println("ENTRE");
+	               
 	            }
 
 	            int actionIndex = getTSIndex(c); // Obtener índice en la tabla de símbolos
@@ -255,7 +255,7 @@ public class Lexer {
 	            if (actionIndex != -1) {
 	                actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); // Ejecutar acción
 	                currentState = transitionMatrix[currentState][actionIndex];
-	                //System.out.println(currentState + " arriba");
+	                
 
 	                if (currentState == 16) { // Estado final
 	                    currentState = 0; // Resetear el estado
@@ -294,7 +294,7 @@ public class Lexer {
     
 
     private int getTSIndex(char input) {
-    	//System.out.println("Valor input:" + input);
+    	
         if (Character.toString(input).matches("[a-ce-zA-Z]")) { 
             return this.tabla.getValue("letra-[d]") - 1;
         } else if (input == 'd') {
@@ -316,7 +316,7 @@ public class Lexer {
         else {
         	if (tabla.hasKey(Character.toString(input))) {
         		
-        		//System.out.println("Valor devuelto columna:" + String.valueOf(this.tabla.getValue(Character.toString(input)) - 1));
+        		
         		return this.tabla.getValue(Character.toString(input)) - 1;
         	}else {
         		return -1;
@@ -327,26 +327,8 @@ public class Lexer {
     public void showArray() {
     	System.out.println(tokenList);
     }
-    /*
-    public Pair getLex() {
-    	return tokenList.remove(0);
-    } */
-
-    public static void main(String[] args) {
-     	SymbolTable st = new SymbolTable();
-    	try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\hecto\\OneDrive\\Escritorio\\prueba.txt"))) {
-    	    Lexer lexer = new Lexer(st); // Asumiendo que tienes una clase Lexer
-    	    Pair token;
-    	    while ((token = lexer.analyze(reader)) != null) {
-    	        System.out.println("Token: " + token);
-    	    }
-    	} catch (IOException e) {
-    	    e.printStackTrace();
-    	}
-
-    	System.out.println(st.toString());
-    }
-
+   
+    
 	public void setCurrentState(int i) {
 		this.currentState = i;	}
 }

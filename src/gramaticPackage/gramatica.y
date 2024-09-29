@@ -480,6 +480,7 @@ int yylex() {
 public static void main(String[] args) {
     Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
     parser.run();
+    parser.imprimirSymbolTable();
 }
 
 
@@ -515,13 +516,17 @@ String obtenerTipo(String variable) {
 	private Lexer lexer;
 	private BufferedReader reader;
 
-	    public Parser(String filePath) {
-	        this.st = new SymbolTable();
-	        this.tablaTipos= new HashMap<String,TipoSubrango>();
-	        try {
-	            this.reader = new BufferedReader(new FileReader(filePath));
-	            this.lexer = new Lexer(st);
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+	public Parser(String filePath) {
+	    this.st = new SymbolTable();
+	    this.tablaTipos= new HashMap<String,TipoSubrango>();
+	    try {
+	        this.reader = new BufferedReader(new FileReader(filePath));
+	        this.lexer = new Lexer(st);
+	    } catch (Exception e) {
+	        e.printStackTrace();
 	    }
+    }
+    public void imprimirSymbolTable() {
+	System.out.println(this.st);
+    }
+

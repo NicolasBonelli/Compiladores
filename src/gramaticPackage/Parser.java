@@ -758,6 +758,8 @@ int yylex() {
 public static void main(String[] args) {
     Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
     parser.run();
+    parser.imprimirSymbolTable();
+    
 }
 
 
@@ -817,7 +819,9 @@ String s=null;
     s = "illegal-symbol";
   debug("state "+state+", reading "+ch+" ("+s+")");
 }
-
+public void imprimirSymbolTable() {
+	System.out.println(this.st);
+}
 
 
 
@@ -1271,7 +1275,7 @@ case 67:
             /* Obtener el tipo base (INTEGER o SINGLE)*/
             String tipoBase = val_peek(2).sval;
             System.out.println("tipobase"+ " "+tipoBase );
-            tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
+            //tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
         }
 break;
 case 68:

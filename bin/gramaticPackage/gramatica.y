@@ -180,6 +180,7 @@ tipo: DOUBLE { yyval.sval = "double"; }
 
 if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'
+            | IF '(' condicion ')' THEN repeat_sentencia repeat_sentencia END_IF ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ELSE en el IF");}
             | IF '(' condicion ')' THEN repeat_sentencia END_IF {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
             }
@@ -268,16 +269,20 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         System.out.println("ENTRE A DEFINIR NUEVO TIPO");
         }
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
-            // Obtener el nombre del tipo desde T_ID
-            String nombreTipo = val_peek(4).sval; /* T_ID*/
+             String nombreTipo = val_peek(1).sval; /* T_ID*/
 
-            // Obtener el tipo base (INTEGER o SINGLE)
-            String tipoBase = val_peek(2).sval;
+            /*tipo base (LONGINT)*/
+            String tipoBase = val_peek(3).sval;
             System.out.println("tipobase"+ " "+tipoBase );
-            tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
+            tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -2147483647, 2147483647));
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
+            String nombreTipo = val_peek(1).sval; /* T_ID*/
 
+            /*tipo base (DOUBLE)*/
+            String tipoBase = val_peek(3).sval;
+            System.out.println("tipobase"+ " "+tipoBase );
+            tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaración de tipo.");
@@ -378,10 +383,15 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
 
 
 acceso_par: 
-    T_ID '{' "1" '}' {
-          
+    T_ID '{' T_CTE '}' {
+            
+        if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
+            yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
+        } else {
+            yyval.sval = val_peek(3) + "{" + val_peek(1) + "}";
+        }
+        
     }
-    | T_ID '{' "2" '}'{}
     |T_ID '{' error '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " Solo se puede acceder a un par con 1 o 2");}
     ;
 

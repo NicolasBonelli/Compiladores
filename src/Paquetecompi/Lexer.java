@@ -295,7 +295,7 @@ public class Lexer {
 
     private int getTSIndex(char input) {
     	
-        if (Character.toString(input).matches("[a-ce-zA-Z]")) { 
+        if (Character.toString(input).matches("[a-zA-ZáéíóúÁÉÍÓÚ]")) { 
             return this.tabla.getValue("letra-[d]") - 1;
         } else if (input == 'd') {
             return this.tabla.getValue("d") - 1; 

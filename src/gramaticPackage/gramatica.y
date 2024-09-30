@@ -9,8 +9,7 @@ import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
     
  
-    // Clase para almacenar la información de los subrangos.
-   /* Clase para almacenar la información de los subrangos.*/
+    
    class TipoSubrango {
     String tipoBase;
     double limiteInferior;
@@ -39,7 +38,7 @@ class Subrango{
     }
 }
 
-//#line 66 "Parser.java"
+
 
 
 
@@ -89,7 +88,7 @@ sentencia: declaracion
 declaracion: tipo lista_var ';' { 
     System.out.println("Llegue a declaracion");
     List<ParserVal> variables = new ArrayList<ParserVal>();
-    variables.add(val_peek(1)); /* Asume que lista_var devuelve una lista de variables*/
+    variables.add(val_peek(1)); 
     
     for (ParserVal variable : variables) {
         /* Verificar si la variable ya existe en la tabla de símbolos*/
@@ -122,7 +121,7 @@ declaracion_funcion:
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parámetros de la función.");
     }
 
-    // Errores adicionales que ya tenías
+    
     | tipo FUN T_ID '(' tipo ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parámetro de la función.");
     }
@@ -249,10 +248,10 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         String tipoBase = val_peek(2).sval;
         System.out.println("tipobase"+ " "+tipoBase );
         /* tipo base (INTEGER o SINGLE)*/
-        // Limite inferior del subrango (asegúrate de que sea numérico)
+        
         double limiteInferior = val_peek(4).dval; /* Limite inferior */
         System.out.println("liminf"+ " "+limiteInferior );
-        // Limite superior del subrango (asegúrate de que sea numérico)
+        
         double limiteSuperior =  val_peek(5).dval; /* Limite superior */
         System.out.println("limsup"+ " "+limiteSuperior );
         // Almacenar en la tabla de tipos
@@ -302,8 +301,8 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 
 subrango: '{' T_CTE ',' T_CTE '}'{
         System.out.println("Llegue a subrango");
-
-        // Verificar que los valores en la pila son correctos antes de convertirlos
+        //CODIGO PARA PARTE SEMANTICA
+        
         String limiteInferiorStr = val_peek(3).sval; // T_CTE (límites inferiores)
         String limiteSuperiorStr = val_peek(1).sval; // T_CTE (límites superiores)
 
@@ -311,11 +310,11 @@ subrango: '{' T_CTE ',' T_CTE '}'{
         System.out.println("VAL1 (Limite Superior): " + limiteSuperiorStr);
 
         try {
-            // Convertir los valores de límites de cadena a double
+           
             double limiteInferior = Double.parseDouble(limiteInferiorStr);
             double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
 
-            // Crear el objeto Subrango y asignarlo
+            
             yylval.obj = new Subrango(limiteInferior, limiteSuperior);
             System.out.println("Subrango creado correctamente con límites: " + limiteInferior + " - " + limiteSuperior);
         } catch (NumberFormatException e) {
@@ -384,7 +383,7 @@ goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en line
 
 invocacion_funcion: T_ID '(' parametro_real ')' 
       | T_ID '(' error ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida"); //CAMBIAR
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida"); 
         }
       ; 
 
@@ -413,29 +412,29 @@ expresion:expresion '+' expresion
         ;
 
 unaria: '-' T_CTE { // Esta regla maneja específicamente el '-' unario
-    double valor = val_peek(0).dval;  /* Obtenemos el valor de la constante.*/
-      /* Aplicamos el signo negativo.*/
+    double valor = val_peek(0).dval;  
+      
 
-    String nombreConstante = val_peek(0).sval;  /* Obtenemos el nombre de la constante propagado desde la regla `expresion`.*/
+    String nombreConstante = val_peek(0).sval;  
     String nombreConMenos = "-" + nombreConstante;
-    /* Ahora puedes realizar la verificación en la tabla de símbolos.*/
+    /* verificación en la tabla de símbolos.*/
     if (st.hasKey(nombreConstante)) {
-        String tipo = st.getType(nombreConstante);  /* Obtenemos el tipo de la constante.*/
+        String tipo = st.getType(nombreConstante);  /*  tipo de la constante.*/
         if (tipo != null) {
-            /* Verificamos si el valor original (sin negativo) está en el rango adecuado según el tipo.*/
+            /* Verifica si el valor original (sin negativo) está en el rango adecuado según el tipo.*/
             if (tipo.equals("longint")) {
                 if (!lexer.isLongintRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para longint.");
                 } else {
                 	
-                    /* Si el valor está dentro del rango de longint, actualizamos el valor negativo en la tabla.*/
+                    
                     st.addValue(nombreConMenos, tipo,SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para double.");
                 } else {
-                    /* Si el valor está dentro del rango de double, actualizamos el valor negativo en la tabla.*/
+                    
                     st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
                 }
             }
@@ -455,18 +454,18 @@ public void yyerror(String s) {
 
 int yylex() {
     try {
-        Pair token = lexer.analyze(reader);  // Sigue desde donde se quedó
+        Pair token = lexer.analyze(reader);  
         System.out.println("Pair: "+ token);
         if (token != null) {
             System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
 
-            // Dependiendo del token, rellena el valor en yylval
-            if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) {
+            
+            if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) { //SI SE TRATA DE UN TOKEN QUE TIENE MUCHAS REFERENCIAS EN TABLA DE SIMBOLOS
                 yylval = new ParserVal(token.getLexema());
             }
-            if(token.getToken()<31) {
+            if(token.getToken()<31) { //SI SE TRATA DE UN TOKEN DE UN SIMBOLO SINGULAR ESPECIFICO EN LA TABLA DE SIMBOLOS
             	
-            	char character = token.getLexema().charAt(0);  // Obtiene el carácter en la posición 'i'
+            	char character = token.getLexema().charAt(0);  
                 System.out.println("Character:" + character);
             	int ascii = (int) character;
                 return ascii;
@@ -478,7 +477,7 @@ int yylex() {
     } catch (Exception e) {
         e.printStackTrace();
     }
-    return 0;  // Indicar fin de archivo o error
+    return 0;  // fin de archivo
 }
 
 
@@ -498,7 +497,7 @@ public static void main(String[] args) {
     return true; // Si no es un tipo definido por el usuario, no se verifica el rango
 }
 
-// Definir rangos para tipos estándar
+
 boolean verificarRangoLongInt(double valor) {
     return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
 }
@@ -508,11 +507,10 @@ boolean verificarRangoDouble(double valor) {
 }
 
 String obtenerTipo(String variable) {
-    // Implementa la lógica para obtener el tipo de la variable a partir de una tabla de símbolos.
-    // Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.
+    
     if (!st.hasKey(variable)) return variable;
 
-    return st.getType(variable);  // Ejemplo
+    return st.getType(variable);  
 }
 
 

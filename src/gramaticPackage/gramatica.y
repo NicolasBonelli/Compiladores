@@ -346,19 +346,20 @@ comparador:MENOR_IGUAL
 
            
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
-          | IDENTIFIER_LIST T_ASIGNACION expresion_list ';'
-          ;
+        | IDENTIFIER_LIST T_ASIGNACION expresion_list ';'
+        ;
 
 expresion_list: expresion
-              | expresion_list ',' expresion
-              ;
+        | expresion_list ',' expresion
+        ;
              
 
 IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID 
             | IDENTIFIER_LIST ',' acceso_par 
-            | error  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
             | T_ID 
             | acceso_par  
+            |  error  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
+            
             ;
 
 
@@ -373,6 +374,7 @@ acceso_par:
         
     }
     |T_ID '{' error '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " Solo se puede acceder a un par con 1 o 2");}
+    |T_ID T_CADENA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Se utilizan las llaves para acceder a los pares");}
     ;
 
 

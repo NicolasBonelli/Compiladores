@@ -323,7 +323,15 @@ public class Lexer {
         	}
         }
     }
-    
+    public boolean isLongintRange(double value) {
+        return value >= -2147483648L && value <= 2147483647L;
+    }
+
+    public boolean isDoubleRange(double value) {
+        return (value >= 2.2250738585072014e-308 && value <= 1.7976931348623157e+308) || 
+               (value >= -1.7976931348623157e+308 && value <= -2.2250738585072014e-308) || 
+               value == 0.0;
+    }
     public void showArray() {
     	System.out.println(tokenList);
     }

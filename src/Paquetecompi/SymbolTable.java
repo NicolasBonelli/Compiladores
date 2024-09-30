@@ -5,10 +5,10 @@ import java.util.HashMap;
 public class SymbolTable {
 	
 	private HashMap<Symbol,Integer> symbolMap;
-	static final int stringValue = 277;
-	static final int identifierValue = 278;
-	static final int constantValue = 279;
-	static final int tagValue=280;
+	public static final int stringValue = 277;
+	public static final int identifierValue = 278;
+	public static final int constantValue = 279;
+	public static final int tagValue=280;
 	
 	public class Symbol {
 	    private String nombre;

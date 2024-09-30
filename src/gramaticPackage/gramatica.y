@@ -69,7 +69,8 @@ bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sent
                 | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan Delimitador o Bloque de Sentencia");};
                 
 sentencias:  sentencia
-          | sentencias sentencia {System.out.println("Llegue a sentencias");};
+          | sentencias sentencia
+          ;
 
 sentencia: declaracion 
          | asignacion
@@ -82,7 +83,7 @@ sentencia: declaracion
          | T_ETIQUETA
          | RET '(' expresion ')' ';'
          | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
-         {System.out.println("Llegue a sentencia");};
+         ;
 
 
 declaracion: tipo lista_var ';' { 
@@ -100,7 +101,7 @@ declaracion: tipo lista_var ';' {
             if (actualizado) {
                 System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + val_peek(2));
             } else {
-                System.out.println("Error al actualizar el tipo de la variable: " + variable);
+                System.err.println("Error al actualizar el tipo de la variable: " + variable);
             }
         }
     }
@@ -109,21 +110,14 @@ declaracion: tipo lista_var ';' {
 
 
 
-lista_var: lista_var ',' T_ID { 
-   
-}
-  | T_ID { 
-    
-} |lista_var  T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
-
-;
+lista_var: lista_var ',' T_ID 
+  | T_ID 
+  |lista_var  T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
+  ;
 
 
 declaracion_funcion:
-    tipo FUN T_ID '(' parametro ')' bloque_sentencias {
-        System.out.println("Declaración de función correcta");
-    }
-    
+    tipo FUN T_ID '(' parametro ')' bloque_sentencias 
     | tipo FUN T_ID '(' parametros_error ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parámetros de la función.");
     }
@@ -142,9 +136,7 @@ declaracion_funcion:
     };
 
 parametro:
-    tipo T_ID {
-        // Caso correcto con un solo parámetro
-    };
+    tipo T_ID 
 
 parametros_error:
     parametro ',' parametro {
@@ -157,8 +149,9 @@ parametros_error:
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función debe tener un parámetro.");
     };
 
-repeat_sentencia: bloque_sentencias {}
-                | sentencia {} ;
+repeat_sentencia: bloque_sentencias 
+            | sentencia
+            ;
 
 
 
@@ -235,9 +228,7 @@ repeat_while_statement: REPEAT repeat_sentencia WHILE '(' condicion ')' ';'
 
 
 salida: OUTF '(' T_CADENA ')' ';' 
-      | OUTF '(' expresion ')' ';' {     
-        System.out.println("Llegue a salida");   
-        }
+      | OUTF '(' expresion ')' ';' 
       | OUTF '(' expresion ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
         }
@@ -331,55 +322,45 @@ subrango: '{' T_CTE ',' T_CTE '}'{
             System.err.println("Error al convertir los límites del subrango a double: " + e.getMessage());
         }
     } 
-    |'{' '-' T_CTE ',' T_CTE '}'{ System.out.println("Llegue a subrango con - en el primero");}
-    |'{' T_CTE ',' '-' T_CTE '}'{System.out.println("Llegue a subrango con - en el segundo");}
-    |'{' '-' T_CTE ',' '-' T_CTE '}'{System.out.println("Llegue a subrango con - en los dos");}
+    |'{' '-' T_CTE ',' T_CTE '}'
+    |'{' T_CTE ',' '-' T_CTE '}'
+    |'{' '-' T_CTE ',' '-' T_CTE '}'
     |'{' '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " -Falta el rango en el subrango");}
-    |
-     error {
+    |error {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
-    };//PROBAR TODO
+    };
 
 
 condicion: expresion comparador expresion 
          | expresion error expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta comparador en la condicion");}
          | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 2da expresion en la condicion");}
-         | comparador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 1da expresion en la condicion");}
+         | comparador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 1ra expresion en la condicion");}
          ;
 
-comparador:    MENOR_IGUAL  
-            |  MAYOR_IGUAL 
-            |  DISTINTO 
-            |  '=' 
-            |  '<' 
-            |  '>' 
-           ;
+comparador:MENOR_IGUAL  
+        |MAYOR_IGUAL 
+        |DISTINTO 
+        |'=' 
+        |'<' 
+        |'>' 
+        ;
 
            
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
-          | IDENTIFIER_LIST T_ASIGNACION expresion_list ';' { /* Acción correcta */ }
+          | IDENTIFIER_LIST T_ASIGNACION expresion_list ';'
           ;
 
-expresion_list: expresion{}
-              | expresion_list ',' expresion{}
+expresion_list: expresion
+              | expresion_list ',' expresion
               ;
              
 
-IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
-               
-                }
-               | IDENTIFIER_LIST ',' acceso_par {
-                }
-               | error  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
-               | T_ID { 
-                }
-               
-               
-               | acceso_par  {
-                }
-               
-               
-               ;
+IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID 
+            | IDENTIFIER_LIST ',' acceso_par 
+            | error  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
+            | T_ID 
+            | acceso_par  
+            ;
 
 
 acceso_par: 
@@ -401,9 +382,7 @@ goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en line
               | GOTO error {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
 
 
-invocacion_funcion: 
-      T_ID '(' parametro_real ')' {
-      }
+invocacion_funcion: T_ID '(' parametro_real ')' 
       | T_ID '(' error ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida"); //CAMBIAR
         }
@@ -418,39 +397,55 @@ expresion_aritmetica: expresion_aritmetica '+' expresion_aritmetica
          | T_CTE 
          | T_ID 
          | acceso_par
-         | unaria
-         
+         | unaria 
        ;
 
-expresion: expresion '+' expresion {
-        }
-         | expresion '-' expresion {
-        }
-         | expresion '*' expresion {
-        }
-         | expresion '/' expresion {
-        }
-         | T_CTE {
-                    
-        }
-         | T_ID {
-           
-        }
-         | acceso_par{
-              
-        }
-        | invocacion_funcion{
-                    
-        }
-        | unaria { // Se añade la regla para operadores unarios
-        }
+expresion:expresion '+' expresion 
+        |expresion '-' expresion 
+        |expresion '*' expresion 
+        |expresion '/' expresion 
+        |T_CTE 
+        |T_ID 
+        |acceso_par
+        | invocacion_funcion
+        | unaria 
         | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
         ;
 
-unaria: '-' expresion { // Esta regla maneja específicamente el '-' unario
-    yyval.dval = -val_peek(0).dval;
-}
-      ;
+unaria: '-' T_CTE { // Esta regla maneja específicamente el '-' unario
+    double valor = val_peek(0).dval;  /* Obtenemos el valor de la constante.*/
+      /* Aplicamos el signo negativo.*/
+
+    String nombreConstante = val_peek(0).sval;  /* Obtenemos el nombre de la constante propagado desde la regla `expresion`.*/
+    String nombreConMenos = "-" + nombreConstante;
+    /* Ahora puedes realizar la verificación en la tabla de símbolos.*/
+    if (st.hasKey(nombreConstante)) {
+        String tipo = st.getType(nombreConstante);  /* Obtenemos el tipo de la constante.*/
+        if (tipo != null) {
+            /* Verificamos si el valor original (sin negativo) está en el rango adecuado según el tipo.*/
+            if (tipo.equals("longint")) {
+                if (!lexer.isLongintRange(valor)) {
+                    System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para longint.");
+                } else {
+                	
+                    /* Si el valor está dentro del rango de longint, actualizamos el valor negativo en la tabla.*/
+                    st.addValue(nombreConMenos, tipo,SymbolTable.constantValue);
+                }
+            } else if (tipo.equals("double")) {
+                if (!lexer.isDoubleRange(valor)) {
+                    System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para double.");
+                } else {
+                    /* Si el valor está dentro del rango de double, actualizamos el valor negativo en la tabla.*/
+                    st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
+                }
+            }
+        } else {
+            System.err.println("Error: El tipo de la constante no pudo ser determinado.");
+        }
+    } else {
+        System.err.println("Error: La constante " + nombreConstante + " no existe en la tabla de símbolos.");
+    }
+};
 
 %%
 

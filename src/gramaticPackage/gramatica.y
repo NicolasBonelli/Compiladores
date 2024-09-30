@@ -82,6 +82,7 @@ sentencia: declaracion
          | T_ETIQUETA
          | RET '(' expresion ')' ';'
          | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
+         | RET '('  ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
          ;
 
 
@@ -104,8 +105,8 @@ declaracion: tipo lista_var ';' {
             }
         }
     }
-} | 
-    tipo lista_var error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");};
+} |tipo lista_var error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");}
+  |tipo ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta variable en la sentencia declarativa");}; 
 
 
 
@@ -347,6 +348,7 @@ comparador:MENOR_IGUAL
            
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
         | IDENTIFIER_LIST T_ASIGNACION expresion_list ';'
+        | IDENTIFIER_LIST T_ASIGNACION ';'{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta lado derecho de la asignacion"); }
         ;
 
 expresion_list: expresion
@@ -358,8 +360,10 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID
             | IDENTIFIER_LIST ',' acceso_par 
             | T_ID 
             | acceso_par  
-            |  error  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
-            
+            | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
+            | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
+            | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
+            | error { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
             ;
 
 

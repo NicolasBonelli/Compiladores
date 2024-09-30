@@ -745,9 +745,9 @@ public void yyerror(String s) {
 int yylex() {
     try {
         Pair token = lexer.analyze(reader);  
-        System.out.println("Pair: "+ token);
+        //System.out.println("Pair: "+ token);
         if (token != null) {
-            System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
+            //System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
 
             
             if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) { //SI SE TRATA DE UN TOKEN QUE TIENE MUCHAS REFERENCIAS EN TABLA DE SIMBOLOS
@@ -756,7 +756,7 @@ int yylex() {
             if(token.getToken()<31) { //SI SE TRATA DE UN TOKEN DE UN SIMBOLO SINGULAR ESPECIFICO EN LA TABLA DE SIMBOLOS
             	
             	char character = token.getLexema().charAt(0);  
-                System.out.println("Character:" + character);
+                //System.out.println("Character:" + character);
             	int ascii = (int) character;
                 return ascii;
             	

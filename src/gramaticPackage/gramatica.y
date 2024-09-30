@@ -92,11 +92,11 @@ declaracion: tipo lista_var ';' {
     variables.add(val_peek(1)); 
     
     for (ParserVal variable : variables) {
-        /* Verificar si la variable ya existe en la tabla de símbolos*/
+        /* Verificar si la variable ya existe en la tabla de simbolos*/
         if (!st.hasKey(variable.toString())) {
-            System.out.println("Aclaracion, la tabla de símbolos no contenía la variable: " + variable.toString());
+            System.out.println("Aclaracion, la tabla de simbolos no contenia la variable: " + variable.toString());
         } else {
-            /* Actualiza el tipo de la variable si ya está en la tabla de símbolos*/
+            /* Actualiza el tipo de la variable si ya esta en la tabla de simbolos*/
             boolean actualizado = st.updateType(variable.toString(), val_peek(2).toString());
             if (actualizado) {
                 System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + val_peek(2));
@@ -119,12 +119,12 @@ lista_var: lista_var ',' T_ID
 declaracion_funcion:
     tipo FUN T_ID '(' parametro ')' bloque_sentencias 
     | tipo FUN T_ID '(' parametros_error ')' bloque_sentencias {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parámetros de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
     }
 
     
     | tipo FUN T_ID '(' tipo ')' bloque_sentencias {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parámetro de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parametro de la funcion.");
     }
 
     | tipo T_ID '(' tipo T_ID ')' bloque_sentencias {
@@ -132,7 +132,7 @@ declaracion_funcion:
     }
 
     | tipo FUN '(' tipo T_ID ')' bloque_sentencias {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la funcion.");
     };
 
 parametro:
@@ -140,13 +140,13 @@ parametro:
 
 parametros_error:
     parametro ',' parametro {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
     }
     | parametros_error ','  parametro{
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
     }
-    | /* vacío */ {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función debe tener un parámetro.");
+    | /* vacio */ {
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion debe tener un parametro.");
     };
 
 repeat_sentencia: bloque_sentencias 
@@ -160,10 +160,10 @@ tipo: DOUBLE { yyval.sval = "double"; }
     | T_ID
     {
         System.out.println("Llegue a tipo");
-        /* Verificar si el tipo está en la tabla de tipos definidos*/
+        /* Verificar si el tipo esta en la tabla de tipos definidos*/
         System.out.println(val_peek(0).sval);
         if (tablaTipos.containsKey(val_peek(0).sval)) {
-            yyval = val_peek(0); /* Si el tipo está definido, se usa el nombre del tipo*/
+            yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
             yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0));
         } 
@@ -215,7 +215,7 @@ repeat_while_statement: REPEAT repeat_sentencia WHILE '(' condicion ')' ';'
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia WHILE.");
     }
     | REPEAT WHILE '(' condicion ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaración REPEAT.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaracion REPEAT.");
     }
     | REPEAT repeat_sentencia WHILE '('  ')' ';'{
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del WHILE.");
@@ -236,7 +236,7 @@ salida: OUTF '(' T_CADENA ')' ';'
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
       } 
       | OUTF '('  ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - OUTF no puede ser vacio");}  
-      | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro incorrecto en sentencia OUTF");};
+      | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");};
 
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
@@ -276,16 +276,16 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
             tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaracion de tipo.");
         }
         | TYPEDEF PAIR  DOUBLE  T_ID ';' {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
         }
         | TYPEDEF PAIR  LONGINT  T_ID ';' {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
         }
         | TYPEDEF T_ID T_ASIGNACION tipo subrango {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaracion de tipo.");
         }
         | TYPEDEF PAIR '<' T_ID '>' T_ID ';' {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Solo se pueden declarar pares de tipos basicos como LONGINT y DOUBLE");
@@ -304,8 +304,8 @@ subrango: '{' T_CTE ',' T_CTE '}'{
         System.out.println("Llegue a subrango");
         //CODIGO PARA PARTE SEMANTICA
         
-        String limiteInferiorStr = val_peek(3).sval; // T_CTE (límites inferiores)
-        String limiteSuperiorStr = val_peek(1).sval; // T_CTE (límites superiores)
+        String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
+        String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
 
         System.out.println("VAL3 (Limite Inferior): " + limiteInferiorStr);
         System.out.println("VAL1 (Limite Superior): " + limiteSuperiorStr);
@@ -317,9 +317,9 @@ subrango: '{' T_CTE ',' T_CTE '}'{
 
             
             yylval.obj = new Subrango(limiteInferior, limiteSuperior);
-            System.out.println("Subrango creado correctamente con límites: " + limiteInferior + " - " + limiteSuperior);
+            System.out.println("Subrango creado correctamente con limites: " + limiteInferior + " - " + limiteSuperior);
         } catch (NumberFormatException e) {
-            System.err.println("Error al convertir los límites del subrango a double: " + e.getMessage());
+            System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
         }
     } 
     |'{' '-' T_CTE ',' T_CTE '}'
@@ -389,7 +389,7 @@ goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en line
 
 invocacion_funcion: T_ID '(' parametro_real ')' 
       | T_ID '(' error ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida"); 
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocacion a funcion mal definida"); 
         }
       ; 
 
@@ -417,20 +417,20 @@ expresion:expresion '+' expresion
         | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
         ;
 
-unaria: '-' T_CTE { // Esta regla maneja específicamente el '-' unario
+unaria: '-' T_CTE { // Esta regla maneja especificamente el '-' unario
     double valor = val_peek(0).dval;  
       
 
     String nombreConstante = val_peek(0).sval;  
     String nombreConMenos = "-" + nombreConstante;
-    /* verificación en la tabla de símbolos.*/
+    /* verificacion en la tabla de simbolos.*/
     if (st.hasKey(nombreConstante)) {
         String tipo = st.getType(nombreConstante);  /*  tipo de la constante.*/
         if (tipo != null) {
-            /* Verifica si el valor original (sin negativo) está en el rango adecuado según el tipo.*/
+            /* Verifica si el valor original (sin negativo) esta en el rango adecuado segun el tipo.*/
             if (tipo.equals("longint")) {
                 if (!lexer.isLongintRange(valor)) {
-                    System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para longint.");
+                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
                 	
                     
@@ -438,7 +438,7 @@ unaria: '-' T_CTE { // Esta regla maneja específicamente el '-' unario
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
-                    System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para double.");
+                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
                     
                     st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
@@ -448,7 +448,7 @@ unaria: '-' T_CTE { // Esta regla maneja específicamente el '-' unario
             System.err.println("Error: El tipo de la constante no pudo ser determinado.");
         }
     } else {
-        System.err.println("Error: La constante " + nombreConstante + " no existe en la tabla de símbolos.");
+        System.err.println("Error: La constante " + nombreConstante + " no existe en la tabla de simbolos.");
     }
 };
 
@@ -494,7 +494,7 @@ public static void main(String[] args) {
 }
 
 
- // Función para verificar si el valor está dentro del rango
+ // Funcion para verificar si el valor esta dentro del rango
  boolean verificarRango(String tipo, double valor) {
     if (tablaTipos.containsKey(tipo)) {
         TipoSubrango subrango = tablaTipos.get(tipo);

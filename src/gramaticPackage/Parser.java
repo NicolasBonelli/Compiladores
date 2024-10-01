@@ -18,6 +18,8 @@
 
 //#line 2 "gramatica.y"
     package gramaticPackage;
+    import javax.swing.*;
+    import java.io.File;
     import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.*;
@@ -745,9 +747,9 @@ public void yyerror(String s) {
 int yylex() {
     try {
         Pair token = lexer.analyze(reader);  
-        //System.out.println("Pair: "+ token);
+        System.out.println("Pair: "+ token);
         if (token != null) {
-            //System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
+            System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
 
             
             if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) { //SI SE TRATA DE UN TOKEN QUE TIENE MUCHAS REFERENCIAS EN TABLA DE SIMBOLOS
@@ -756,7 +758,7 @@ int yylex() {
             if(token.getToken()<31) { //SI SE TRATA DE UN TOKEN DE UN SIMBOLO SINGULAR ESPECIFICO EN LA TABLA DE SIMBOLOS
             	
             	char character = token.getLexema().charAt(0);  
-                //System.out.println("Character:" + character);
+                System.out.println("Character:" + character);
             	int ascii = (int) character;
                 return ascii;
             	
@@ -772,13 +774,27 @@ int yylex() {
 
 
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
-    parser.run();
-    parser.imprimirSymbolTable();
+    // Crear un JFileChooser para seleccionar el archivo
+    JFileChooser fileChooser = new JFileChooser();
+    int result = fileChooser.showOpenDialog(null);  // Muestra el cuadro de diálogo
+
+    if (result == JFileChooser.APPROVE_OPTION) {  // Si el usuario selecciona un archivo
+        File selectedFile = fileChooser.getSelectedFile();
+        String filePath = selectedFile.getAbsolutePath();  // Obtener la ruta del archivo seleccionado
+
+        // Instanciar el Parser con la ruta seleccionada
+        Parser parser = new Parser(filePath);
+
+        // Ejecutar el compilador
+        parser.run();
+        parser.imprimirSymbolTable();
+    } else {
+        System.out.println("No se seleccionó ningún archivo.");
+    }
 }
 
 
- // Función para verificar si el valor está dentro del rango
+ // Funcion para verificar si el valor esta dentro del rango
  boolean verificarRango(String tipo, double valor) {
     if (tablaTipos.containsKey(tipo)) {
         TipoSubrango subrango = tablaTipos.get(tipo);
@@ -823,7 +839,7 @@ String obtenerTipo(String variable) {
 	System.out.println(this.st);
     }
 
-//#line 755 "Parser.java"
+//#line 769 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1021,11 +1037,11 @@ case 21:
     variables.add(val_peek(1)); 
     
     for (ParserVal variable : variables) {
-        /* Verificar si la variable ya existe en la tabla de símbolos*/
+        /* Verificar si la variable ya existe en la tabla de simbolos*/
         if (!st.hasKey(variable.toString())) {
-            System.out.println("Aclaracion, la tabla de símbolos no contenía la variable: " + variable.toString());
+            System.out.println("Aclaracion, la tabla de simbolos no contenia la variable: " + variable.toString());
         } else {
-            /* Actualiza el tipo de la variable si ya está en la tabla de símbolos*/
+            /* Actualiza el tipo de la variable si ya esta en la tabla de simbolos*/
             boolean actualizado = st.updateType(variable.toString(), val_peek(2).toString());
             if (actualizado) {
                 System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + val_peek(2));
@@ -1051,13 +1067,13 @@ break;
 case 28:
 //#line 121 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parámetros de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
     }
 break;
 case 29:
 //#line 126 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parámetro de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parametro de la funcion.");
     }
 break;
 case 30:
@@ -1069,25 +1085,25 @@ break;
 case 31:
 //#line 134 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la función.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la funcion.");
     }
 break;
 case 33:
 //#line 142 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
     }
 break;
 case 34:
 //#line 145 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función no debe tener más de un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
     }
 break;
 case 35:
 //#line 148 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La función debe tener un parámetro.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion debe tener un parametro.");
     }
 break;
 case 38:
@@ -1102,10 +1118,10 @@ case 40:
 //#line 161 "gramatica.y"
 {
         System.out.println("Llegue a tipo");
-        /* Verificar si el tipo está en la tabla de tipos definidos*/
+        /* Verificar si el tipo esta en la tabla de tipos definidos*/
         System.out.println(val_peek(0).sval);
         if (tablaTipos.containsKey(val_peek(0).sval)) {
-            yyval = val_peek(0); /* Si el tipo está definido, se usa el nombre del tipo*/
+            yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
             yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0));
         } 
@@ -1188,7 +1204,7 @@ break;
 case 58:
 //#line 217 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaración REPEAT.");
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaracion REPEAT.");
     }
 break;
 case 59:
@@ -1223,7 +1239,7 @@ case 66:
 break;
 case 67:
 //#line 239 "gramatica.y"
-{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro incorrecto en sentencia OUTF");}
+{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");}
 break;
 case 68:
 //#line 242 "gramatica.y"
@@ -1273,25 +1289,25 @@ break;
 case 71:
 //#line 278 "gramatica.y"
 {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaracion de tipo.");
         }
 break;
 case 72:
 //#line 281 "gramatica.y"
 {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
         }
 break;
 case 73:
 //#line 284 "gramatica.y"
 {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
         }
 break;
 case 74:
 //#line 287 "gramatica.y"
 {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaración de tipo.");
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaracion de tipo.");
         }
 break;
 case 75:
@@ -1342,8 +1358,8 @@ case 85:
         System.out.println("Llegue a subrango");
         /*CODIGO PARA PARTE SEMANTICA*/
         
-        String limiteInferiorStr = val_peek(3).sval; /* T_CTE (límites inferiores)*/
-        String limiteSuperiorStr = val_peek(1).sval; /* T_CTE (límites superiores)*/
+        String limiteInferiorStr = val_peek(3).sval; /* T_CTE (limites inferiores)*/
+        String limiteSuperiorStr = val_peek(1).sval; /* T_CTE (limites superiores)*/
 
         System.out.println("VAL3 (Limite Inferior): " + limiteInferiorStr);
         System.out.println("VAL1 (Limite Superior): " + limiteSuperiorStr);
@@ -1355,9 +1371,9 @@ case 85:
 
             
             yylval.obj = new Subrango(limiteInferior, limiteSuperior);
-            System.out.println("Subrango creado correctamente con límites: " + limiteInferior + " - " + limiteSuperior);
+            System.out.println("Subrango creado correctamente con limites: " + limiteInferior + " - " + limiteSuperior);
         } catch (NumberFormatException e) {
-            System.err.println("Error al convertir los límites del subrango a double: " + e.getMessage());
+            System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
         }
     }
 break;
@@ -1442,7 +1458,7 @@ break;
 case 122:
 //#line 391 "gramatica.y"
 {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocación a funcion mal definida"); 
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocacion a funcion mal definida"); 
         }
 break;
 case 141:
@@ -1451,20 +1467,20 @@ case 141:
 break;
 case 142:
 //#line 420 "gramatica.y"
-{ /* Esta regla maneja específicamente el '-' unario*/
+{ /* Esta regla maneja especificamente el '-' unario*/
     double valor = val_peek(0).dval;  
       
 
     String nombreConstante = val_peek(0).sval;  
     String nombreConMenos = "-" + nombreConstante;
-    /* verificación en la tabla de símbolos.*/
+    /* verificacion en la tabla de simbolos.*/
     if (st.hasKey(nombreConstante)) {
         String tipo = st.getType(nombreConstante);  /*  tipo de la constante.*/
         if (tipo != null) {
-            /* Verifica si el valor original (sin negativo) está en el rango adecuado según el tipo.*/
+            /* Verifica si el valor original (sin negativo) esta en el rango adecuado segun el tipo.*/
             if (tipo.equals("longint")) {
                 if (!lexer.isLongintRange(valor)) {
-                    System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para longint.");
+                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
                 	
                     
@@ -1472,7 +1488,7 @@ case 142:
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
-                    System.err.println("Error: El valor de la constante " + valor + " está fuera del rango permitido para double.");
+                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
                     
                     st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
@@ -1482,11 +1498,11 @@ case 142:
             System.err.println("Error: El tipo de la constante no pudo ser determinado.");
         }
     } else {
-        System.err.println("Error: La constante " + nombreConstante + " no existe en la tabla de símbolos.");
+        System.err.println("Error: La constante " + nombreConstante + " no existe en la tabla de simbolos.");
     }
 }
 break;
-//#line 1413 "Parser.java"
+//#line 1427 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

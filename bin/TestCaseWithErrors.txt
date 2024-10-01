@@ -1,0 +1,45 @@
+programaErroneo begin
+    OUTF([Comienza el Test]) ##falta de ;
+    longint x1, x2;
+    double x3, x4;
+    x1, x2 x3 x4 := 0,0,0.0,0.0; ##falta de , en asignacion multiple. Solo funciona de lado izq y el error que dice es de
+                                 ## falta de , y tipo no definido pues se confunde con declaracion de tipo 
+
+    longint fun f3 () ##falta de parametro  
+    begin 
+        typedef enterito := longint{}; ##falta de valores en subrango
+        typedef flotantito := double; ##falta de subrango
+        typedef tontito := {0, 3}; ##falta de tipo
+
+        x;  ##falta de tipo
+        flotantito      ;  ##falta de variable
+
+        IF (w < 0)  ##falta de THEN
+            goto ;  ##falta de etiqueta
+        END_IF;
+
+        IF () then  ##falta de condicion
+            RET (); ##falta de retorno 
+        ELSE 
+            begin 
+                y := ; ##falta de lado derecho en asignacion 
+                RET (y * ); ##falta de 2do simbolo en expresion 
+            end
+        ##falta de END_IF
+
+
+##falta de end en funcion
+
+    REPEAT begin x1, x3 := f3(x2) , f3(x1) * 2.5;  end  ( x < 10 ); ##falta de while
+    OUTF(); ##falta de contenido en OUTF
+    afuera@
+    typedef pair <enterito> pint; ##error solo se puede declarar un pair de tipo longint y double
+    pint p1,p2;   
+    p1{3} := 8; ##error solo puede accederse con un 1 o 2   
+    p2 := p1;   
+    x := p2{}; ## error acceso pair vacio
+    
+    OUTF([End of Test]);
+
+
+end

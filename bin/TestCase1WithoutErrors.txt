@@ -1,0 +1,41 @@
+programa begin
+    OUTF([Comienza el Test]);
+    longint x1, x2;
+    double x3, x4;
+    x1, x2, x3, x4 := 0,0,0.0,0.0;
+    longint fun f3 (longint w)  ##comentario 1
+    begin 
+        typedef enterito := longint{-10,10}; 
+        typedef flotantito := double{-11.11, 22.22};
+
+        enterito x;
+        flotantito y;
+
+        IF (w < 0) then
+            goto afuera@;
+        END_IF;
+
+        IF (x > 0)then  
+            RET (x + w); 
+        ELSE 
+            begin 
+                y := 2.0; 
+                RET (y * w); 
+            end
+        END_IF;
+    end
+
+    REPEAT begin x1, x3 := f3(x2) , f3(x1) * 2.5;  end WHILE ( x < 10 );
+    OUTF(x1 + x3);
+    afuera@
+    ##comentario 2
+    typedef pair <longint> pint;
+    pint p1,p2;   
+    p1{1} := 8;    
+    p2 := p1;   
+    x := p2{1};
+    
+    OUTF([End of Test]);
+
+
+end

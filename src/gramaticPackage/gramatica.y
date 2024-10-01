@@ -488,9 +488,23 @@ int yylex() {
 
 
 public static void main(String[] args) {
-    Parser parser = new Parser("C:\\Users\\usuario\\Desktop\\prueba.txt");
-    parser.run();
-    parser.imprimirSymbolTable();
+    // Crear un JFileChooser para seleccionar el archivo
+    JFileChooser fileChooser = new JFileChooser();
+    int result = fileChooser.showOpenDialog(null);  // Muestra el cuadro de diálogo
+
+    if (result == JFileChooser.APPROVE_OPTION) {  // Si el usuario selecciona un archivo
+        File selectedFile = fileChooser.getSelectedFile();
+        String filePath = selectedFile.getAbsolutePath();  // Obtener la ruta del archivo seleccionado
+
+        // Instanciar el Parser con la ruta seleccionada
+        Parser parser = new Parser(filePath);
+
+        // Ejecutar el compilador
+        parser.run();
+        parser.imprimirSymbolTable();
+    } else {
+        System.out.println("No se seleccionó ningún archivo.");
+    }
 }
 
 

@@ -18,12 +18,11 @@
 
 //#line 2 "gramatica.y"
     package gramaticPackage;
-    import javax.swing.*;
-    import java.io.File;
     import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.File;
 import java.util.*;
-
+import javax.swing.JFileChooser;
 import Paquetecompi.Lexer;
 import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
@@ -62,7 +61,7 @@ class Subrango{
 
 
 
-//#line 61 "Parser.java"
+//#line 62 "Parser.java"
 
 
 
@@ -747,9 +746,9 @@ public void yyerror(String s) {
 int yylex() {
     try {
         Pair token = lexer.analyze(reader);  
-        System.out.println("Pair: "+ token);
+        //System.out.println("Pair: "+ token);
         if (token != null) {
-            System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
+            //System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
 
             
             if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) { //SI SE TRATA DE UN TOKEN QUE TIENE MUCHAS REFERENCIAS EN TABLA DE SIMBOLOS
@@ -758,7 +757,7 @@ int yylex() {
             if(token.getToken()<31) { //SI SE TRATA DE UN TOKEN DE UN SIMBOLO SINGULAR ESPECIFICO EN LA TABLA DE SIMBOLOS
             	
             	char character = token.getLexema().charAt(0);  
-                System.out.println("Character:" + character);
+                //System.out.println("Character:" + character);
             	int ascii = (int) character;
                 return ascii;
             	
@@ -839,7 +838,7 @@ String obtenerTipo(String variable) {
 	System.out.println(this.st);
     }
 
-//#line 769 "Parser.java"
+//#line 770 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -994,45 +993,40 @@ boolean doaction;
       {
 //########## USER-SUPPLIED ACTIONS ##########
 case 1:
-//#line 56 "gramatica.y"
+//#line 57 "gramatica.y"
 {
     System.out.println("Programa compilado correctamente");
 }
 break;
 case 2:
-//#line 59 "gramatica.y"
+//#line 60 "gramatica.y"
 { 
     System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
 }
 break;
 case 3:
-//#line 62 "gramatica.y"
+//#line 63 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del programa");}
 break;
-case 4:
-//#line 66 "gramatica.y"
-{System.out.println("Llegue a BEGIN sentencia END");}
-break;
 case 5:
-//#line 67 "gramatica.y"
+//#line 68 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
 break;
 case 6:
-//#line 68 "gramatica.y"
+//#line 69 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan Delimitador o Bloque de Sentencia");}
 break;
 case 19:
-//#line 84 "gramatica.y"
+//#line 85 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
 break;
 case 20:
-//#line 85 "gramatica.y"
+//#line 86 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
 break;
 case 21:
-//#line 89 "gramatica.y"
+//#line 90 "gramatica.y"
 { 
-    System.out.println("Llegue a declaracion");
     List<ParserVal> variables = new ArrayList<ParserVal>();
     variables.add(val_peek(1)); 
     
@@ -1117,9 +1111,9 @@ break;
 case 40:
 //#line 161 "gramatica.y"
 {
-        System.out.println("Llegue a tipo");
-        /* Verificar si el tipo esta en la tabla de tipos definidos*/
-        System.out.println(val_peek(0).sval);
+        
+        /* Verificando si el tipo esta en la tabla de tipos definidos*/
+        
         if (tablaTipos.containsKey(val_peek(0).sval)) {
             yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
@@ -1244,24 +1238,24 @@ break;
 case 68:
 //#line 242 "gramatica.y"
 {
-        System.out.println("Llegue a sentencia_declarativa_tipos");
+        
         
         /* Obtener el nombre del tipo desde T_ID*/
         String nombreTipo = val_peek(4).sval; /* T_ID*/
 
         /* Obtener el tipo base (INTEGER o SINGLE)*/
         String tipoBase = val_peek(2).sval;
-        System.out.println("tipobase"+ " "+tipoBase );
+        
         /* tipo base (INTEGER o SINGLE)*/
         
         double limiteInferior = val_peek(4).dval; /* Limite inferior */
-        System.out.println("liminf"+ " "+limiteInferior );
+        
         
         double limiteSuperior =  val_peek(5).dval; /* Limite superior */
-        System.out.println("limsup"+ " "+limiteSuperior );
+        
         /* Almacenar en la tabla de tipos*/
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
-        System.out.println("ENTRE A DEFINIR NUEVO TIPO");
+        
         }
 break;
 case 69:
@@ -1271,7 +1265,7 @@ case 69:
 
             /*tipo base (LONGINT)*/
             String tipoBase = val_peek(3).sval;
-            System.out.println("tipobase"+ " "+tipoBase );
+            
             tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -2147483647, 2147483647));
         }
 break;
@@ -1282,7 +1276,7 @@ case 70:
 
             /*tipo base (DOUBLE)*/
             String tipoBase = val_peek(3).sval;
-            System.out.println("tipobase"+ " "+tipoBase );
+            
             tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
 break;
@@ -1355,14 +1349,14 @@ break;
 case 85:
 //#line 303 "gramatica.y"
 {
-        System.out.println("Llegue a subrango");
+        
         /*CODIGO PARA PARTE SEMANTICA*/
         
         String limiteInferiorStr = val_peek(3).sval; /* T_CTE (limites inferiores)*/
         String limiteSuperiorStr = val_peek(1).sval; /* T_CTE (limites superiores)*/
 
-        System.out.println("VAL3 (Limite Inferior): " + limiteInferiorStr);
-        System.out.println("VAL1 (Limite Superior): " + limiteSuperiorStr);
+        
+        
 
         try {
            
@@ -1371,7 +1365,7 @@ case 85:
 
             
             yylval.obj = new Subrango(limiteInferior, limiteSuperior);
-            System.out.println("Subrango creado correctamente con limites: " + limiteInferior + " - " + limiteSuperior);
+            
         } catch (NumberFormatException e) {
             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
         }
@@ -1502,7 +1496,7 @@ case 142:
     }
 }
 break;
-//#line 1427 "Parser.java"
+//#line 1423 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

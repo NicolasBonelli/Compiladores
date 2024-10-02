@@ -52,7 +52,7 @@ public class SymbolTable {
 
 	    @Override
 	    public String toString() {
-	        return "Symbol{" + "nombre='" + nombre + '\'' + ", tipo='" + tipo + '\'' + '}';
+	        return "Symbol{" + "nombre=" + nombre +   " ,tipo='" + tipo + '}';
 	    }
 	}
 	
@@ -97,9 +97,17 @@ public class SymbolTable {
 		Symbol sym= new Symbol(key,null);
         return symbolMap.containsKey(sym);
     }
-	@Override	
+	@Override
 	public String toString() {
-		return symbolMap.toString();
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("SymbolTable:\n");
+	    for (Symbol key : symbolMap.keySet()) {
+	        sb.append(key.toString())
+	          .append(" -> ")
+	          .append(symbolMap.get(key))
+	          .append("\n");
+	    }
+	    return sb.toString();
 	}
 	
 }

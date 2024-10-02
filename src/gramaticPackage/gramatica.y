@@ -2,8 +2,9 @@
     package gramaticPackage;
     import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.File;
 import java.util.*;
-
+import javax.swing.JFileChooser;
 import Paquetecompi.Lexer;
 import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
@@ -63,7 +64,7 @@ programa: T_ID bloque_sentencias {
 
 
 
-bloque_sentencias: BEGIN sentencias END {System.out.println("Llegue a BEGIN sentencia END");}
+bloque_sentencias: BEGIN sentencias END 
                 | BEGIN END {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
                 | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan Delimitador o Bloque de Sentencia");};
                 
@@ -87,7 +88,6 @@ sentencia: declaracion
 
 
 declaracion: tipo lista_var ';' { 
-    System.out.println("Llegue a declaracion");
     List<ParserVal> variables = new ArrayList<ParserVal>();
     variables.add(val_peek(1)); 
     
@@ -159,9 +159,9 @@ tipo: DOUBLE { yyval.sval = "double"; }
     | LONGINT { yyval.sval = "longint"; }
     | T_ID
     {
-        System.out.println("Llegue a tipo");
-        /* Verificar si el tipo esta en la tabla de tipos definidos*/
-        System.out.println(val_peek(0).sval);
+        
+        /* Verificando si el tipo esta en la tabla de tipos definidos*/
+        
         if (tablaTipos.containsKey(val_peek(0).sval)) {
             yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
@@ -240,31 +240,31 @@ salida: OUTF '(' T_CADENA ')' ';'
 
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
-        System.out.println("Llegue a sentencia_declarativa_tipos");
+        
         
         // Obtener el nombre del tipo desde T_ID
         String nombreTipo = val_peek(4).sval; /* T_ID*/
 
         // Obtener el tipo base (INTEGER o SINGLE)
         String tipoBase = val_peek(2).sval;
-        System.out.println("tipobase"+ " "+tipoBase );
+        
         /* tipo base (INTEGER o SINGLE)*/
         
         double limiteInferior = val_peek(4).dval; /* Limite inferior */
-        System.out.println("liminf"+ " "+limiteInferior );
+        
         
         double limiteSuperior =  val_peek(5).dval; /* Limite superior */
-        System.out.println("limsup"+ " "+limiteSuperior );
+        
         // Almacenar en la tabla de tipos
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
-        System.out.println("ENTRE A DEFINIR NUEVO TIPO");
+        
         }
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
              String nombreTipo = val_peek(1).sval; /* T_ID*/
 
             /*tipo base (LONGINT)*/
             String tipoBase = val_peek(3).sval;
-            System.out.println("tipobase"+ " "+tipoBase );
+            
             tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -2147483647, 2147483647));
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
@@ -272,7 +272,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 
             /*tipo base (DOUBLE)*/
             String tipoBase = val_peek(3).sval;
-            System.out.println("tipobase"+ " "+tipoBase );
+            
             tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
@@ -301,14 +301,14 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         | TYPEDEF T_ID  T_ASIGNACION tipo  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el subrango del nuevo tipo");}
 
 subrango: '{' T_CTE ',' T_CTE '}'{
-        System.out.println("Llegue a subrango");
+        
         //CODIGO PARA PARTE SEMANTICA
         
         String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
         String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
 
-        System.out.println("VAL3 (Limite Inferior): " + limiteInferiorStr);
-        System.out.println("VAL1 (Limite Superior): " + limiteSuperiorStr);
+        
+        
 
         try {
            
@@ -317,7 +317,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
 
             
             yylval.obj = new Subrango(limiteInferior, limiteSuperior);
-            System.out.println("Subrango creado correctamente con limites: " + limiteInferior + " - " + limiteSuperior);
+            
         } catch (NumberFormatException e) {
             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
         }
@@ -461,9 +461,9 @@ public void yyerror(String s) {
 int yylex() {
     try {
         Pair token = lexer.analyze(reader);  
-        System.out.println("Pair: "+ token);
+        //System.out.println("Pair: "+ token);
         if (token != null) {
-            System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
+            //System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
 
             
             if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) { //SI SE TRATA DE UN TOKEN QUE TIENE MUCHAS REFERENCIAS EN TABLA DE SIMBOLOS
@@ -472,7 +472,7 @@ int yylex() {
             if(token.getToken()<31) { //SI SE TRATA DE UN TOKEN DE UN SIMBOLO SINGULAR ESPECIFICO EN LA TABLA DE SIMBOLOS
             	
             	char character = token.getLexema().charAt(0);  
-                System.out.println("Character:" + character);
+                //System.out.println("Character:" + character);
             	int ascii = (int) character;
                 return ascii;
             	

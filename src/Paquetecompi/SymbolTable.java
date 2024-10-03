@@ -10,7 +10,7 @@ public class SymbolTable {
 	public static final int constantValue = 279;
 	public static final int tagValue=280;
 	
-	public class Symbol {
+	public class Symbol implements Comparable{
 	    private String nombre;
 	    private String tipo;
 
@@ -52,8 +52,14 @@ public class SymbolTable {
 
 	    @Override
 	    public String toString() {
-	        return "Symbol{" + "nombre=" + nombre +   " ,tipo='" + tipo + '}';
+	        return "Symbol{" + "nombre=" + nombre +   ",tipo=" + tipo + '}';
 	    }
+	    
+	    @Override
+        public int compareTo(Object o) {
+            Symbol symbol = (Symbol)o;
+            return this.nombre.compareTo(symbol.nombre);
+        }
 	}
 	
 	

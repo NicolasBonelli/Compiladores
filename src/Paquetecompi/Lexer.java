@@ -17,16 +17,21 @@ public class Lexer {
 	final static int MAX_ID_LENGTH=15;
 	private boolean estado; 
 	private boolean finished = false;
+	private boolean devolvi;
+	private HashMap<String,Integer> tablaSimbolitos;
 	public Lexer(SymbolTable tabla) {
 		reservedWords = new HashMap<>();
+		tablaSimbolitos= new HashMap<>();
 	    this.tabla=tabla;
 	    estado = false;
+	    this.devolvi=false;
 		initializeReservedSymbols();
 	    initializeReservedWords();
 	    Lexer.nmrLinea = 1;
 	    this.tokenList=new ArrayList<Pair>();
 	    this.lexema=new StringBuilder();
 	    tablaTipos= new HashMap<>();
+	   
 	    
 	}
 	private int[][] transitionMatrix = {
@@ -49,7 +54,7 @@ public class Lexer {
 		};
 
 
-
+	
 	private SemanticAction[][] actionMatrix = {
 		    // Estado 0
 		    {new ASI(), new ASI(), new ASI(), new AS1(), new ASE("No puede empezar un identificador con _"), new AS1(), new AS1(), new AS1(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new ASE("Falta un ["), new AS1(), new ASE("Caracter unknown"), new AS6(), new AS6(), new ASE("No puede existir un @ solo")},
@@ -97,8 +102,11 @@ public class Lexer {
 		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8()},
 		    
 		    // Estado 15
+		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new ASE("No puede ir un = despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un ! despues de un ="), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8()},
+		
+		    //Estado 17 (error)
 		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new ASE("No puede ir un = despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un ! despues de un ="), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8()}
-		};
+	};
 	class TipoSubrango {
         String tipoBase;
         double limiteInferior;
@@ -165,35 +173,35 @@ public class Lexer {
 	
     
 	private void initializeReservedSymbols() {
-		this.tabla.addValue("bl",null,1); 
-		this.tabla.addValue("tab",null,2); 
-		this.tabla.addValue("nl",null,3);	
-		this.tabla.addValue("letra-[d]",null,4);
-		this.tabla.addValue("_",null,5);
-		this.tabla.addValue("0",null,6);
-		this.tabla.addValue("1 al 7",null,7);
-		this.tabla.addValue("8 al 9",null, 8);
-		this.tabla.addValue("+",null, 9);
-		this.tabla.addValue("-",null, 10);
-		this.tabla.addValue("/",null, 11);
-		this.tabla.addValue("*",null, 12);
-		this.tabla.addValue("(",null, 13);
-		this.tabla.addValue(")",null, 14);
-		this.tabla.addValue(".",null, 15);
-		this.tabla.addValue(";",null, 16);
-		this.tabla.addValue(",",null, 17);
-		this.tabla.addValue(":",null, 18);
-		this.tabla.addValue("=",null, 19);
-		this.tabla.addValue("<",null, 20);
-		this.tabla.addValue(">",null, 21);
-		this.tabla.addValue("!",null, 22);
-		this.tabla.addValue("#",null, 23);
-		this.tabla.addValue("[",null, 24);
-		this.tabla.addValue("]",null, 25);
-		this.tabla.addValue("d",null, 26);
-		this.tabla.addValue("{",null, 28);
-		this.tabla.addValue("}",null, 29);
-		this.tabla.addValue("@",null, 30);
+		this.tablaSimbolitos.put("bl",1); 
+		this.tablaSimbolitos.put("tab",2); 
+		this.tablaSimbolitos.put("nl",3);	
+		this.tablaSimbolitos.put("letra-[d]",4);
+		this.tablaSimbolitos.put("_",5);
+		this.tablaSimbolitos.put("0",6);
+		this.tablaSimbolitos.put("1 al 7",7);
+		this.tablaSimbolitos.put("8 al 9", 8);
+		this.tablaSimbolitos.put("+", 9);
+		this.tablaSimbolitos.put("-", 10);
+		this.tablaSimbolitos.put("/", 11);
+		this.tablaSimbolitos.put("*", 12);
+		this.tablaSimbolitos.put("(", 13);
+		this.tablaSimbolitos.put(")", 14);
+		this.tablaSimbolitos.put(".", 15);
+		this.tablaSimbolitos.put(";", 16);
+		this.tablaSimbolitos.put(",", 17);
+		this.tablaSimbolitos.put(":", 18);
+		this.tablaSimbolitos.put("=", 19);
+		this.tablaSimbolitos.put("<", 20);
+		this.tablaSimbolitos.put(">", 21);
+		this.tablaSimbolitos.put("!", 22);
+		this.tablaSimbolitos.put("#", 23);
+		this.tablaSimbolitos.put("[", 24);
+		this.tablaSimbolitos.put("]", 25);
+		this.tablaSimbolitos.put("d", 26);
+		this.tablaSimbolitos.put("{", 28);
+		this.tablaSimbolitos.put("}", 29);
+		this.tablaSimbolitos.put("@", 30);
 	}
     public boolean isReservedWord(String word) {
         return reservedWords.containsKey(word);
@@ -221,7 +229,9 @@ public class Lexer {
     public boolean containsSymbol(String name) {
         return tabla.hasKey(name);
     }
-    
+    public void setDevolvi(boolean est) {
+    	this.devolvi=est;
+    }
     
 
     
@@ -242,7 +252,7 @@ public class Lexer {
 	        int currentChar;
 	        
 	        
-	        while ((currentChar = reader.read()) != -1) { // Leer hasta EOF
+	        while (!devolvi && (currentChar = reader.read()) != -1) { // Leer hasta EOF
 	            char c = (char) currentChar;
 	         
 	            if (c == '\n' || c == '\r') {
@@ -265,12 +275,17 @@ public class Lexer {
 	    	                reader.reset(); // Volver a la última posición marcada
 	    	                estado = false; // Reiniciar el estado para el siguiente ciclo
 	    	            }
-	                    return tokenPair; // Devolver el Pair
+	                    if(devolvi) {
+	                    	this.devolvi=false;
+	                    	return tokenPair;
+	                    }
+	                     // Devolver el Pair
 	                }
 
 	                reader.mark(1); // Marcar la posición actual antes de leer el siguiente carácter
 	            } else {
 	                new ASE("Caracter no identificado").execute(this, this.lexema, c); // Manejo de errores
+	                //CAMBIAR
 	                return null; // Devolver null si ocurre un error
 	            }
 
@@ -282,7 +297,11 @@ public class Lexer {
 	        	finished = true;
 	            actionMatrix[currentState][0].execute(this, this.lexema, '\0'); // Manejar fin de archivo
 	            Pair finalPair = tokenList.remove(0); // Devolver el último token o fin de archivo
-	            return finalPair;
+	            if(devolvi) {
+	            	this.devolvi=false;
+	            	return finalPair;
+	            }
+	            
 	        }
 	    } catch (Exception e) {
 	        e.printStackTrace(); // Manejo de excepciones de E/S
@@ -296,37 +315,54 @@ public class Lexer {
     private int getTSIndex(char input) {
     	
     	if (Character.toString(input).matches("[a-ce-zA-CE-Z]")) { 
-            return this.tabla.getValue("letra-[d]") - 1;
+            return this.tablaSimbolitos.get("letra-[d]") - 1;
         } else if (input == 'd' || input =='D') {
-            return this.tabla.getValue("d") - 1; 
+            return this.tablaSimbolitos.get("d") - 1; 
         } else if (Character.toString(input).matches("[8-9]")) {
-            return this.tabla.getValue("8 al 9") - 1;
+            return this.tablaSimbolitos.get("8 al 9") - 1;
         } else if (Character.toString(input).matches("[1-7]")) {
-            return this.tabla.getValue("1 al 7") - 1;
+            return this.tablaSimbolitos.get("1 al 7") - 1;
         } else if (input == ' ') {
-            return this.tabla.getValue("bl") - 1; // Manejo de espacio
+            return this.tablaSimbolitos.get("bl") - 1; // Manejo de espacio
         } else if (input == '\n' || input == '\r') {
-            return this.tabla.getValue("nl") - 1; // Manejo de salto de línea
+            return this.tablaSimbolitos.get("nl") - 1; // Manejo de salto de línea
         } else if (input == '\t') {
-            return this.tabla.getValue("tab") - 1; // Manejo de tabulación
+            return this.tablaSimbolitos.get("tab") - 1; // Manejo de tabulación
         } else if (input == '@'){
-        	return this.tabla.getValue("@") - 1;
+        	return this.tablaSimbolitos.get("@") - 1;
         }
         
         else {
-        	if (tabla.hasKey(Character.toString(input))) {
+        	if (tablaSimbolitos.containsKey(Character.toString(input))) {
         		
         		
-        		return this.tabla.getValue(Character.toString(input)) - 1;
+        		return this.tablaSimbolitos.get(Character.toString(input)) - 1;
         	}else {
         		return -1;
         	}
         }
     }
     public boolean isLongintRange(double value) {
-        return value >= -2147483648L && value <= 2147483647L;
+        return value >=  Math.pow(-2, 31) && value <= (Math.pow(2, 31) - 1);
     }
+    public boolean isOctalRange(double token) {
+        try {
+            // Convertir el token (que es una cadena de texto) a un número octal (base 8)
+            
 
+            // Rango de números octales en base 8 (directamente octal)
+            long minOctal = Long.parseLong("-020000000000", 8);  // Rango mínimo en octal
+            long maxOctal = Long.parseLong("017777777777", 8);   // Rango máximo en octal
+
+            // Verificar si el número octal está dentro del rango
+            return token >= minOctal && token <= maxOctal;
+
+        } catch (NumberFormatException e) {
+            // En caso de que el número no sea válido
+            System.err.println("Error al parsear el número octal: " + token);
+            return false;
+        }
+    }
     public boolean isDoubleRange(double value) {
         return (value >= 2.2250738585072014e-308 && value <= 1.7976931348623157e+308) || 
                (value >= -1.7976931348623157e+308 && value <= -2.2250738585072014e-308) || 

@@ -48,9 +48,12 @@ class AS3 extends SemanticAction {
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
         lex.setEstado(true);
         String token = lexeme.toString().toUpperCase();
+        
+        
         if (lex.isReservedWord(token)) {
             Integer valorTabla = lex.getReservedWordToken(token);
             lex.addToken(new Pair(lexeme.toString(), valorTabla));
+            lex.setDevolvi(true);
         } else {
         	
             if (token.length() > Lexer.MAX_ID_LENGTH) {
@@ -60,6 +63,7 @@ class AS3 extends SemanticAction {
             if (!lex.containsSymbol(token)) {
                 lex.insertSymbolTable(token, "String", SymbolTable.identifierValue);
             }
+            lex.setDevolvi(true);
             lex.addToken(new Pair(token, SymbolTable.identifierValue));
         }
     }
@@ -77,17 +81,23 @@ class AS4 extends SemanticAction {
             try {
                 
                 long numeroOctal = Long.parseLong(token, 8);// Convertimos el token en número octal (base 8)
-                
+                String representacionOctal = "0" + Long.toOctalString(numeroOctal);
                 // Verificar si el número octal está en el rango permitido
-                long minOctal = Long.parseLong("-020000000000", 8);  // Rango mínimo en octal
+                 
                 long maxOctal = Long.parseLong("017777777777", 8);   // Rango máximo en octal
                 
-                if (numeroOctal >= minOctal && numeroOctal <= maxOctal) {
-                    lex.insertSymbolTable(token, "longint", SymbolTable.constantValue);
-                    lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));
-                } else {
-                    System.err.println("El numero octal en la linea " + lex.getNroLinea() + " supera el rango permitido para octales.");
+                
+                if (numeroOctal > maxOctal) {
+                    numeroOctal = maxOctal; // Si es mayor, ajustamos al máximo
+                    representacionOctal = "0" + Long.toOctalString(numeroOctal);
+                    System.err.println("El numero octal en la linea " + lex.getNroLinea() + " superaba el rango permitido. Se ajusto");
                 }
+                
+                // Insertar el valor ajustado en la tabla de símbolos
+                lex.insertSymbolTable(representacionOctal, "Octal", SymbolTable.constantValue);
+                lex.setDevolvi(true);
+                lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));
+                
             } catch (NumberFormatException e) {
                 System.err.println("El numero en la linea " + lex.getNroLinea() + " no es un octal valido.");
             }
@@ -95,12 +105,13 @@ class AS4 extends SemanticAction {
             // Manejo de números no octales (decimal)
             try {
                 double numero = Double.parseDouble(token);
-                if ((numero > Math.pow(-2, 31)) && (numero < Math.pow(2, 31))) {
-                    lex.insertSymbolTable(token, "longint", SymbolTable.constantValue);
-                    lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));
-                } else {
-                    System.err.println("El numero usado en la linea " + lex.getNroLinea() + " supera el rango permitido para enteros.");
-                }
+                if (numero > Math.pow(2, 31)-1) {
+                	System.err.println("El numero usado en la linea " + lex.getNroLinea() + " supera el rango permitido para enteros. Se redujo.");
+                	token= "2147483647";//se redujo al maximo
+                } 
+                lex.insertSymbolTable(token, "longint", SymbolTable.constantValue);
+                lex.setDevolvi(true);
+                lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));
             } catch (NumberFormatException e) {
                 System.err.println("El numero en la linea " + lex.getNroLinea() + " no es valido.");
             }
@@ -122,15 +133,17 @@ class AS5 extends SemanticAction {
             double maxPositive = 1.7976931348623157e+308;
             double maxNegative = -2.2250738585072014e-308;
             double minNegative = -1.7976931348623157e+308;
-
+            //ACA TOQUETEAR PAQUI LO DE LOS RANGOS
             // Verificar si el número está dentro de los rangos permitidos
-            if ((number > minPositive && number < maxPositive) ||
-                (number < maxNegative && number > minNegative) || 
+            if ((number >= minPositive && number <= maxPositive) ||
+                (number <= maxNegative && number >= minNegative) || 
                 number == 0.0) {
             	lex.insertSymbolTable(lexeme.toString(),"double" , SymbolTable.constantValue);
-            	
+            	lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 
+                
             } else {
+            	//ACA TAMBIEN PAQUI
                 System.out.println("El número está fuera del rango permitido.");
             }
         } catch (NumberFormatException e) {
@@ -146,6 +159,7 @@ class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
     	lex.setEstado(false);
     	lexeme.append(currentChar);
         Integer valor = lex.getSymbol(lexeme.toString());
+        lex.setDevolvi(true);
         lex.addToken(new Pair(lexeme.toString(), valor));
     } 
 }
@@ -166,6 +180,7 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     	else {
     		valor = lex.getReservedWordToken(lexeme.toString());
     	}
+    	lex.setDevolvi(true);
     	lex.addToken(new Pair(lexeme.toString(), valor));
     } 
 }
@@ -177,11 +192,12 @@ class AS8 extends SemanticAction {
         	lex.setEstado(false);
         	lexeme.append(currentChar);
         	Integer valor = lex.getReservedWordToken(lexeme.toString());
+        	lex.setDevolvi(true);
         	lex.addToken(new Pair(lexeme.toString(), valor));
         }else {//AGARRAR HASTA EL LEXEMA Y ENTREGAR SIMBOLO DE TABLA DE SIMBOLOS
         	Integer valor = lex.getSymbol(lexeme.toString());
         	lex.setEstado(true);
-
+        	lex.setDevolvi(true);
         	lex.addToken(new Pair(lexeme.toString(), valor));
         }
         

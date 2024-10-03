@@ -66,7 +66,7 @@ programa: T_ID bloque_sentencias {
 
 bloque_sentencias: BEGIN sentencias END 
                 | BEGIN END {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
-                | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan Delimitador o Bloque de Sentencia");};
+                ;
                 
 sentencias:  sentencia
           | sentencias sentencia
@@ -133,6 +133,9 @@ declaracion_funcion:
 
     | tipo FUN '(' tipo T_ID ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la funcion.");
+    }
+    | tipo FUN T_ID '(' parametro ')' bloque_sentencias ';'{
+        System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se puede poner ; al final de la declaracion de una fucnion");
     };
 
 parametro:
@@ -205,6 +208,7 @@ if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
             | IF '(' condicion ')' THEN repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
             | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            
             ;
             
             
@@ -299,7 +303,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         | TYPEDEF  T_ASIGNACION tipo subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del tipo definido");}
         | TYPEDEF T_ID T_ASIGNACION  subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el tipo base del nuevo tipo");}
         | TYPEDEF T_ID  T_ASIGNACION tipo  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el subrango del nuevo tipo");}
-
+        ;
 subrango: '{' T_CTE ',' T_CTE '}'{
         
         //CODIGO PARA PARTE SEMANTICA
@@ -363,7 +367,6 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID
             | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
             | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
             | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
-            | error { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
             ;
 
 
@@ -443,12 +446,35 @@ unaria: '-' T_CTE { // Esta regla maneja especificamente el '-' unario
                     
                     st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
                 }
+            }else if (tipo.equals("octal")) {
+                if (!lexer.isOctalRange(valor)) {
+                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
+                    
+                } else {
+                    
+                    st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
+                }
             }
         } else {
             System.err.println("Error: El tipo de la constante no pudo ser determinado.");
         }
-    } else {
-        System.err.println("Error: La constante " + nombreConstante + " no existe en la tabla de simbolos.");
+    } else { //se trata de numero negativo menor al menor negativo.
+    	//ACA VER QUE TIPO DE NUMERO ES CON IFS
+    	
+        if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
+        	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
+            st.addValue("-020000000000", "Octal", SymbolTable.constantValue);
+        } else if (nombreConstante.contains(".")) {
+            st.addValue("-1.7976931348623157d+308", "double", SymbolTable.constantValue);
+        } else{ //ya se sabe que es entero
+            // Lógica para longint
+           
+                System.err.println("El valor longint " + valor + " e ajusta al valor mínimo.");
+                valor = Math.pow(-2, 31); // Asignar valor mínimo si está fuera de rango
+            
+            st.addValue(nombreConMenos, "longint", SymbolTable.constantValue);
+        }
+        
     }
 };
 
@@ -525,7 +551,9 @@ boolean verificarRangoLongInt(double valor) {
 boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
-
+public boolean isOctal(String valor) {
+    
+}
 String obtenerTipo(String variable) {
     
     if (!st.hasKey(variable)) return variable;

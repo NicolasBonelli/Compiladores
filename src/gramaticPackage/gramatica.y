@@ -50,7 +50,7 @@ class Subrango{
 %token T_CADENA T_ID T_CTE T_ETIQUETA
 %left '+' '-'
 %left '*' '/'
-
+%nonassoc error
  
 %%
 
@@ -207,8 +207,8 @@ if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             }
             | IF  condicion  THEN repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
             | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF '(' condicion ')' THEN repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
-            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF '(' condicion ')' THEN repeat_sentencia error  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia error  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
             
             ;
             
@@ -240,9 +240,8 @@ salida: OUTF '(' T_CADENA ')' ';'
       | OUTF '(' T_CADENA ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
       } 
-      | OUTF '(' error ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - OUTF no puede ser vacio");}  //PROBAR
-      | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");};
-
+      | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");}
+      ;
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         
@@ -304,6 +303,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         | TYPEDEF  T_ASIGNACION tipo subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del tipo definido");}
         | TYPEDEF T_ID T_ASIGNACION  subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el tipo base del nuevo tipo");}
         | TYPEDEF T_ID  T_ASIGNACION tipo  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el subrango del nuevo tipo");}
+        | TYPEDEF T_ID tipo subrango ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la asignacion en la definicion de nuevos tipos");}
         ;
 subrango: '{' T_CTE ',' T_CTE '}'{
         
@@ -573,9 +573,7 @@ boolean verificarRangoLongInt(double valor) {
 boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
-public boolean isOctal(String valor) {
-    
-}
+
 String obtenerTipo(String variable) {
     
     if (!st.hasKey(variable)) return variable;

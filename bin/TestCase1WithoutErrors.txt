@@ -19,7 +19,7 @@ programa begin
             RET (x + w); 
         ELSE 
             begin 
-                y := 2.0; 
+                y := -2.0; 
                 RET (y * w); 
             end
         END_IF;

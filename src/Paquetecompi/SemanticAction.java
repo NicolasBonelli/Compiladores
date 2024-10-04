@@ -1,6 +1,6 @@
 package Paquetecompi;
 
-
+import java.math.BigDecimal;
 
 //Implementación de las acciones semánticas como inner classes
 abstract class SemanticAction {
@@ -75,7 +75,7 @@ class AS4 extends SemanticAction {
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	lex.setEstado(true);
         String token = lexeme.toString();
-        
+        System.out.println(lexeme.toString());
         
         if (token.startsWith("0") && !token.matches(".*[89].*")) { //si el numero es octal (empieza con 0 y no contiene ni 8 ni 9
             try {
@@ -121,35 +121,43 @@ class AS4 extends SemanticAction {
 
 class AS5 extends SemanticAction {
     @Override
-    void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	lex.setEstado(true);
+    void execute(Lexer lex, StringBuilder lexeme, char currentChar) {
+        lex.setEstado(true);
         String token = lexeme.toString();
-    	try {
-            // Eliminar 'd' si está presente y convertir el string en double
-            double number = Double.parseDouble(token.replace("d", "e"));
+        
+        try {
+            // Eliminar 'd' si está presente y convertir el string a BigDecimal
+            BigDecimal number = new BigDecimal(token.replace("d", "E"));
+            System.out.println("Number: " + number);
 
             // Rango de números de doble precisión
-            double minPositive = 2.2250738585072014e-308;
-            double maxPositive = 1.7976931348623157e+308;
-            double maxNegative = -2.2250738585072014e-308;
-            double minNegative = -1.7976931348623157e+308;
-            //ACA TOQUETEAR PAQUI LO DE LOS RANGOS
+            BigDecimal minPositive = new BigDecimal("2.2250738585072014E-308");
+            BigDecimal maxPositive = new BigDecimal("1.7976931348623157E+308");
+            
             // Verificar si el número está dentro de los rangos permitidos
-            if ((number >= minPositive && number <= maxPositive) ||
-                (number <= maxNegative && number >= minNegative) || 
-                number == 0.0) {
-            	lex.insertSymbolTable(lexeme.toString(),"double" , SymbolTable.constantValue);
-            	lex.setDevolvi(true);
-                lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 
+            if ((number.compareTo(minPositive) > 0 && number.compareTo(maxPositive) < 0) || 
+                number.compareTo(BigDecimal.ZERO) == 0) {
                 
+                lex.insertSymbolTable(lexeme.toString(), "double", SymbolTable.constantValue);
+                lex.setDevolvi(true);
+                lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 
             } else {
-            	//ACA TAMBIEN PAQUI
-                System.out.println("El número está fuera del rango permitido.");
+                System.err.println("El número estaba fuera del rango permitido para double. Se ajustó.");
+
+                // Ajustar al límite permitido
+                if (number.compareTo(minPositive) <= 0) {
+                    token = "2.2250738585072015d-308";
+                } else {
+                    token = "1.7976931348623156d+308";
+                }
+                System.out.println("Token antes de insertar: "+token);
+                lex.insertSymbolTable(token, "double", SymbolTable.constantValue);
+                lex.setDevolvi(true);
+                lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 
             }
         } catch (NumberFormatException e) {
             System.out.println("El formato del número es incorrecto.");
-      
-        };
+        }
     }
 }
 
@@ -170,10 +178,15 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
     	lex.setEstado(false);
 		lexeme.append(currentChar);
 		Integer valor = 0;
-    	if (currentChar == ']') {
-        	lex.insertSymbolTable(lexeme.toString().replace("[", "").replace("]", "").replace("\n", " "),"String", SymbolTable.stringValue);
-        	valor = SymbolTable.stringValue;
-    	}else if(currentChar == '@') {
+		if (currentChar == ']') {
+		    String cadenaSinSaltos = lexeme.toString()
+		        .replace("[", "")
+		        .replace("]", "")
+		        .replaceAll("\\s+", " ");  // Reemplaza cualquier tipo de espacio o salto de línea por un solo espacio
+		    
+		    lex.insertSymbolTable(cadenaSinSaltos, "String", SymbolTable.stringValue);
+		    valor = SymbolTable.stringValue;
+		}else if(currentChar == '@') {
     		lex.insertSymbolTable(lexeme.toString(),"String",SymbolTable.tagValue);
     		valor = SymbolTable.tagValue;
     	}

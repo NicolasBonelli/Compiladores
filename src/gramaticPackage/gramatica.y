@@ -84,6 +84,7 @@ sentencia: declaracion
          | RET '(' expresion ')' ';'
          | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
          | RET '('  ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
+         | error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta sentencia antes del ; ");} //PROBAR
          ;
 
 
@@ -239,7 +240,7 @@ salida: OUTF '(' T_CADENA ')' ';'
       | OUTF '(' T_CADENA ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
       } 
-      | OUTF '('  ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - OUTF no puede ser vacio");}  
+      | OUTF '(' error ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - OUTF no puede ser vacio");}  //PROBAR
       | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");};
 
 
@@ -420,12 +421,13 @@ expresion:expresion '+' expresion
         | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
         ;
 
-unaria: '-' T_CTE { // Esta regla maneja especificamente el '-' unario
+unaria: '-' T_CTE { /* Esta regla maneja especificamente el '-' unario*/
     double valor = val_peek(0).dval;  
-      
+    System.out.println("dval: "+valor);
 
     String nombreConstante = val_peek(0).sval;  
     String nombreConMenos = "-" + nombreConstante;
+    System.out.println("sval: "+nombreConstante);
     /* verificacion en la tabla de simbolos.*/
     if (st.hasKey(nombreConstante)) {
         String tipo = st.getType(nombreConstante);  /*  tipo de la constante.*/
@@ -446,12 +448,12 @@ unaria: '-' T_CTE { // Esta regla maneja especificamente el '-' unario
                     
                     st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
                 }
-            }else if (tipo.equals("octal")) {
+            }else if (tipo.equals("Octal")) {
                 if (!lexer.isOctalRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
-                    
+                    System.out.println("Entre a el else del octal");
                     st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
                 }
             }
@@ -460,18 +462,38 @@ unaria: '-' T_CTE { // Esta regla maneja especificamente el '-' unario
         }
     } else { //se trata de numero negativo menor al menor negativo.
     	//ACA VER QUE TIPO DE NUMERO ES CON IFS
-    	
+    	System.out.println("Entre");
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
             st.addValue("-020000000000", "Octal", SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
-            st.addValue("-1.7976931348623157d+308", "double", SymbolTable.constantValue);
+        	System.err.println("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
+
+            
+            // Parseamos el valor como double para comparaciones
+            double valorDouble = Double.parseDouble("-" + nombreConstante.replace("d", "e"));
+            System.out.println("valorDouble: "+valorDouble);
+            // Rango mínimo y máximo de los números double
+            double maxNegativeDouble = -1.7976931348623157e+308;
+            double minNegativeDouble = -2.2250738585072014e-308;
+
+            // Si está por debajo del máximo permitido, lo mantenemos
+            if (valorDouble < maxNegativeDouble) {
+                st.addValue("-1.7976931348623156d+308", "double", SymbolTable.constantValue);
+            } 
+            // Si está por debajo del mínimo permitido pero mayor al mínimo ajustado
+            else if (valorDouble > minNegativeDouble) {
+                st.addValue("-2.2250738585072015d-308", "double", SymbolTable.constantValue);
+            } 
+            // Si está en el rango permitido
+            else {
+                st.addValue("-" + nombreConstante, "double", SymbolTable.constantValue);
+            }
+            
         } else{ //ya se sabe que es entero
             // Lógica para longint
-           
-                System.err.println("El valor longint " + valor + " e ajusta al valor mínimo.");
-                valor = Math.pow(-2, 31); // Asignar valor mínimo si está fuera de rango
-            
+        	System.err.println("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
+            nombreConMenos = "-2147483648"; // Asignar valor mínimo si está fuera de rango
             st.addValue(nombreConMenos, "longint", SymbolTable.constantValue);
         }
         

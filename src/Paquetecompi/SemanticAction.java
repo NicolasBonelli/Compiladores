@@ -15,7 +15,7 @@ this.errorType = errorType;
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	System.err.println(errorType + " at linea: "+ lex.getNroLinea());
-   
+    	
     }
 }
 
@@ -23,6 +23,8 @@ class ASI extends SemanticAction {
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
         //Solo inicia cadena o espacio en blanco
+    	lexeme.setLength(0);
+    	lex.setEstado(false);
     }
 }
 
@@ -79,7 +81,6 @@ class AS4 extends SemanticAction {
         
         if (token.startsWith("0") && !token.matches(".*[89].*")) { //si el numero es octal (empieza con 0 y no contiene ni 8 ni 9
             try {
-                
                 long numeroOctal = Long.parseLong(token, 8);// Convertimos el token en número octal (base 8)
                 String representacionOctal = "0" + Long.toOctalString(numeroOctal);
                 // Verificar si el número octal está en el rango permitido
@@ -164,6 +165,7 @@ class AS5 extends SemanticAction {
 class AS6 extends SemanticAction {//TABLA DE SIMBOLOS
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
+    	lexeme.setLength(0);
     	lex.setEstado(false);
     	lexeme.append(currentChar);
         Integer valor = lex.getSymbol(lexeme.toString());

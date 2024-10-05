@@ -364,9 +364,9 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID
             | IDENTIFIER_LIST ',' acceso_par 
             | T_ID 
             | acceso_par  
-            | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
-            | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
-            | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
+            | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
+            | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //no anda
+            | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
             ;
 
 
@@ -408,16 +408,16 @@ expresion_aritmetica: expresion_aritmetica '+' expresion_aritmetica
          | unaria 
        ;
 
-expresion:expresion '+' expresion 
-        |expresion '-' expresion 
-        |expresion '*' expresion 
-        |expresion '/' expresion 
-        |T_CTE 
-        |T_ID 
-        |acceso_par
-        | invocacion_funcion
-        | unaria 
-        | error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
+expresion: expresion '+' expresion 
+        |  expresion '-' expresion 
+        |  expresion '*' expresion 
+        |  expresion '/' expresion 
+        |  T_CTE 
+        |  T_ID 
+        |  acceso_par
+        |  invocacion_funcion
+        |  unaria 
+        |  error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
         ;
 
 unaria: '-' T_CTE { /* Esta regla maneja especificamente el '-' unario*/
@@ -456,7 +456,6 @@ unaria: '-' T_CTE { /* Esta regla maneja especificamente el '-' unario*/
         }
     } else { //se trata de numero negativo menor al menor negativo.
     	//ACA VER QUE TIPO DE NUMERO ES CON IFS
-    	//System.out.println("Entre");
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
             st.addValue("-020000000000", "Octal", SymbolTable.constantValue);

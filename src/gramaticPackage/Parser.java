@@ -718,7 +718,7 @@ final static String yyrule[] = {
 "unaria : '-' T_CTE",
 };
 
-//#line 503 "gramatica.y"
+//#line 495 "gramatica.y"
 
 public void yyerror(String s) {
     System.err.println("Error en linea: " + Lexer.nmrLinea + " String: " +s);
@@ -1442,11 +1442,9 @@ case 141:
 //#line 423 "gramatica.y"
 { /* Esta regla maneja especificamente el '-' unario*/
     double valor = val_peek(0).dval;  
-    System.out.println("dval: "+valor);
 
     String nombreConstante = val_peek(0).sval;  
     String nombreConMenos = "-" + nombreConstante;
-    System.out.println("sval: "+nombreConstante);
     /* verificacion en la tabla de simbolos.*/
     if (st.hasKey(nombreConstante)) {
         String tipo = st.getType(nombreConstante);  /*  tipo de la constante.*/
@@ -1456,8 +1454,6 @@ case 141:
                 if (!lexer.isLongintRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
-                	
-                    
                     st.addValue(nombreConMenos, tipo,SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
@@ -1472,7 +1468,6 @@ case 141:
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
-                    System.out.println("Entre a el else del octal");
                     st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
                 }
             }
@@ -1481,17 +1476,14 @@ case 141:
         }
     } else { /*se trata de numero negativo menor al menor negativo.*/
     	/*ACA VER QUE TIPO DE NUMERO ES CON IFS*/
-    	System.out.println("Entre");
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
             st.addValue("-020000000000", "Octal", SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
         	System.err.println("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
 
-            
             /* Parseamos el valor como double para comparaciones*/
             double valorDouble = Double.parseDouble("-" + nombreConstante.replace("d", "e"));
-            System.out.println("valorDouble: "+valorDouble);
             /* Rango mínimo y máximo de los números double*/
             double maxNegativeDouble = -1.7976931348623157e+308;
             double minNegativeDouble = -2.2250738585072014e-308;
@@ -1519,7 +1511,7 @@ case 141:
     }
 }
 break;
-//#line 1446 "Parser.java"
+//#line 1438 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

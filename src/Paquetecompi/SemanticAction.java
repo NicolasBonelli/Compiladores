@@ -77,7 +77,7 @@ class AS4 extends SemanticAction {
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	lex.setEstado(true);
         String token = lexeme.toString();
-        System.out.println(lexeme.toString());
+        //System.out.println(lexeme.toString());
         
         if (token.startsWith("0") && !token.matches(".*[89].*")) { //si el numero es octal (empieza con 0 y no contiene ni 8 ni 9
             try {

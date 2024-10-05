@@ -84,7 +84,6 @@ sentencia: declaracion
          | RET '(' expresion ')' ';'
          | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
          | RET '('  ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
-         | error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta sentencia antes del ; ");} //PROBAR
          ;
 
 
@@ -207,8 +206,8 @@ if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             }
             | IF  condicion  THEN repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
             | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF '(' condicion ')' THEN repeat_sentencia error  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
-            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia error  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF '(' condicion ')' THEN repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
             
             ;
             

@@ -58,55 +58,55 @@ public class Lexer {
 	
 	private SemanticAction[][] actionMatrix = {
 		    // Estado 0
-		    {new ASI(), new ASI(), new ASI(), new AS1(), new ASE("No puede empezar un identificador con _"), new AS1(), new AS1(), new AS1(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new ASE("Falta un ["), new AS1(), new ASE("Caracter unknown"), new AS6(), new AS6(), new ASE("No puede existir un @ solo")},
+		    {new ASI(), new ASI(), new ASI(), new AS1(), new ASE("No puede empezar un identificador con _"), new AS1(), new AS1(), new AS1(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS6(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new AS1(), new ASE("Falta un ["), new AS1(), new ASE("Caracter no identificado"), new AS6(), new AS6(), new ASE("No puede existir un @ solo")},
 		    
 		    // Estado 1
-		    {new AS3(), new AS3(), new AS3(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS2(), new AS3(), new AS3(), new AS3(), new AS7()},
+		    {new AS3(), new AS3(), new AS3(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS3(), new AS2(),  new ASE("Caracter no identificado"), new AS3(), new AS3(), new AS7()},
 		    
 		    // Estado 2
-		    {new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS2(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4()},
+		    {new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS2(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(),  new ASE("Caracter no identificado"), new AS4(), new AS4(), new AS4()},
 		    
 		    // Estado 3
-		    {new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS2(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4()},
+		    {new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS2(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(),  new ASE("Caracter no identificado"), new AS4(), new AS4(), new AS4()},
 		    
 		    // Estado 4
-		    {new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS2(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4()},
+		    {new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS2(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS2(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new AS4(), new ASE("Caracter no identificado"), new AS4(), new AS4(), new AS4()},
 		    
 		    // Estado 5
-		    {new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new AS2(), new AS2(), new AS2(), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito")},
+		    {new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new AS2(), new AS2(), new AS2(), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"),  new ASE("Caracter no identificado"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito"), new ASE("Despues del . DEBE ir un digito")},
 		    
 		    // Estado 6
-		    {new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(), new AS2(), new AS2(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(), new AS5(), new AS5(), new AS5(), new AS5()},
+		    {new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(), new AS2(), new AS2(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(), new ASE("Caracter no identificado"), new AS5(), new AS5(), new AS5()},
 		    
 		    // Estado 7
-		    {new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero")},
+		    {new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"),  new ASE("Caracter no identificado"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero"), new ASE("Despues de la d debe ir un +, -, o numero")},
 		    
 		    // Estado 8
-		    {new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new AS2(), new AS2(), new AS2(), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, -, DEBE ir un numero")},
+		    {new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new AS2(), new AS2(), new AS2(), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"),  new ASE("Caracter no identificado"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, - DEBE ir un numero"), new ASE("Despues del +, -, DEBE ir un numero")},
 		    
 		    // Estado 9
-		    {new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(), new AS2(), new AS2(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(), new AS5(), new AS5(), new AS5(), new AS5()},
+		    {new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(), new AS2(), new AS2(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS5(), new AS2(),  new ASE("Caracter no identificado"), new AS5(), new AS5(), new AS5()},
 		    
 		    // Estado 10
-		    {new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new AS7(), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un =")},
+		    {new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new AS7(), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="),  new ASE("Caracter no identificado"), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un ="), new ASE("Despues del : DEBE ir un =")},
 		    
 		    // Estado 11
-		    {new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new AS2(), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #")},
+		    {new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new AS2(), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"),  new ASE("Caracter no identificado"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #")},
 		    
 		    // Estado 12
-		    {new AS2(), new AS2(), new ASI(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2()},
+		    {new AS2(), new AS2(), new ASI(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(),  new ASE("Caracter no identificado"), new AS2(), new AS2(), new AS2()},
 		    
 		    // Estado 13
-		    {new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS7(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2()},
+		    {new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS7(), new AS2(),  new ASE("Caracter no identificado"), new AS2(), new AS2(), new AS2()},
 		    
 		    // Estado 14
-		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8()},
+		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(),  new ASE("Caracter no identificado"), new AS8(), new AS8(), new AS8()},
 		    
 		    // Estado 15
-		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new ASE("No puede ir un = despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un ! despues de un ="), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8()},
+		    {new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new AS8(), new ASE("No puede ir un = despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un < despues de un ="), new ASE("No puede ir un ! despues de un ="), new AS8(), new AS8(), new AS8(), new AS8(),  new ASE("Caracter no identificado"), new AS8(), new AS8(), new AS8()},
 		
 		    //Estado 16 (error)
-		    {new ASI(), new ASI(), new ASI(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS6(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2()}
+		    {new ASI(), new ASI(), new ASI(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS6(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(),  new AS2(), new AS2(), new AS2(), new AS2()}
 	};
 	class TipoSubrango {
         String tipoBase;
@@ -263,34 +263,32 @@ public class Lexer {
 
 	            int actionIndex = getTSIndex(c); // Obtener índice en la tabla de símbolos
 	            
-	            if (actionIndex != -1) {
-	                actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); // Ejecutar acción
-	                currentState = transitionMatrix[currentState][actionIndex];
-	                if(currentState == -1) {
-	                	currentState=16;
-	                }
+	            
+                actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); // Ejecutar acción
+                currentState = transitionMatrix[currentState][actionIndex];
+                if(currentState == -1) {
+                	currentState=16;
+                }
 
-	                if (currentState == 17) { // Estado final
-	                    currentState = 0; // Resetear el estado
-	                    Pair tokenPair = tokenList.remove(0); // Crear un Pair con el lexema y el índice de acción
-	                    lexema.setLength(0); // Limpiar el lexema para el siguiente token
-	                    if (estado) {
-	    	                reader.reset(); // Volver a la última posición marcada
-	    	                estado = false; // Reiniciar el estado para el siguiente ciclo
-	    	            }
-	                    if(devolvi) {
-	                    	this.devolvi=false;
-	                    	return tokenPair;
-	                    }
-	                     // Devolver el Pair
-	                }
+                if (currentState == 17) { // Estado final
+                    currentState = 0; // Resetear el estado
+                    Pair tokenPair = tokenList.remove(0); // Crear un Pair con el lexema y el índice de acción
+                    lexema.setLength(0); // Limpiar el lexema para el siguiente token
+                    if (estado) {
+    	                reader.reset(); // Volver a la última posición marcada
+    	                estado = false; // Reiniciar el estado para el siguiente ciclo
+    	            }
+                    if(devolvi) {
+                    	this.devolvi=false;
+                    	return tokenPair;
+                    }
+                     // Devolver el Pair
+                }
 
-	                reader.mark(1); // Marcar la posición actual antes de leer el siguiente carácter
-	            } else {
-	                new ASE("Caracter no identificado").execute(this, this.lexema, c); // Manejo de errores
-	                //CAMBIAR
-	                return null; // Devolver null si ocurre un error
-	            }
+                reader.mark(1); // Marcar la posición actual antes de leer el siguiente carácter
+	            
+	                
+	            
 
 	            
 	        }
@@ -341,7 +339,7 @@ public class Lexer {
         		
         		return this.tablaSimbolitos.get(Character.toString(input)) - 1;
         	}else {
-        		return -1;
+        		return 26;
         	}
         }
     }

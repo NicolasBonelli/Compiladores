@@ -129,7 +129,6 @@ class AS5 extends SemanticAction {
         try {
             // Eliminar 'd' si está presente y convertir el string a BigDecimal
             BigDecimal number = new BigDecimal(token.replace("d", "E"));
-            System.out.println("Number: " + number);
 
             // Rango de números de doble precisión
             BigDecimal minPositive = new BigDecimal("2.2250738585072014E-308");
@@ -151,7 +150,6 @@ class AS5 extends SemanticAction {
                 } else {
                     token = "1.7976931348623156d+308";
                 }
-                System.out.println("Token antes de insertar: "+token);
                 lex.insertSymbolTable(token, "double", SymbolTable.constantValue);
                 lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 

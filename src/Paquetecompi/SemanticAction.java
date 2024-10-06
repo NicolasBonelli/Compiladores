@@ -51,7 +51,6 @@ class AS3 extends SemanticAction {
         lex.setEstado(true);
         String token = lexeme.toString().toUpperCase();
         
-        
         if (lex.isReservedWord(token)) {
             Integer valorTabla = lex.getReservedWordToken(token);
             lex.addToken(new Pair(lexeme.toString(), valorTabla));
@@ -77,7 +76,6 @@ class AS4 extends SemanticAction {
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	lex.setEstado(true);
         String token = lexeme.toString();
-        //System.out.println(lexeme.toString());
         
         if (token.startsWith("0") && !token.matches(".*[89].*")) { //si el numero es octal (empieza con 0 y no contiene ni 8 ni 9
             try {
@@ -130,7 +128,7 @@ class AS5 extends SemanticAction {
             // Eliminar 'd' si está presente y convertir el string a BigDecimal
             BigDecimal number = new BigDecimal(token.replace("d", "E"));
 
-            // Rango de números de doble precisión
+           
             BigDecimal minPositive = new BigDecimal("2.2250738585072014E-308");
             BigDecimal maxPositive = new BigDecimal("1.7976931348623157E+308");
             
@@ -144,7 +142,7 @@ class AS5 extends SemanticAction {
             } else {
                 System.err.println("El número estaba fuera del rango permitido para double. Se ajustó.");
 
-                // Ajustar al límite permitido
+                
                 if (number.compareTo(minPositive) <= 0) {
                     token = "2.2250738585072015d-308";
                 } else {

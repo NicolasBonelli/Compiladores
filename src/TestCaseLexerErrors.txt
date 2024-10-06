@@ -1,0 +1,61 @@
+erroresLexer begin
+	##Constantes con el primer y último valor dentro del rango (Para cada tipo de datos asignado).
+	octalMax:= 017777777777; 
+	octalMin:= -020000000000;
+	longintMin:= 2147483647;
+	longintMax:= -2147483648;
+	doublePosMax:=1.7976931348623156d+308;
+	doublePosMin:= 2.2250738585072015d-308;
+	doubleNegMax:=-1.7976931348623156d+308;
+	doubleNegMin:=-2.2250738585072015d-308;
+
+
+	##Constantes con el primer y último valor fuera del rango (Para cada tipo de datos asignado).
+	octalMax:= 020000000077; 
+	octalMin:= -020000000011;
+	longintMin:= 2147483680;
+	longintMax:= -2147483999;
+	doublePosMax:=1.7976931348623156d+350;
+	doublePosMin:= 2.2250738585072015d-350;
+	doubleNegMax:=-1.7976931348623156d+350;
+	doubleNegMin:=-2.2250738585072015d-350;
+
+	##Para números de punto flotante: parte entera con y sin parte decimal
+	float1 := 123;
+	float2 := -123.654;
+	## parte decimal con y sin parte entera
+	float3 := 0.123;
+	float4 := 13.123;
+	## con y sin exponente
+	float5 := 0.123d120;
+	float6 := 0.123;
+	##con exponente positivo y negativo.
+	float7 := 0.128d+120;
+	float8 := 0.128d-120;	
+
+	##Identificadores de menos y más de 15 caracteres.
+	abcdefghijkmlopqrstuvwxyz:=3;
+	esteesunejemplodeunidentificadorlargo:=4;
+	##Identificadores con letras, dígitos y "_".
+	sumar_uno:=sumar_uno+1;
+	x1:=x1*x2;
+	##Intento de incluir en el nombre de un identificador un carácter que no sea letra, dígito o “-“.
+	hol]:=4;
+	perf(ecto:=5;
+	##Palabras reservadas escritas en minúsculas y mayúsculas.
+	IF(x<8)THEN
+		variableMayus:=3;
+	END_IF;
+	if(x<8)then
+		variableMinus:=3;
+	end_if;
+	##Comentarios bien y mal escritos.
+	##Aquí morí yo , dijo el comentario
+	
+	##Cadenas bien y mal escritas.
+	OUTF([Hola soy una cadena 
+	bien escrita]);
+	OUTF([Hola, soy una cadena mal escrita
+	por mi tilde en esta oración]);
+
+end

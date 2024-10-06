@@ -83,36 +83,39 @@ sentencia: declaracion
          | T_ETIQUETA
          | RET '(' expresion ')' ';'
          | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
-         | RET '('  ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
+         | RET '('  ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
          ;
 
 
 declaracion: tipo lista_var ';' { 
-    List<ParserVal> variables = new ArrayList<ParserVal>();
-    variables.add(val_peek(1)); 
-    
-    for (ParserVal variable : variables) {
-        /* Verificar si la variable ya existe en la tabla de simbolos*/
-        if (!st.hasKey(variable.toString())) {
-            System.out.println("Aclaracion, la tabla de simbolos no contenia la variable: " + variable.toString());
-        } else {
-            /* Actualiza el tipo de la variable si ya esta en la tabla de simbolos*/
-            boolean actualizado = st.updateType(variable.toString(), val_peek(2).toString());
-            if (actualizado) {
-                System.out.println("Tipo de la variable '" + variable + "' actualizado a: " + val_peek(2));
-            } else {
-                System.err.println("Error al actualizar el tipo de la variable: " + variable);
-            }
-        }
-    }
+    List<String> variables = (List<String>) val_peek(1).obj;  // Obtener la lista de variables de lista_var
+
+	for (String variable : variables) {
+	    /* Verificar si la variable ya existe en la tabla de símbolos */
+	    if (st.hasKey(variable)) {
+	        System.out.println("Aclaracion, se declaro la variable: " + variable);
+	    } else {
+	        System.err.println("Error, la variable no está en la tabla de símbolos: " + variable);
+	    }
+	}
 } |tipo lista_var error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");}
   |tipo ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta variable en la sentencia declarativa");}; 
 
 
 
-lista_var: lista_var ',' T_ID 
-  | T_ID 
-  |lista_var  T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
+lista_var: lista_var ',' T_ID {
+    
+    @SuppressWarnings("unchecked")
+    List<String> variables = (List<String>) val_peek(2).obj;
+    variables.add(val_peek(0).sval);  /* Agregar nueva variable*/
+    yyval.obj = variables;  /* Pasar la lista actualizada hacia arriba */
+} 
+  | T_ID {
+    List<String> variables = new ArrayList<String>();
+    variables.add(val_peek(0).sval);  /* Agregar la primera variable*/
+    yyval.obj = variables; 
+} 
+  |lista_var T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
   ;
 
 
@@ -121,7 +124,7 @@ declaracion_funcion:
     | tipo FUN T_ID '(' parametros_error ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
     }
-
+    
     
     | tipo FUN T_ID '(' tipo ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parametro de la funcion.");
@@ -168,7 +171,7 @@ tipo: DOUBLE { yyval.sval = "double"; }
         if (tablaTipos.containsKey(val_peek(0).sval)) {
             yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
-            yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0));
+            yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0).sval);
         } 
     };
     
@@ -240,24 +243,17 @@ salida: OUTF '(' T_CADENA ')' ';'
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
       } 
       | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");}
+      | OUTF '(' ')' ';'  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta contenido en el OUTF");}
       ;
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
-        
-        
         // Obtener el nombre del tipo desde T_ID
         String nombreTipo = val_peek(4).sval; /* T_ID*/
-
         // Obtener el tipo base (INTEGER o SINGLE)
         String tipoBase = val_peek(2).sval;
-        
         /* tipo base (INTEGER o SINGLE)*/
-        
         double limiteInferior = val_peek(4).dval; /* Limite inferior */
-        
-        
         double limiteSuperior =  val_peek(5).dval; /* Limite superior */
-        
         // Almacenar en la tabla de tipos
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
         
@@ -364,8 +360,8 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID
             | IDENTIFIER_LIST ',' acceso_par 
             | T_ID 
             | acceso_par  
-            | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
-            | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} 
+            | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
+            | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //no anda
             | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
             ;
 
@@ -380,7 +376,7 @@ acceso_par:
         }
         
     }
-    |T_ID '{' error '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " Solo se puede acceder a un par con 1 o 2");}
+    |T_ID '{' '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " Se debe utilizar el indice 1 o 2 para acceder a los pares");}
     |T_ID T_CADENA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Se utilizan las llaves para acceder a los pares");}
     ;
 
@@ -420,7 +416,7 @@ expresion: expresion '+' expresion
         |  error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
         ;
 
-unaria: '-' T_CTE { /* Esta regla maneja especificamente el '-' unario*/
+unaria: '-' T_CTE { 
     double valor = val_peek(0).dval;  
 
     String nombreConstante = val_peek(0).sval;  
@@ -455,7 +451,7 @@ unaria: '-' T_CTE { /* Esta regla maneja especificamente el '-' unario*/
             System.err.println("Error: El tipo de la constante no pudo ser determinado.");
         }
     } else { //se trata de numero negativo menor al menor negativo.
-    	//ACA VER QUE TIPO DE NUMERO ES CON IFS
+    	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
             st.addValue("-020000000000", "Octal", SymbolTable.constantValue);
@@ -500,18 +496,13 @@ public void yyerror(String s) {
 int yylex() {
     try {
         Pair token = lexer.analyze(reader);  
-        //System.out.println("Pair: "+ token);
         if (token != null) {
-            //System.out.println("Token: " + token.getLexema() + " :: " + token.getToken());
-
-            
             if (token.getToken() == 277 || token.getToken() == 278 || token.getToken() == 279 || token.getToken() == 280) { //SI SE TRATA DE UN TOKEN QUE TIENE MUCHAS REFERENCIAS EN TABLA DE SIMBOLOS
                 yylval = new ParserVal(token.getLexema());
             }
             if(token.getToken()<31) { //SI SE TRATA DE UN TOKEN DE UN SIMBOLO SINGULAR ESPECIFICO EN LA TABLA DE SIMBOLOS
             	
             	char character = token.getLexema().charAt(0);  
-                //System.out.println("Character:" + character);
             	int ascii = (int) character;
                 return ascii;
             	
@@ -527,15 +518,15 @@ int yylex() {
 
 
 public static void main(String[] args) {
-    // Crear un JFileChooser para seleccionar el archivo
+   
     JFileChooser fileChooser = new JFileChooser();
-    int result = fileChooser.showOpenDialog(null);  // Muestra el cuadro de diálogo
+    int result = fileChooser.showOpenDialog(null);  
 
-    if (result == JFileChooser.APPROVE_OPTION) {  // Si el usuario selecciona un archivo
+    if (result == JFileChooser.APPROVE_OPTION) {  
         File selectedFile = fileChooser.getSelectedFile();
-        String filePath = selectedFile.getAbsolutePath();  // Obtener la ruta del archivo seleccionado
+        String filePath = selectedFile.getAbsolutePath();  
 
-        // Instanciar el Parser con la ruta seleccionada
+        
         Parser parser = new Parser(filePath);
 
         // Ejecutar el compilador

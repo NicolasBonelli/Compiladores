@@ -32,7 +32,6 @@ public class Lexer {
 	    this.lexema=new StringBuilder();
 	    tablaTipos= new HashMap<>();
 	   
-	    
 	}
 	private int[][] transitionMatrix = {
 		    { 0,  0,  0,  1, -1,  2,   3,   3, 17, 17, 17, 17, 17, 17, 17, 17, 17, 10, 15, 14, 14, 14, 11, 13, -1,  1, -1, 17, 17, -1},
@@ -47,7 +46,7 @@ public class Lexer {
 		    {17, 17, 17, 17, 17,  9,   9,   9, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, -1, 17, 17, 17},
 		    {-1, -1, -1, -1, -1, -1,  -1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 17, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		    {-1, -1, -1, -1, -1, -1,  -1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 12, -1, -1, -1, -1, -1, -1, -1},
-		    {12, 12,  0, 12, 12, 12,  12,  12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, -1, 12, 12, 12},
+		    {12, 12,  0, 12, 12, 12,  12,  12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12},
 		    {13, 13, 13, 13, 13, 13,  13,  13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 17, 13, -1, 13, 13, 13},
 		    {17, 17, 17, 17, 17, 17,  17,  17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, -1, 17, 17, 17},
 		    {17, 17, 17, 17, 17, 17,  17,  17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, -1, -1, -1, -1, 17, 17, 17, 17, -1, 17, 17, 17},
@@ -94,7 +93,7 @@ public class Lexer {
 		    {new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new AS2(), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"),  new ASE("Caracter no identificado"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #"), new ASE("Despues del # DEBE ir un #")},
 		    
 		    // Estado 12
-		    {new AS2(), new AS2(), new ASI(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(),  new ASE("Caracter no identificado"), new AS2(), new AS2(), new AS2()},
+		    {new AS2(), new AS2(), new ASI(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(),  new AS2(), new AS2(), new AS2(), new AS2()},
 		    
 		    // Estado 13
 		    {new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS2(), new AS7(), new AS2(),  new ASE("Caracter no identificado"), new AS2(), new AS2(), new AS2()},
@@ -128,7 +127,7 @@ public class Lexer {
         return true; /* Si no es un tipo definido por el usuario, no se verifica el rango*/
     }
 
-    /* Definir rangos para tipos estándar*/
+    
     boolean verificarRangoLongInt(double valor) {
         return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
     }
@@ -139,10 +138,10 @@ public class Lexer {
 
     String obtenerTipo(String variable) {
         
-        /* Debe devolver el tipo como "longint", "double" o un tipo definido por el usuario.*/
+        
         if (tabla.hasKey(variable)) return variable;
 
-        return tabla.getType(variable);  /* Ejemplo*/
+        return tabla.getType(variable);  
     }
 	private void initializeReservedWords() {
 		reservedWords.put("IF", 257);
@@ -233,27 +232,20 @@ public class Lexer {
     public void setDevolvi(boolean est) {
     	this.devolvi=est;
     }
-    
-
-    
-    
+   
     public boolean isEstado() {
 		return estado;
 	}
 
-
 	public void setEstado(boolean estado) {
 		this.estado = estado;
 	}
-
-
-
+	
 	public Pair analyze(BufferedReader reader) {
 	    try {
 	        int currentChar;
-	        
-	        
-	        while (!devolvi && (currentChar = reader.read()) != -1) { // Leer hasta EOF
+	      
+	        while (!devolvi && (currentChar = reader.read()) != -1) { // Leer hasta EOF y mientras que no haya devuelto un token
 	            char c = (char) currentChar;
 	         
 	            if (c == '\n' || c == '\r') {
@@ -266,7 +258,7 @@ public class Lexer {
 	            
                 actionMatrix[currentState][actionIndex].execute(this, this.lexema, c); // Ejecutar acción
                 currentState = transitionMatrix[currentState][actionIndex];
-                if(currentState == -1) {
+                if(currentState == -1) { //me transiciono hacia el estado de error
                 	currentState=16;
                 }
 
@@ -286,11 +278,7 @@ public class Lexer {
                 }
 
                 reader.mark(1); // Marcar la posición actual antes de leer el siguiente carácter
-	            
-	                
-	            
-
-	            
+	          
 	        }
 
 	        // Procesar cualquier carácter pendiente al final del archivo
@@ -312,9 +300,7 @@ public class Lexer {
 
     
     
-
     private int getTSIndex(char input) {
-    	
     	if (Character.toString(input).matches("[a-ce-zA-CE-Z]")) { 
             return this.tablaSimbolitos.get("letra-[d]") - 1;
         } else if (input == 'd' || input =='D') {
@@ -332,11 +318,9 @@ public class Lexer {
         } else if (input == '@'){
         	return this.tablaSimbolitos.get("@") - 1;
         }
-        
         else {
         	if (tablaSimbolitos.containsKey(Character.toString(input))) {
-        		
-        		
+        
         		return this.tablaSimbolitos.get(Character.toString(input)) - 1;
         	}else {
         		return 26;
@@ -348,14 +332,9 @@ public class Lexer {
     }
     public boolean isOctalRange(double token) {
         try {
-            // Convertir el token (que es una cadena de texto) a un número octal (base 8)
-            
-
-            // Rango de números octales en base 8 (directamente octal)
+    
             long minOctal = Long.parseLong("-020000000000", 8);  // Rango mínimo en octal
             long maxOctal = Long.parseLong("017777777777", 8);   // Rango máximo en octal
-
-            // Verificar si el número octal está dentro del rango
             return token >= minOctal && token <= maxOctal;
 
         } catch (NumberFormatException e) {

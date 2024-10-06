@@ -826,7 +826,7 @@ String obtenerTipo(String variable) {
 	    }
     }
     public void imprimirSymbolTable() {
-	System.out.println(this.st);
+	System.out.println("\u001B[34m" + this.st + "\u001B[0m");
     }
 
 //#line 761 "Parser.java"
@@ -986,7 +986,7 @@ boolean doaction;
 case 1:
 //#line 57 "gramatica.y"
 {
-    System.out.println("Programa compilado correctamente");
+    System.out.println("\u001B[32m" + "Programa compilado correctamente" + "\u001B[0m");
 }
 break;
 case 2:
@@ -1019,7 +1019,7 @@ case 20:
 	for (String variable : variables) {
 	    /* Verificar si la variable ya existe en la tabla de símbolos */
 	    if (st.hasKey(variable)) {
-	        System.out.println("Aclaracion, se declaro la variable: " + variable);
+	        System.out.println("\u001B[33m" + "Aclaracion, se declaro la variable:" + variable + "\u001B[0m");
 	    } else {
 	        System.err.println("Error, la variable no está en la tabla de símbolos: " + variable);
 	    }

@@ -56,6 +56,8 @@ class Subrango{
 
 programa: T_ID bloque_sentencias {
     System.out.println("Programa compilado correctamente");
+    //updatear uso nombre funcion
+    st.updateUse(val_peek(1).sval, "Nombre de programa");
 } 
 | T_ID { 
     System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
@@ -94,6 +96,12 @@ declaracion: tipo lista_var ';' {
 	    /* Verificar si la variable ya existe en la tabla de símbolos */
 	    if (st.hasKey(variable)) {
 	        System.out.println("Aclaracion, se declaro la variable: " + variable);
+            //updatear tipo de variable
+            st.updateType(variable, val_peek(2).sval);
+            //updatear uso de variable a variable
+	        st.updateUse(variable, "Nombre de variable");
+	        //updatear ambito
+
 	    } else {
 	        System.err.println("Error, la variable no está en la tabla de símbolos: " + variable);
 	    }
@@ -120,7 +128,12 @@ lista_var: lista_var ',' T_ID {
 
 
 declaracion_funcion:
-    tipo FUN T_ID '(' parametro ')' bloque_sentencias 
+    tipo FUN T_ID '(' parametro ')' bloque_sentencias {
+        //updatear uso nombre funcion
+        st.updateUse(val_peek(4).sval, "Nombre de funcion");
+        //updatear uso nombre parametro
+        st.updateUse(val_peek(2).sval, "Nombre de parametro");
+    }
     | tipo FUN T_ID '(' parametros_error ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
     }
@@ -142,7 +155,9 @@ declaracion_funcion:
     };
 
 parametro:
-    tipo T_ID 
+    tipo T_ID {
+        yyval.sval=val_peek(0).sval;
+    }
 
 parametros_error:
     parametro ',' parametro {
@@ -256,14 +271,16 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         double limiteSuperior =  val_peek(5).dval; /* Limite superior */
         // Almacenar en la tabla de tipos
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
-        
+        //updatear uso
+        st.updateUse(nombreTipo, "Nombre de tipo");
         }
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
              String nombreTipo = val_peek(1).sval; /* T_ID*/
 
             /*tipo base (LONGINT)*/
             String tipoBase = val_peek(3).sval;
-            
+            //updatear uso
+            st.updateUse(nombreTipo, "Nombre de tipo");
             tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -2147483647, 2147483647));
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
@@ -271,7 +288,8 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 
             /*tipo base (DOUBLE)*/
             String tipoBase = val_peek(3).sval;
-            
+            //updatear uso
+            st.updateUse(nombreTipo, "Nombre de tipo");
             tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
@@ -430,58 +448,58 @@ unaria: '-' T_CTE {
                 if (!lexer.isLongintRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
-                    st.addValue(nombreConMenos, tipo,SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante",null,SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
                     
-                    st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante",null, SymbolTable.constantValue);
                 }
             }else if (tipo.equals("Octal")) {
                 if (!lexer.isOctalRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
-                    st.addValue(nombreConMenos, tipo, SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante",null, SymbolTable.constantValue);
                 }
             }
         } else {
             System.err.println("Error: El tipo de la constante no pudo ser determinado.");
         }
-    } else { //se trata de numero negativo menor al menor negativo.
+    } else { /*se trata de numero negativo menor al menor negativo.*/
     	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
-            st.addValue("-020000000000", "Octal", SymbolTable.constantValue);
+            st.addValue("-020000000000", "Octal","Constante",null, SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
         	System.err.println("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
 
-            // Parseamos el valor como double para comparaciones
+            /* Parseamos el valor como double para comparaciones*/
             double valorDouble = Double.parseDouble("-" + nombreConstante.replace("d", "e"));
-            // Rango mínimo y máximo de los números double
+            /* Rango mínimo y máximo de los números double*/
             double maxNegativeDouble = -1.7976931348623157e+308;
             double minNegativeDouble = -2.2250738585072014e-308;
 
-            // Si está por debajo del máximo permitido, lo mantenemos
+            /* Si está por debajo del máximo permitido, lo mantenemos*/
             if (valorDouble < maxNegativeDouble) {
-                st.addValue("-1.7976931348623156d+308", "double", SymbolTable.constantValue);
+                st.addValue("-1.7976931348623156d+308", "double","Constante",null, SymbolTable.constantValue);
             } 
-            // Si está por debajo del mínimo permitido pero mayor al mínimo ajustado
+            /* Si está por debajo del mínimo permitido pero mayor al mínimo ajustado*/
             else if (valorDouble > minNegativeDouble) {
-                st.addValue("-2.2250738585072015d-308", "double", SymbolTable.constantValue);
+                st.addValue("-2.2250738585072015d-308", "double","Constante",null, SymbolTable.constantValue);
             } 
-            // Si está en el rango permitido
+            /* Si está en el rango permitido*/
             else {
-                st.addValue("-" + nombreConstante, "double", SymbolTable.constantValue);
+                st.addValue("-" + nombreConstante, "double","Constante",null, SymbolTable.constantValue);
             }
             
-        } else{ //ya se sabe que es entero
-            // Lógica para longint
+        } else{ /*ya se sabe que es entero*/
+            /* Lógica para longint*/
         	System.err.println("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
-            nombreConMenos = "-2147483648"; // Asignar valor mínimo si está fuera de rango
-            st.addValue(nombreConMenos, "longint", SymbolTable.constantValue);
+            nombreConMenos = "-2147483648"; /* Asignar valor mínimo si está fuera de rango*/
+            st.addValue(nombreConMenos, "longint","Constante",null, SymbolTable.constantValue);
         }
         
     }

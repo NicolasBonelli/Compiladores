@@ -13,13 +13,32 @@ public class SymbolTable {
 	public class Symbol implements Comparable{
 	    private String nombre;
 	    private String tipo;
-
-	    public Symbol(String nombre, String tipo) {
+	    private String uso;
+	    private String ambito;
+	    public Symbol(String nombre, String tipo, String uso,String ambito) {
 	        this.nombre = nombre;
 	        this.tipo = tipo;
+	        this.uso=uso;
+	        this.ambito=ambito;
 	    }
 
-	    public String getNombre() {
+	    public String getUso() {
+			return uso;
+		}
+
+		public void setUso(String uso) {
+			this.uso = uso;
+		}
+
+		public String getAmbito() {
+			return ambito;
+		}
+
+		public void setAmbito(String ambito) {
+			this.ambito = ambito;
+		}
+
+		public String getNombre() {
 	        return nombre;
 	    }
 
@@ -52,7 +71,7 @@ public class SymbolTable {
 
 	    @Override
 	    public String toString() {
-	        return "Symbol{" + "nombre=" + nombre +   ",tipo=" + tipo + '}';
+	        return "Symbol{" + "nombre=" + nombre +   ",tipo=" + tipo +",uso="+uso+",ambito="+ambito +'}';
 	    }
 	    
 	    @Override
@@ -62,12 +81,20 @@ public class SymbolTable {
         }
 	}
 	
-	
+	public boolean updateUse(String variable, String newUse) {
+	    for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(variable)) {
+	            symbol.setUso(newUse); // Actualiza el tipo del símbolo
+	            return true; 
+	        }
+	    }
+	    return false;  // No se encontro el símbolo
+	}
 	public SymbolTable(){
 		this.symbolMap=new HashMap<Symbol, Integer>();
 	}
-	public void addValue(String clave,String tipo, Integer valor) {
-		Symbol sym= new Symbol(clave,tipo);
+	public void addValue(String clave,String tipo,String uso,String ambito, Integer valor) {
+		Symbol sym= new Symbol(clave,tipo,uso,ambito);
 		if(!symbolMap.containsKey(sym)) {
 			this.symbolMap.put(sym,valor);
 		}
@@ -82,7 +109,7 @@ public class SymbolTable {
 	    return false;  // No se encontro el símbolo
 	}
 	public Integer getValue(String clave) {
-		Symbol sym= new Symbol(clave,null);
+		Symbol sym= new Symbol(clave,null,null,null);
 		if(symbolMap.containsKey(sym)) {
 			return symbolMap.get(sym);
 		}else {
@@ -100,7 +127,7 @@ public class SymbolTable {
 	    return null; 
 	}
 	public boolean hasKey(String key) {
-		Symbol sym= new Symbol(key,null);
+		Symbol sym= new Symbol(key,null,null,null);
         return symbolMap.containsKey(sym);
     }
 	@Override

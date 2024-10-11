@@ -209,9 +209,9 @@ public class Lexer {
     public int getReservedWordToken(String word) {
         return reservedWords.getOrDefault(word, -1); // Retorna un token para identificadores si no es reservada
     }
-    public void insertSymbolTable(String word, String type, int token) { //
+    public void insertSymbolTable(String word, String type, String uso,String ambito,int token) { //
         
-        tabla.addValue(word,type, token);
+        tabla.addValue(word,type, uso,ambito,token);
     }
     public void addToken(Pair pair) {
     	this.tokenList.add(pair);

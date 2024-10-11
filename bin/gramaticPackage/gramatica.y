@@ -21,13 +21,19 @@ import Paquetecompi.SymbolTable;
         this.limiteInferior = limiteInferior;
         this.limiteSuperior = limiteSuperior;
     }
+
+    
+    @Override
+    public String toString(){
+      return tipoBase + " - Limite inferior: "+ limiteInferior + " - Limite Superior: "+ limiteSuperior;
+    }
 }
 
 class Subrango{
     private double limiteSuperior;
     private double limiteInferior;
     
-    public Subrango(double limiteSuperior, double limiteInferior) {
+    public Subrango(double limiteInferior, double limiteSuperior) {
         this.limiteSuperior = limiteSuperior; this.limiteInferior = limiteInferior;
     }
     public double getLimiteInferior() {
@@ -36,6 +42,11 @@ class Subrango{
 
     public double getLimiteSuperior() {
         return limiteSuperior;
+    }
+
+    @Override
+    public String toString(){
+      return "Limite inferior: "+ limiteInferior + " - Limite Superior: "+ limiteSuperior;
     }
 }
 
@@ -262,17 +273,23 @@ salida: OUTF '(' T_CADENA ')' ';'
       ;
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
+
+        System.out.println("2do");
         // Obtener el nombre del tipo desde T_ID
         String nombreTipo = val_peek(4).sval; /* T_ID*/
-        // Obtener el tipo base (INTEGER o SINGLE)
+
         String tipoBase = val_peek(2).sval;
-        /* tipo base (INTEGER o SINGLE)*/
-        double limiteInferior = val_peek(4).dval; /* Limite inferior */
-        double limiteSuperior =  val_peek(5).dval; /* Limite superior */
+        
+        Subrango subrango = (Subrango) val_peek(1).obj;
+    
+        double limiteInferior = subrango.getLimiteInferior(); /* Limite inferior */
+        double limiteSuperior = subrango.getLimiteSuperior(); /* Limite superior */
         // Almacenar en la tabla de tipos
         tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
         //updatear uso
         st.updateUse(nombreTipo, "Nombre de tipo");
+
+
         }
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
              String nombreTipo = val_peek(1).sval; /* T_ID*/
@@ -321,20 +338,17 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 subrango: '{' T_CTE ',' T_CTE '}'{
         
         //CODIGO PARA PARTE SEMANTICA
-        
-        String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
-        String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
+        System.out.println("1ero");
 
-        
-        
-
+       String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
+       String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
         try {
            
             double limiteInferior = Double.parseDouble(limiteInferiorStr);
             double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
-
-            
-            yylval.obj = new Subrango(limiteInferior, limiteSuperior);
+            System.out.println("limiteInferior: " + limiteInferior);
+            System.out.println("limiteSuperior: " + limiteSuperior);
+            yyval.obj = new Subrango(limiteInferior, limiteSuperior);
             
         } catch (NumberFormatException e) {
             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
@@ -550,11 +564,19 @@ public static void main(String[] args) {
         // Ejecutar el compilador
         parser.run();
         parser.imprimirSymbolTable();
+        parser.imprimirTablaTipos();
+
     } else {
         System.out.println("No se seleccionó ningún archivo.");
     }
 }
 
+
+public void imprimirTablaTipos() {
+
+    System.out.println(this.tablaTipos);  
+  
+  }
 
  // Funcion para verificar si el valor esta dentro del rango
  boolean verificarRango(String tipo, double valor) {

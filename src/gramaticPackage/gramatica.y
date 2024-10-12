@@ -281,22 +281,16 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 
         }
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
-             String nombreTipo = val_peek(1).sval; /* T_ID*/
-
-            /*tipo base (LONGINT)*/
-            String tipoBase = val_peek(3).sval;
+            String nombreTipo = val_peek(1).sval; /* T_ID*/
             //updatear uso
             st.updateUse(nombreTipo, "Nombre de tipo");
-            st.insertTT(nombreTipo, new TipoSubrango(tipoBase, -2147483647, 2147483647));
+            st.insertTT(nombreTipo, new TipoSubrango("longint", -2147483647, 2147483647));
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
             String nombreTipo = val_peek(1).sval; /* T_ID*/
-
-            /*tipo base (DOUBLE)*/
-            String tipoBase = val_peek(3).sval;
             //updatear uso
             st.updateUse(nombreTipo, "Nombre de tipo");
-            st.insertTT(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
+            st.insertTT(nombreTipo, new TipoSubrango("double", -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaracion de tipo.");
@@ -438,19 +432,77 @@ comparador:MENOR_IGUAL
 
            
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
-        | IDENTIFIER_LIST T_ASIGNACION expresion_list ';'
+        | IDENTIFIER_LIST T_ASIGNACION expresion_list ';'{
+            // Identificador de lista
+            List<String> listaVariables = (List<String>) val_peek(3).obj;  // Obtienes la lista de variables
+            List<Expresion> listaExpresiones = (List<Expresion>) val_peek(1).obj;  // Obtienes la lista de expresiones
+
+            // Verificar si hay más variables que expresiones
+            if (listaVariables.size() > listaExpresiones.size()) {
+                System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
+                for (int i = 0; i < listaVariables.size(); i++) {
+                    if (i < listaExpresiones.size()) {
+                        generarCodigoAsignacion(listaVariables.get(i), listaExpresiones.get(i));
+                    } else {
+                        // Asignar 0 a las variables sobrantes
+                        generarCodigoAsignacion(listaVariables.get(i), new Expresion("0"));
+                    }
+                }
+            } else if (listaVariables.size() < listaExpresiones.size()) {
+                System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
+                for (int i = 0; i < listaVariables.size(); i++) {
+                    generarCodigoAsignacion(listaVariables.get(i), listaExpresiones.get(i));
+                }
+            } else {
+                // Generar código para cada asignación correspondiente
+                for (int i = 0; i < listaVariables.size(); i++) {
+                    generarCodigoAsignacion(listaVariables.get(i), listaExpresiones.get(i));
+                }
+            }
+        }
         | IDENTIFIER_LIST T_ASIGNACION ';'{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta lado derecho de la asignacion"); }
         ;
 
-expresion_list: expresion
-        | expresion_list ',' expresion
-        ;
+expresion_list:
+        expresion {
+            // Crear una nueva lista con una sola expresión
+            List<Expresion> lista = new ArrayList<>();
+            lista.add((Expresion) val_peek(0).obj);  // val_peek(0) es la expresión
+            yyval.obj = lista;
+        }
+    |   expresion_list ',' expresion {
+            // Agregar la expresión a la lista existente
+            List<Expresion> lista = (List<Expresion>) val_peek(2).obj;  // lista de expresiones hasta ahora
+            lista.add((Expresion) val_peek(0).obj);  // agregar la nueva expresión
+            yyval.obj = lista;
+        }
+;
              
 
-IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID 
-            | IDENTIFIER_LIST ',' acceso_par 
-            | T_ID 
-            | acceso_par  
+IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
+                // Agregar el identificador a la lista
+                List<String> lista = (List<String>) val_peek(2).obj;
+                lista.add(val_peek(0).sval);
+                yylval.obj = lista;
+            }
+            | IDENTIFIER_LIST ',' acceso_par{
+                 // Agregar acceso_par (acceso a atributos o elementos) a la lista
+                List<String> lista = (List<String>) val_peek(2).obj;
+                lista.add(val_peek(0).sval);
+                yyval.obj = lista;
+            } 
+            | T_ID {
+                // Crear lista con el primer identificador
+                List<String> lista = new ArrayList<>();
+                lista.add(val_peek(0).sval);
+                yyval.obj = lista;
+            }
+            | acceso_par {
+                // Crear una nueva lista con acceso_par
+                List<String> lista = new ArrayList<>();
+                lista.add(val_peek(0).val);
+                yyval.obj = lista;
+            } 
             | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
             | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //no anda
             | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
@@ -649,7 +701,9 @@ boolean verificarRangoLongInt(double valor) {
 boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
-
+public void generarCodigoAsignacion(String variable, Expresion expresion) {
+    System.out.println("Entré a generarCodigoAsignacion: " + variable + " := " + expresion);
+}
 String obtenerTipo(String variable) {
     
     if (!st.hasKey(variable)) return variable;

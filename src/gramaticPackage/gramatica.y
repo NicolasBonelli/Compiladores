@@ -10,24 +10,7 @@ import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
     
  
-    
-   class TipoSubrango {
-    String tipoBase;
-    double limiteInferior;
-    double limiteSuperior;
-
-    public TipoSubrango(String tipoBase, double limiteInferior, double limiteSuperior) {
-        this.tipoBase = tipoBase;
-        this.limiteInferior = limiteInferior;
-        this.limiteSuperior = limiteSuperior;
-    }
-
-    
-    @Override
-    public String toString(){
-      return tipoBase + " - Limite inferior: "+ limiteInferior + " - Limite Superior: "+ limiteSuperior;
-    }
-}
+   
 
 class Subrango{
     private double limiteSuperior;
@@ -194,7 +177,7 @@ tipo: DOUBLE { yyval.sval = "double"; }
         
         /* Verificando si el tipo esta en la tabla de tipos definidos*/
         
-        if (tablaTipos.containsKey(val_peek(0).sval)) {
+        if (st.containsKeyTT(val_peek(0).sval)) {
             yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
             yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0).sval);
@@ -272,7 +255,7 @@ salida: OUTF '(' T_CADENA ')' ';'
       | OUTF '(' ')' ';'  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta contenido en el OUTF");}
       ;
 
-sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
+sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' { 
 
         System.out.println("2do");
         // Obtener el nombre del tipo desde T_ID
@@ -285,7 +268,13 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         double limiteInferior = subrango.getLimiteInferior(); /* Limite inferior */
         double limiteSuperior = subrango.getLimiteSuperior(); /* Limite superior */
         // Almacenar en la tabla de tipos
-        tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
+        //FALTA CHEQUEAR MISMO TIPO
+        if (tipoBase.toLowerCase().equals("longint")){
+            long limiteInferiorLong = (long) limiteInferior; // Convertir a longint
+            long limiteSuperiorLong = (long) limiteSuperior; // Convertir a longint
+            this.st.insertTT(nombreTipo, new TipoSubrango(tipoBase, limiteInferiorLong, limiteSuperiorLong));
+
+        } else this.st.insertTT(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
         //updatear uso
         st.updateUse(nombreTipo, "Nombre de tipo");
 
@@ -298,7 +287,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
             String tipoBase = val_peek(3).sval;
             //updatear uso
             st.updateUse(nombreTipo, "Nombre de tipo");
-            tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -2147483647, 2147483647));
+            st.insertTT(nombreTipo, new TipoSubrango(tipoBase, -2147483647, 2147483647));
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
             String nombreTipo = val_peek(1).sval; /* T_ID*/
@@ -307,7 +296,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
             String tipoBase = val_peek(3).sval;
             //updatear uso
             st.updateUse(nombreTipo, "Nombre de tipo");
-            tablaTipos.put(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
+            st.insertTT(nombreTipo, new TipoSubrango(tipoBase, -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaracion de tipo.");
@@ -338,7 +327,6 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 subrango: '{' T_CTE ',' T_CTE '}'{
         
         //CODIGO PARA PARTE SEMANTICA
-        System.out.println("1ero");
 
        String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
        String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
@@ -348,15 +336,86 @@ subrango: '{' T_CTE ',' T_CTE '}'{
             double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
             System.out.println("limiteInferior: " + limiteInferior);
             System.out.println("limiteSuperior: " + limiteSuperior);
-            yyval.obj = new Subrango(limiteInferior, limiteSuperior);
+
+            if (limiteInferior <= limiteSuperior)
+                yyval.obj = new Subrango(limiteInferior, limiteSuperior);
+            else {
+                System.out.println("Aclaración: el limite inferior era mas grande que el superior, fueron invertidos");
+                yyval.obj = new Subrango(limiteSuperior, limiteInferior);
+
+            }
             
         } catch (NumberFormatException e) {
             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
         }
     } 
-    |'{' '-' T_CTE ',' T_CTE '}'
-    |'{' T_CTE ',' '-' T_CTE '}'
-    |'{' '-' T_CTE ',' '-' T_CTE '}'
+    |'{' '-' T_CTE ',' T_CTE '}' {
+
+       //CODIGO PARA PARTE SEMANTICA
+
+       String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
+       String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
+        try {
+           
+            double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
+            double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
+            System.out.println("limiteInferior: " + limiteInferior);
+            System.out.println("limiteSuperior: " + limiteSuperior);
+
+            if (limiteInferior <= limiteSuperior)
+                yyval.obj = new Subrango(limiteInferior, limiteSuperior);
+            else {
+                System.out.println("Aclaración: el limite inferior era mas grande que el superior, fueron invertidos");
+                yyval.obj = new Subrango(limiteSuperior, limiteInferior);
+
+            }
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
+        }
+
+    }
+    |'{' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
+        yyerror("Error: el subrango esta mal declarado, fueron invertidos los rangos");
+        String limiteInferiorStr = val_peek(1).sval; // T_CTE (limites inferiores)
+        String limiteSuperiorStr = val_peek(4).sval; // T_CTE (limites superiores)
+         try {
+            
+             double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
+             double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
+             System.out.println("limiteInferior: " + limiteInferior);
+             System.out.println("limiteSuperior: " + limiteSuperior);
+ 
+             
+             yyval.obj = new Subrango(limiteInferior, limiteSuperior);
+             
+             
+         } catch (NumberFormatException e) {
+             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
+         }}
+    |'{' '-' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
+        String limiteInferiorStr = val_peek(4).sval; // T_CTE (limites inferiores)
+        String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
+         try {
+            
+             double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
+             double limiteSuperior = Double.parseDouble(limiteSuperiorStr)*-1;
+             System.out.println("limiteInferior: " + limiteInferior);
+             System.out.println("limiteSuperior: " + limiteSuperior);
+ 
+             
+             if (limiteInferior <= limiteSuperior)
+                yyval.obj = new Subrango(limiteInferior, limiteSuperior);
+            else {
+                System.out.println("Aclaración: el limite inferior era mas grande que el superior, fueron invertidos");
+                yyval.obj = new Subrango(limiteSuperior, limiteInferior);
+
+            }
+             
+             
+         } catch (NumberFormatException e) {
+             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
+         }}
     |'{' '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " -Falta el rango en el subrango");}
     |error {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
@@ -564,7 +623,6 @@ public static void main(String[] args) {
         // Ejecutar el compilador
         parser.run();
         parser.imprimirSymbolTable();
-        parser.imprimirTablaTipos();
 
     } else {
         System.out.println("No se seleccionó ningún archivo.");
@@ -572,16 +630,12 @@ public static void main(String[] args) {
 }
 
 
-public void imprimirTablaTipos() {
 
-    System.out.println(this.tablaTipos);  
-  
-  }
 
  // Funcion para verificar si el valor esta dentro del rango
  boolean verificarRango(String tipo, double valor) {
-    if (tablaTipos.containsKey(tipo)) {
-        TipoSubrango subrango = tablaTipos.get(tipo);
+    if (st.containsKeyTT(tipo)) {
+        TipoSubrango subrango = st.getTipoSubrango(tipo);
         return valor >= subrango.limiteInferior && valor <= subrango.limiteSuperior;
     }
     return true; // Si no es un tipo definido por el usuario, no se verifica el rango
@@ -604,14 +658,12 @@ String obtenerTipo(String variable) {
 }
 
 
-    private Map<String, TipoSubrango> tablaTipos;
 	private SymbolTable st;
 	private Lexer lexer;
 	private BufferedReader reader;
 
 	public Parser(String filePath) {
 	    this.st = new SymbolTable();
-	    this.tablaTipos= new HashMap<String,TipoSubrango>();
 	    try {
 	        this.reader = new BufferedReader(new FileReader(filePath));
 	        this.lexer = new Lexer(st);
@@ -621,5 +673,7 @@ String obtenerTipo(String variable) {
     }
     public void imprimirSymbolTable() {
 	System.out.println(this.st);
+    st.imprimirTablaTipos();
+
     }
 

@@ -1,7 +1,9 @@
 package Paquetecompi;
 
 import java.util.HashMap;
+import java.util.Map;
 
+import gramaticPackage.*;
 public class SymbolTable {
 	
 	private HashMap<Symbol,Integer> symbolMap;
@@ -9,17 +11,20 @@ public class SymbolTable {
 	public static final int identifierValue = 278;
 	public static final int constantValue = 279;
 	public static final int tagValue=280;
-	
+	private Map<String, TipoSubrango> tablaTipos;
+
 	public class Symbol implements Comparable{
 	    private String nombre;
 	    private String tipo;
 	    private String uso;
 	    private String ambito;
+
 	    public Symbol(String nombre, String tipo, String uso,String ambito) {
 	        this.nombre = nombre;
 	        this.tipo = tipo;
 	        this.uso=uso;
 	        this.ambito=ambito;
+
 	    }
 
 	    public String getUso() {
@@ -92,6 +97,8 @@ public class SymbolTable {
 	}
 	public SymbolTable(){
 		this.symbolMap=new HashMap<Symbol, Integer>();
+		this.tablaTipos= new HashMap<String,TipoSubrango>();
+
 	}
 	public void addValue(String clave,String tipo,String uso,String ambito, Integer valor) {
 		Symbol sym= new Symbol(clave,tipo,uso,ambito);
@@ -142,6 +149,23 @@ public class SymbolTable {
 	    }
 	    return sb.toString();
 	}
+
+	public void imprimirTablaTipos() {
+
+		System.out.println(this.tablaTipos);  
+	  
+	  }
+
+	  public boolean containsKeyTT(String tipo){
+		return this.tablaTipos.containsKey(tipo);
+	  }
 	
+	  public void insertTT(String nombreTipo, TipoSubrango tipoSubrango){
+		this.tablaTipos.put(nombreTipo, tipoSubrango);
+	  }
+
+	  public TipoSubrango getTipoSubrango(String nombreTipo){
+		return this.tablaTipos.get(nombreTipo);
+	  }
 }
 

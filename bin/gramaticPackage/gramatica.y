@@ -131,8 +131,16 @@ declaracion_funcion:
     tipo FUN T_ID '(' parametro ')' bloque_sentencias {
         //updatear uso nombre funcion
         st.updateUse(val_peek(4).sval, "Nombre de funcion");
-        //updatear uso nombre parametro
-        st.updateUse(val_peek(2).sval, "Nombre de parametro");
+        
+
+        // Separar el tipo y el nombre del parámetro
+        String[] tipoYNombre = val_peek(2).sval.split(":");
+        String tipoParametro = tipoYNombre[0];
+        String nombreParametro = tipoYNombre[1];
+
+
+        // Insertar en la tabla de funciones
+        st.insertTF(val_peek(4).sval, new CaracteristicaFuncion(val_peek(6).sval, tipoParametro, nombreParametro));    
     }
     | tipo FUN T_ID '(' parametros_error ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
@@ -156,7 +164,15 @@ declaracion_funcion:
 
 parametro:
     tipo T_ID {
-        yyval.sval=val_peek(0).sval;
+        st.updateType(val_peek(0).sval, val_peek(1).sval);
+            //updatear uso de variable a variable
+            if(st.isTypePair(val_peek(1).sval)){//si el tipo
+                st.updateUse(val_peek(0).sval, "Nombre de variable par");
+            }else{
+	            st.updateUse(val_peek(0).sval, "Nombre de parametro");
+            }
+        yyval.sval = val_peek(1).sval + ":" + val_peek(0).sval;
+        
     }
 
 parametros_error:
@@ -824,6 +840,6 @@ String obtenerTipo(String variable) {
     public void imprimirSymbolTable() {
 	System.out.println(this.st);
     st.imprimirTablaTipos();
-
+    st.imprimirTablaFunciones();
     }
 

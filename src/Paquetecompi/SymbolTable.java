@@ -12,79 +12,9 @@ public class SymbolTable {
 	public static final int constantValue = 279;
 	public static final int tagValue=280;
 	private Map<String, TipoSubrango> tablaTipos;
+	private Map<String, CaracteristicaFuncion> tablaFuncion;
 
-	public class Symbol implements Comparable{
-	    private String nombre;
-	    private String tipo;
-	    private String uso;
-	    private String ambito;
-
-	    public Symbol(String nombre, String tipo, String uso,String ambito) {
-	        this.nombre = nombre;
-	        this.tipo = tipo;
-	        this.uso=uso;
-	        this.ambito=ambito;
-
-	    }
-
-	    public String getUso() {
-			return uso;
-		}
-
-		public void setUso(String uso) {
-			this.uso = uso;
-		}
-
-		public String getAmbito() {
-			return ambito;
-		}
-
-		public void setAmbito(String ambito) {
-			this.ambito = ambito;
-		}
-
-		public String getNombre() {
-	        return nombre;
-	    }
-
-	    public void setNombre(String nombre) {
-	        this.nombre = nombre;
-	    }
-
-	    public String getTipo() {
-	        return tipo;
-	    }
-
-	    public void setTipo(String tipo) {
-	        this.tipo = tipo;
-	    }
-
-
-	    @Override
-	    public boolean equals(Object o) {
-	        if (this == o) return true;
-	        if (o == null || getClass() != o.getClass()) return false;
-
-	        Symbol symbol = (Symbol) o;
-	        return nombre.equals(symbol.nombre);  // Comparamos solo por nombre
-	    }
-
-	    @Override
-	    public int hashCode() {
-	        return nombre.hashCode();  // El hashCode se basa solo en el nombre
-	    }
-
-	    @Override
-	    public String toString() {
-	        return "Symbol{" + "nombre=" + nombre +   ",tipo=" + tipo +",uso="+uso+",ambito="+ambito +'}';
-	    }
-	    
-	    @Override
-        public int compareTo(Object o) {
-            Symbol symbol = (Symbol)o;
-            return this.nombre.compareTo(symbol.nombre);
-        }
-	}
+	
 	
 	public boolean updateUse(String variable, String newUse) {
 	    for (Symbol symbol : symbolMap.keySet()) {
@@ -107,6 +37,7 @@ public class SymbolTable {
 	public SymbolTable(){
 		this.symbolMap=new HashMap<Symbol, Integer>();
 		this.tablaTipos= new HashMap<String,TipoSubrango>();
+		this.tablaFuncion = new HashMap<String, CaracteristicaFuncion>();
 
 	}
 	public void addValue(String clave,String tipo,String uso,String ambito, Integer valor) {
@@ -185,5 +116,105 @@ public class SymbolTable {
 		}
 		return false; // Si no encontramos ningún símbolo que cumpla, devolvemos false
 	}
+
+	 // Método para imprimir la tabla de funciones
+	 public void imprimirTablaFunciones() {
+        System.out.println(this.tablaFuncion);
+    }
+
+    // Método para verificar si existe una clave en la tabla de funciones
+    public boolean containsKeyTF(String nombreFuncion) {
+        return this.tablaFuncion.containsKey(nombreFuncion);
+    }
+
+    // Método para insertar un nuevo elemento en la tabla de funciones
+    public void insertTF(String nombreFuncion, CaracteristicaFuncion caracteristicaFuncion) {
+        this.tablaFuncion.put(nombreFuncion, caracteristicaFuncion);
+    }
+
+    // Método para obtener la característica de una función por su nombre
+    public CaracteristicaFuncion getCaracteristicaFuncion(String nombreFuncion) {
+        return this.tablaFuncion.get(nombreFuncion);
+    }
+
+
+	/*------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------
+	*/
+	public class Symbol implements Comparable{
+	    private String nombre;
+	    private String tipo;
+	    private String uso;
+	    private String ambito;
+
+	    public Symbol(String nombre, String tipo, String uso,String ambito) {
+	        this.nombre = nombre;
+	        this.tipo = tipo;
+	        this.uso=uso;
+	        this.ambito=ambito;
+
+	    }
+
+	    public String getUso() {
+			return uso;
+		}
+
+		public void setUso(String uso) {
+			this.uso = uso;
+		}
+
+		public String getAmbito() {
+			return ambito;
+		}
+
+		public void setAmbito(String ambito) {
+			this.ambito = ambito;
+		}
+
+		public String getNombre() {
+	        return nombre;
+	    }
+
+	    public void setNombre(String nombre) {
+	        this.nombre = nombre;
+	    }
+
+	    public String getTipo() {
+	        return tipo;
+	    }
+
+	    public void setTipo(String tipo) {
+	        this.tipo = tipo;
+	    }
+
+
+	    @Override
+	    public boolean equals(Object o) {
+	        if (this == o) return true;
+	        if (o == null || getClass() != o.getClass()) return false;
+
+	        Symbol symbol = (Symbol) o;
+	        return nombre.equals(symbol.nombre);  // Comparamos solo por nombre
+	    }
+
+	    @Override
+	    public int hashCode() {
+	        return nombre.hashCode();  // El hashCode se basa solo en el nombre
+	    }
+
+	    @Override
+	    public String toString() {
+	        return "Symbol{" + "nombre=" + nombre +   ",tipo=" + tipo +",uso="+uso+",ambito="+ambito +'}';
+	    }
+	    
+	    @Override
+        public int compareTo(Object o) {
+            Symbol symbol = (Symbol)o;
+            return this.nombre.compareTo(symbol.nombre);
+        }
+	}
+
 }
 

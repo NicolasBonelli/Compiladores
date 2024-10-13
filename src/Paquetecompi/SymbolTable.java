@@ -95,6 +95,15 @@ public class SymbolTable {
 	    }
 	    return false;  // No se encontro el símbolo
 	}
+	public String getUse(String variable) {
+	    for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(variable)) {
+	           
+	            return symbol.getUso(); 
+	        }
+	    }
+	    return " ";  // No se encontro el símbolo
+	}
 	public SymbolTable(){
 		this.symbolMap=new HashMap<Symbol, Integer>();
 		this.tablaTipos= new HashMap<String,TipoSubrango>();
@@ -167,5 +176,14 @@ public class SymbolTable {
 	  public TipoSubrango getTipoSubrango(String nombreTipo){
 		return this.tablaTipos.get(nombreTipo);
 	  }
+	public boolean isTypePair(String tipo) {
+		// Recorremos la tabla de símbolos buscando un símbolo con el nombre coincidente y uso "Nombre de tipo de par"
+		for (Symbol symbol : symbolMap.keySet()) {
+			if (symbol.getNombre().equals(tipo) && "Nombre de tipo de par".equals(symbol.getUso())) {
+				return true; // Si encontramos un símbolo con el nombre y el uso correcto, devolvemos true
+			}
+		}
+		return false; // Si no encontramos ningún símbolo que cumpla, devolvemos false
+	}
 }
 

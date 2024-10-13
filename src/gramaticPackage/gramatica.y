@@ -93,7 +93,13 @@ declaracion: tipo lista_var ';' {
             //updatear tipo de variable
             st.updateType(variable, val_peek(2).sval);
             //updatear uso de variable a variable
-	        st.updateUse(variable, "Nombre de variable");
+            if(st.isTypePair(val_peek(2).sval)){//si el tipo
+                st.updateUse(variable, "Nombre de variable par");
+            }else{
+	            st.updateUse(variable, "Nombre de variable");
+            }
+
+
 	        //updatear ambito
 
 	    } else {
@@ -283,13 +289,13 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
             String nombreTipo = val_peek(1).sval; /* T_ID*/
             //updatear uso
-            st.updateUse(nombreTipo, "Nombre de tipo");
+            st.updateUse(nombreTipo, "Nombre de tipo de par");
             st.insertTT(nombreTipo, new TipoSubrango("longint", -2147483647, 2147483647));
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
             String nombreTipo = val_peek(1).sval; /* T_ID*/
             //updatear uso
-            st.updateUse(nombreTipo, "Nombre de tipo");
+            st.updateUse(nombreTipo, "Nombre de tipo de par");
             st.insertTT(nombreTipo, new TipoSubrango("double", -1.7976931348623157E+308, 1.7976931348623157E+308));		
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
@@ -442,8 +448,10 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
                     if (i < listaExpresiones.size()) {
-                        // Generar el código para la asignación correspondiente
-                        System.out.println(listaVariables.get(i).toString() + " := " + listaExpresiones.get(i).toString() + ";");
+                        String variable= listaVariables.get(i).toString();
+                        String expresion= listaExpresiones.get(i).toString();
+                        chequeoPares(variable,expresion);
+                                               
                     } else {
                         // Asignar 0 a las variables sobrantes
                         System.out.println(listaVariables.get(i).toString() + " := 0;");
@@ -452,13 +460,17 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
             } else if (listaVariables.size() < listaExpresiones.size()) {
                 System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
-                    // Generar el código para la asignación correspondiente
-                    System.out.println(listaVariables.get(i).toString() + " := " + listaExpresiones.get(i).toString() + ";");
+                    String variable= listaVariables.get(i).toString();
+                    String expresion= listaExpresiones.get(i).toString();
+                    chequeoPares(variable,expresion);
+                       
                 }
             } else {
                 // Generar el código para cada asignación correspondiente
                 for (int i = 0; i < listaVariables.size(); i++) {
-                    System.out.println(listaVariables.get(i).toString() + " := " + listaExpresiones.get(i).toString() + ";");
+                    String variable= listaVariables.get(i).toString();
+                    String expresion= listaExpresiones.get(i).toString();
+                    chequeoPares(variable,expresion);
                 }
             }
         }
@@ -470,13 +482,13 @@ expresion_list:
         expresion {
            // Crear una nueva lista con una sola expresión
            List<String> lista = new ArrayList<>();
-           lista.add(val_peek(0).toString());  // Almacenar la expresión como cadena de texto
+           lista.add(val_peek(0).sval);  // Almacenar la expresión como cadena de texto
            yyval.obj = lista;
         }
     |   expresion_list ',' expresion {
             // Agregar la expresión a la lista existente
             List<String> lista = (List<String>) val_peek(2).obj;
-            lista.add(val_peek(0).toString());  // Almacenar la nueva expresión
+            lista.add(val_peek(0).sval);  // Almacenar la nueva expresión
             yyval.obj = lista;
         }
 ;
@@ -580,18 +592,30 @@ expresion_aritmetica:
 
 expresion:
         expresion '+' expresion {
+            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+            }
             // Devuelve la expresión como una cadena que representa la suma
             yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
         }
     |   expresion '-' expresion {
+            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+            }
             // Devuelve la expresión como una cadena que representa la resta
             yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
         }
     |   expresion '*' expresion {
+            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+            }
             // Devuelve la expresión como una cadena que representa la multiplicación
             yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
         }
     |   expresion '/' expresion {
+            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+            }
             // Devuelve la expresión como una cadena que representa la división
             yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
         }
@@ -761,7 +785,21 @@ boolean verificarRangoLongInt(double valor) {
 boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
-
+public void chequeoPares(String variable, String expresion){
+    if((st.getUse(variable).equals("Nombre de variable par") &&!st.getUse(expresion).equals("Nombre de variable par"))
+    ||(!st.getUse(variable).equals("Nombre de variable par") &&st.getUse(expresion).equals("Nombre de variable par"))){
+        System.out.println("Warning: No se pueden utilizar los tipos pares en operaciones que conlleven tipos distintos ");        
+        System.out.println("Error en asignacion:"+variable + " := " + expresion + ";");
+    }else{
+        System.out.println(variable + " := " + expresion + ";");
+    }
+}
+public boolean isPair(String variable){
+    if(st.getUse(variable).equals("Nombre de variable par")){
+        return true;
+    }
+    return false;
+}
 String obtenerTipo(String variable) {
     
     if (!st.hasKey(variable)) return variable;

@@ -432,48 +432,51 @@ comparador:MENOR_IGUAL
 
            
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
-        | IDENTIFIER_LIST T_ASIGNACION expresion_list ';'{
-            // Identificador de lista
-            List<String> listaVariables = (List<String>) val_peek(3).obj;  // Obtienes la lista de variables
-            List<Expresion> listaExpresiones = (List<Expresion>) val_peek(1).obj;  // Obtienes la lista de expresiones
+        | IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {
+            // Obtener las listas de variables y expresiones
+            List<String> listaVariables = (List<String>) val_peek(3).obj;
+            List<String> listaExpresiones = (List<String>) val_peek(1).obj;
 
             // Verificar si hay más variables que expresiones
             if (listaVariables.size() > listaExpresiones.size()) {
                 System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
                     if (i < listaExpresiones.size()) {
-                        generarCodigoAsignacion(listaVariables.get(i), listaExpresiones.get(i));
+                        // Generar el código para la asignación correspondiente
+                        System.out.println(listaVariables.get(i).toString() + " := " + listaExpresiones.get(i).toString() + ";");
                     } else {
                         // Asignar 0 a las variables sobrantes
-                        generarCodigoAsignacion(listaVariables.get(i), new Expresion("0"));
+                        System.out.println(listaVariables.get(i).toString() + " := 0;");
                     }
                 }
             } else if (listaVariables.size() < listaExpresiones.size()) {
                 System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
-                    generarCodigoAsignacion(listaVariables.get(i), listaExpresiones.get(i));
+                    // Generar el código para la asignación correspondiente
+                    System.out.println(listaVariables.get(i).toString() + " := " + listaExpresiones.get(i).toString() + ";");
                 }
             } else {
-                // Generar código para cada asignación correspondiente
+                // Generar el código para cada asignación correspondiente
                 for (int i = 0; i < listaVariables.size(); i++) {
-                    generarCodigoAsignacion(listaVariables.get(i), listaExpresiones.get(i));
+                    System.out.println(listaVariables.get(i).toString() + " := " + listaExpresiones.get(i).toString() + ";");
                 }
             }
         }
+
         | IDENTIFIER_LIST T_ASIGNACION ';'{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta lado derecho de la asignacion"); }
         ;
 
 expresion_list:
         expresion {
-            // Crear una nueva lista con una sola expresión
-            List<Expresion> lista = new ArrayList<>();
-            lista.add((Expresion) val_peek(0).obj);  // val_peek(0) es la expresión
-            yyval.obj = lista;
+           // Crear una nueva lista con una sola expresión
+           List<String> lista = new ArrayList<>();
+           lista.add(val_peek(0).toString());  // Almacenar la expresión como cadena de texto
+           yyval.obj = lista;
         }
     |   expresion_list ',' expresion {
             // Agregar la expresión a la lista existente
-            List<Expresion> lista = (List<Expresion>) val_peek(2).obj;  // lista de expresiones hasta ahora
-            lista.add((Expresion) val_peek(0).obj);  // agregar la nueva expresión
+            List<String> lista = (List<String>) val_peek(2).obj;
+            lista.add(val_peek(0).toString());  // Almacenar la nueva expresión
             yyval.obj = lista;
         }
 ;
@@ -500,7 +503,7 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
             | acceso_par {
                 // Crear una nueva lista con acceso_par
                 List<String> lista = new ArrayList<>();
-                lista.add(val_peek(0).val);
+                lista.add(val_peek(0).sval);
                 yyval.obj = lista;
             } 
             | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
@@ -529,39 +532,96 @@ goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en line
               | GOTO error {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
 
 
-invocacion_funcion: T_ID '(' parametro_real ')' 
+invocacion_funcion: T_ID '(' parametro_real ')' {
+        // Verifica que el parámetro no sea nulo antes de intentar convertirlo a cadena
+        if (val_peek(1).sval != null) {
+            yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
+        } else {
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
+            yyval.sval = val_peek(3).sval + "()";  // Asume que no hay parámetros si es nulo
+        }
+    }
       | T_ID '(' error ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocacion a funcion mal definida"); 
         }
       ; 
 
-parametro_real: expresion_aritmetica ; 
+parametro_real: expresion_aritmetica {
+    // Asegúrate de que el valor de la expresión aritmética se pase correctamente hacia arriba
+    yyval.sval = val_peek(0).sval;
+}; 
 
-expresion_aritmetica: expresion_aritmetica '+' expresion_aritmetica 
-         | expresion_aritmetica '-' expresion_aritmetica 
-         | expresion_aritmetica '*' expresion_aritmetica 
-         | expresion_aritmetica '/' expresion_aritmetica 
-         | T_CTE 
-         | T_ID 
-         | acceso_par
-         | unaria 
-       ;
+expresion_aritmetica:
+      expresion_aritmetica '+' expresion_aritmetica {
+          yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
+      }
+    | expresion_aritmetica '-' expresion_aritmetica {
+          yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
+      }
+    | expresion_aritmetica '*' expresion_aritmetica {
+          yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
+      }
+    | expresion_aritmetica '/' expresion_aritmetica {
+          yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
+      }
+    | T_CTE {
+          yyval.sval = val_peek(0).sval;  // La constante como cadena
+      }
+    | T_ID {
+          yyval.sval = val_peek(0).sval;  // El identificador como cadena
+      }
+    | acceso_par {
+          yyval.sval = val_peek(0).sval;  // El resultado del acceso
+      }
+    | unaria {
+          yyval.sval = val_peek(0).sval;  // El valor unario
+      }
+;
 
-expresion: expresion '+' expresion 
-        |  expresion '-' expresion 
-        |  expresion '*' expresion 
-        |  expresion '/' expresion 
-        |  T_CTE 
-        |  T_ID 
-        |  acceso_par
-        |  invocacion_funcion
-        |  unaria 
-        |  error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
-        ;
+expresion:
+        expresion '+' expresion {
+            // Devuelve la expresión como una cadena que representa la suma
+            yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
+        }
+    |   expresion '-' expresion {
+            // Devuelve la expresión como una cadena que representa la resta
+            yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
+        }
+    |   expresion '*' expresion {
+            // Devuelve la expresión como una cadena que representa la multiplicación
+            yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
+        }
+    |   expresion '/' expresion {
+            // Devuelve la expresión como una cadena que representa la división
+            yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
+        }
+    |   T_CTE {
+            // Devuelve el valor de la constante como cadena
+            yyval.sval = val_peek(0).sval;
+        }
+    |   T_ID {
+            // Devuelve el identificador como cadena
+            yyval.sval = val_peek(0).sval;
+        }
+    |   acceso_par {
+            // Devuelve el resultado del acceso a un parámetro
+            yyval.sval = val_peek(0).sval;
+        }
+    |   invocacion_funcion {
+            // Devuelve el resultado de la invocación de una función
+            yyval.sval = val_peek(0).sval;
+        }
+    |   unaria {
+            // Devuelve la expresión unaria
+            yyval.sval = val_peek(0).sval;
+        }
+    |  error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
+    ;
 
 unaria: '-' T_CTE { 
     double valor = val_peek(0).dval;  
-
+    // Devuelve el valor unario con el signo negativo
+    yyval.sval = "-" + val_peek(0).sval;
     String nombreConstante = val_peek(0).sval;  
     String nombreConMenos = "-" + nombreConstante;
     /* verificacion en la tabla de simbolos.*/
@@ -701,9 +761,7 @@ boolean verificarRangoLongInt(double valor) {
 boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
-public void generarCodigoAsignacion(String variable, Expresion expresion) {
-    System.out.println("Entré a generarCodigoAsignacion: " + variable + " := " + expresion);
-}
+
 String obtenerTipo(String variable) {
     
     if (!st.hasKey(variable)) return variable;

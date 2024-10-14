@@ -1,7 +1,10 @@
 package Paquetecompi;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import gramaticPackage.*;
 public class SymbolTable {
@@ -13,9 +16,11 @@ public class SymbolTable {
 	public static final int tagValue=280;
 	private Map<String, TipoSubrango> tablaTipos;
 	private Map<String, CaracteristicaFuncion> tablaFuncion;
+	private  List<Integer> posicionesPolaca = new ArrayList<>();
+	private  List<String> polaca = new ArrayList<>();
+	private  Stack<Integer> pila = new Stack<>();
+	public static  StringBuilder ambitoGlobal;
 
-	
-	
 	public boolean updateUse(String variable, String newUse) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) {
@@ -38,8 +43,9 @@ public class SymbolTable {
 		this.symbolMap=new HashMap<Symbol, Integer>();
 		this.tablaTipos= new HashMap<String,TipoSubrango>();
 		this.tablaFuncion = new HashMap<String, CaracteristicaFuncion>();
-
+		ambitoGlobal.setLength(0);
 	}
+	
 	public void addValue(String clave,String tipo,String uso,String ambito, Integer valor) {
 		Symbol sym= new Symbol(clave,tipo,uso,ambito);
 		if(!symbolMap.containsKey(sym)) {
@@ -55,6 +61,18 @@ public class SymbolTable {
 	    }
 	    return false;  // No se encontro el símbolo
 	}
+
+	public boolean updateAmbito(String variable, String nuevoAmbito) {
+	    for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(variable)) {
+	            symbol.setAmbito(nuevoAmbito); // Actualiza el ambito
+	            return true; 
+	        }
+	    }
+	    return false;  // No se encontro el símbolo
+	}
+
+
 	public Integer getValue(String clave) {
 		Symbol sym= new Symbol(clave,null,null,null);
 		if(symbolMap.containsKey(sym)) {
@@ -189,6 +207,7 @@ public class SymbolTable {
 	        this.tipo = tipo;
 	    }
 
+		
 
 	    @Override
 	    public boolean equals(Object o) {
@@ -196,7 +215,7 @@ public class SymbolTable {
 	        if (o == null || getClass() != o.getClass()) return false;
 
 	        Symbol symbol = (Symbol) o;
-	        return nombre.equals(symbol.nombre);  // Comparamos solo por nombre
+	        return nombre.equals(symbol.nombre) && ambito.equals(symbol.getAmbito());  // Comparamos solo por nombre
 	    }
 
 	    @Override

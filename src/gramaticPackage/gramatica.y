@@ -48,10 +48,13 @@ class Subrango{
  
 %%
 
-programa: T_ID bloque_sentencias {
+
+programa: nombre bloque_sentencias {
     System.out.println("Programa compilado correctamente");
     //updatear uso nombre funcion
     st.updateUse(val_peek(1).sval, "Nombre de programa");
+    st.ambitoGlobal.setLength(0);
+    
 } 
 | T_ID { 
     System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
@@ -127,8 +130,18 @@ lista_var: lista_var ',' T_ID {
   ;
 
 
+nombre: T_ID { yyval.sval = val_peek(0).sval;
+    System.out.println("Entre a Funcion antes (o despues?) de la derecha");
+
+    if (st.ambitoGlobal.size() == 0) then {
+        st.ambitoGlobal = new StringBuilder(val_peek(0).sval);
+    } else st.ambitoGlobal.append(":" + val_peek(0).sval);
+        };
+
 declaracion_funcion:
-    tipo FUN T_ID '(' parametro ')' bloque_sentencias {
+    tipo FUN nombre  '(' parametro ')' bloque_sentencias {
+        
+        System.out.println("Entre a la 2da llave");
         //updatear uso nombre funcion
         st.updateUse(val_peek(4).sval, "Nombre de funcion");
         
@@ -140,25 +153,35 @@ declaracion_funcion:
 
 
         // Insertar en la tabla de funciones
-        st.insertTF(val_peek(4).sval, new CaracteristicaFuncion(val_peek(6).sval, tipoParametro, nombreParametro));    
+        st.insertTF(val_peek(4).sval, new CaracteristicaFuncion(val_peek(6).sval, tipoParametro, nombreParametro)); 
+
+        // Encuentra el índice donde empieza "Gato"
+        int inicio = st.ambitoGlobal.indexOf(":" + val_peek(4).sval);
+
+        // Si la palabra a borrar existe en el StringBuilder, elimínala
+        if (inicio != -1) {
+            st.ambitoGlobal.delete(inicio, inicio + val_peek(4).sval.length());
+        }
+
+
     }
-    | tipo FUN T_ID '(' parametros_error ')' bloque_sentencias {
+    | tipo FUN nombre '(' parametros_error ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
     }
     
     
-    | tipo FUN T_ID '(' tipo ')' bloque_sentencias {
+    | tipo FUN nombre '(' tipo ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parametro de la funcion.");
     }
 
-    | tipo T_ID '(' tipo T_ID ')' bloque_sentencias {
+    | tipo nombre '(' tipo T_ID ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta palabra reservada FUN.");
     }
 
     | tipo FUN '(' tipo T_ID ')' bloque_sentencias {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la funcion.");
     }
-    | tipo FUN T_ID '(' parametro ')' bloque_sentencias ';'{
+    | tipo FUN nombre '(' parametro ')' bloque_sentencias ';'{
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se puede poner ; al final de la declaracion de una fucnion");
     };
 
@@ -673,21 +696,21 @@ unaria: '-' T_CTE {
                 if (!lexer.isLongintRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
-                    st.addValue(nombreConMenos, tipo,"Constante",null,SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante","",SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
                     
-                    st.addValue(nombreConMenos, tipo,"Constante",null, SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante","", SymbolTable.constantValue);
                 }
             }else if (tipo.equals("Octal")) {
                 if (!lexer.isOctalRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
-                    st.addValue(nombreConMenos, tipo,"Constante",null, SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante","", SymbolTable.constantValue);
                 }
             }
         } else {
@@ -697,7 +720,7 @@ unaria: '-' T_CTE {
     	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
-            st.addValue("-020000000000", "Octal","Constante",null, SymbolTable.constantValue);
+            st.addValue("-020000000000", "Octal","Constante","", SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
         	System.err.println("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
 
@@ -709,22 +732,22 @@ unaria: '-' T_CTE {
 
             /* Si está por debajo del máximo permitido, lo mantenemos*/
             if (valorDouble < maxNegativeDouble) {
-                st.addValue("-1.7976931348623156d+308", "double","Constante",null, SymbolTable.constantValue);
+                st.addValue("-1.7976931348623156d+308", "double","Constante","", SymbolTable.constantValue);
             } 
             /* Si está por debajo del mínimo permitido pero mayor al mínimo ajustado*/
             else if (valorDouble > minNegativeDouble) {
-                st.addValue("-2.2250738585072015d-308", "double","Constante",null, SymbolTable.constantValue);
+                st.addValue("-2.2250738585072015d-308", "double","Constante","", SymbolTable.constantValue);
             } 
             /* Si está en el rango permitido*/
             else {
-                st.addValue("-" + nombreConstante, "double","Constante",null, SymbolTable.constantValue);
+                st.addValue("-" + nombreConstante, "double","Constante","", SymbolTable.constantValue);
             }
             
         } else{ /*ya se sabe que es entero*/
             /* Lógica para longint*/
         	System.err.println("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
             nombreConMenos = "-2147483648"; /* Asignar valor mínimo si está fuera de rango*/
-            st.addValue(nombreConMenos, "longint","Constante",null, SymbolTable.constantValue);
+            st.addValue(nombreConMenos, "longint","Constante","", SymbolTable.constantValue);
         }
         
     }

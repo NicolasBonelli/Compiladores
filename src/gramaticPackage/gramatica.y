@@ -160,10 +160,18 @@ declaracion_funcion:
         String tipoParametro = tipoYNombre[0];
         String nombreParametro = tipoYNombre[1];
 
-
-        // Insertar en la tabla de funciones
-        st.insertTF(val_peek(4).sval, new CaracteristicaFuncion(val_peek(6).sval, tipoParametro, nombreParametro)); 
-
+        if(st.contieneSymbolAmbito(val_peek(4).sval,SymbolTable.ambitoGlobal)){
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar funciones en el mismo ambito. Error con el nombre de la funcion:"+val_peek(4).sval);
+        }else{
+            if(st.getAmbitoByKey(val_peek(4).sval).equals(" ")){
+                st.updateAmbito(val_peek(4).sval,SymbolTable.ambitoGlobal);
+            }else{
+                st.addValue(val_peek(4).sval,"String","Nombre de funcion",SymbolTable.ambitoGlobal.toString(), 278);
+            }
+            // Insertar en la tabla de funciones
+            st.insertTF(val_peek(4).sval+":"+this.borrarUltimoAmbito(), new CaracteristicaFuncion(val_peek(6).sval, tipoParametro, nombreParametro)); 
+        }
+        
         // Encuentra el índice donde empieza "Gato"
         int inicio = st.ambitoGlobal.indexOf(":" + val_peek(4).sval);
 
@@ -667,6 +675,9 @@ goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en line
 invocacion_funcion: T_ID '(' parametro_real ')' {
         // Verifica que el parámetro no sea nulo antes de intentar convertirlo a cadena
         if (val_peek(1).sval != null) {
+        if (st.getUse(val_peek(3).sval) == null) {
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
+        }
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
         } else {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
@@ -937,6 +948,26 @@ public boolean isPair(String variable){
     }
     return false;
 }
+public String borrarUltimoAmbito(){
+    String originalString = SymbolTable.ambitoGlobal.toString();
+
+    // Separar por ":"
+    String[] partes = originalString.split(":");
+
+    // Crear un nuevo StringBuilder con todas las partes excepto la última
+    StringBuilder nuevoStringBuilder = new StringBuilder();
+    for (int i = 0; i < partes.length - 1; i++) {
+        nuevoStringBuilder.append(partes[i]);
+        if (i < partes.length - 2) {
+            nuevoStringBuilder.append(":"); // Volver a agregar los separadores ":"
+        }
+    }
+    return nuevoStringBuilder.toString();
+}
+
+
+
+
 String obtenerTipo(String variable) {
     
     if (!st.hasKey(variable)) return variable;

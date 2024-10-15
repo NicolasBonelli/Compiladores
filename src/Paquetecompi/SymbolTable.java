@@ -74,7 +74,7 @@ public class SymbolTable {
 	
 		if (ambitoVar1 == null) {
 			// Si alguna variable no está declarada, devolvemos false
-			System.out.println("Error: La variable " + var1 +" no está declarada en ningún ámbito");
+			System.out.println("Error: "+var1 +" no está declarada en ningún ámbito");
 			return false;
 		}
 	
@@ -82,7 +82,7 @@ public class SymbolTable {
 		if (esAmbitoCompatible(ambitoVar1)) {
 			return true; // Ambas variables están en ámbitos compatibles
 		} else {
-			System.err.println("Error: No se puede usar la variable " + var1);
+			System.err.println("Error: "+ var1 +" nunca ha sido declarada");
 			return false;
 		}
 	}

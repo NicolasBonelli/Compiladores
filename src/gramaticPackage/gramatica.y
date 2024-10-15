@@ -164,7 +164,8 @@ declaracion_funcion:
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar funciones en el mismo ambito. Error con el nombre de la funcion:"+val_peek(4).sval);
         }else{
             if(st.getAmbitoByKey(val_peek(4).sval).equals(" ")){
-                st.updateAmbito(val_peek(4).sval,SymbolTable.ambitoGlobal);
+                StringBuilder ambitoOrig= new StringBuilder(borrarUltimoAmbito());
+                st.updateAmbito(val_peek(4).sval,ambitoOrig);
             }else{
                 st.addValue(val_peek(4).sval,"String","Nombre de funcion",SymbolTable.ambitoGlobal.toString(), 278);
             }
@@ -248,7 +249,7 @@ tipo: DOUBLE { yyval.sval = "double"; }
         
         /* Verificando si el tipo esta en la tabla de tipos definidos*/
         
-        if (st.containsKeyTT(val_peek(0).sval)) {
+        if (st.containsKeyTT(val_peek(0).sval+":"+SymbolTable.ambitoGlobal.toString())) {
             yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
             yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0).sval);
@@ -562,14 +563,8 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 for (int i = 0; i < listaVariables.size(); i++) {
                     if (i < listaExpresiones.size()) {
                         String variable= listaVariables.get(i).toString();
-                        if (!st.getUse(variable).equals("Constante"))
-                            st.esUsoValidoAmbito(variable);
                         String expresion= listaExpresiones.get(i).toString();
-                        if (!st.getUse(expresion).equals("Constante"))
-                            st.esUsoValidoAmbito(expresion);
-
-                        chequeoPares(variable,expresion);
-                                               
+                        chequeoPares(variable,expresion);                       
                     } else {
                         // Asignar 0 a las variables sobrantes
                         System.out.println(listaVariables.get(i).toString() + " := 0;");
@@ -579,25 +574,15 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
                     String variable= listaVariables.get(i).toString();
-                    if (!st.getUse(variable).equals("Constante"))
-                            st.esUsoValidoAmbito(variable);
-
                     String expresion= listaExpresiones.get(i).toString();
-                    if (!st.getUse(expresion).equals("Constante"))
-                            st.esUsoValidoAmbito(expresion);
                     chequeoPares(variable,expresion);
                        
                 }
             } else {
                 // Generar el código para cada asignación correspondiente
                 for (int i = 0; i < listaVariables.size(); i++) {
-                    String variable= listaVariables.get(i).toString();
-                    if (!st.getUse(variable).equals("Constante"))
-                            st.esUsoValidoAmbito(variable);
-                            
+                    String variable= listaVariables.get(i).toString();    
                     String expresion= listaExpresiones.get(i).toString();
-                    if (!st.getUse(expresion).equals("Constante"))
-                            st.esUsoValidoAmbito(expresion);
                     chequeoPares(variable,expresion);
                 }
             }
@@ -624,6 +609,7 @@ expresion_list:
 
 IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
                 // Agregar el identificador a la lista
+                st.esUsoValidoAmbito(val_peek(0).sval);
                 List<String> lista = (List<String>) val_peek(2).obj;
                 lista.add(val_peek(0).sval);
                 yylval.obj = lista;
@@ -635,6 +621,7 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
                 yyval.obj = lista;
             } 
             | T_ID {
+                st.esUsoValidoAmbito(val_peek(0).sval);
                 // Crear lista con el primer identificador
                 List<String> lista = new ArrayList<>();
                 lista.add(val_peek(0).sval);
@@ -658,6 +645,7 @@ acceso_par:
         if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
             yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
         } else {
+            st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "{" + val_peek(1).sval + "}";
         }
         
@@ -675,9 +663,11 @@ goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en line
 invocacion_funcion: T_ID '(' parametro_real ')' {
         // Verifica que el parámetro no sea nulo antes de intentar convertirlo a cadena
         if (val_peek(1).sval != null) {
-        if (st.getUse(val_peek(3).sval) == null) {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
-        }
+            if (st.getUse(val_peek(3).sval) == null) {
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
+            }
+            st.esUsoValidoAmbito(val_peek(3).sval);
+            
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
         } else {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
@@ -756,6 +746,7 @@ expresion:
         }
     |   T_ID {
             // Devuelve el identificador como cadena
+            st.esUsoValidoAmbito(val_peek(0).sval);
             yyval.sval = val_peek(0).sval;
         }
     |   acceso_par {

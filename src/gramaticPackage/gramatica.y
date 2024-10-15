@@ -53,7 +53,7 @@ programa: nombre bloque_sentencias {
     System.out.println("Programa compilado correctamente");
     //updatear uso nombre funcion
     st.updateUse(val_peek(1).sval, "Nombre de programa");
-    st.ambitoGlobal.setLength(0);
+    
     
 } 
 | T_ID { 
@@ -88,13 +88,12 @@ sentencia: declaracion
 
 declaracion: tipo lista_var ';' { 
     List<String> variables = (List<String>) val_peek(1).obj;  // Obtener la lista de variables de lista_var
-
+    System.out.println("vars:"+variables);
 	for (String variable : variables) {
 	    /* Verificar si la variable ya existe en la tabla de símbolos */
 	    if (st.hasKey(variable)) {
 	        System.out.println("Aclaracion, se declaro la variable: " + variable);
-            //updatear tipo de variable
-            st.updateType(variable, val_peek(2).sval);
+            
             //updatear uso de variable a variable
             if(st.isTypePair(val_peek(2).sval)){//si el tipo
                 st.updateUse(variable, "Nombre de variable par");
@@ -103,8 +102,18 @@ declaracion: tipo lista_var ';' {
             }
 
 
-	        //updatear ambito
-
+            if(st.contieneSymbolAmbito(variable,SymbolTable.ambitoGlobal)){
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
+            }else{
+                if(st.getAmbitoByKey(variable).equals(" ")){
+                    st.updateAmbito(variable,SymbolTable.ambitoGlobal);
+                }else{
+                    st.addValue(variable,val_peek(2).sval,"Nombre de variable",SymbolTable.ambitoGlobal.toString(), 278);
+                }
+            }
+            //updatear tipo de variable
+            st.updateType(variable,SymbolTable.ambitoGlobal.toString(), val_peek(2).sval);
+            
 	    } else {
 	        System.err.println("Error, la variable no está en la tabla de símbolos: " + variable);
 	    }
@@ -133,9 +142,9 @@ lista_var: lista_var ',' T_ID {
 nombre: T_ID { yyval.sval = val_peek(0).sval;
     System.out.println("Entre a Funcion antes (o despues?) de la derecha");
 
-    if (st.ambitoGlobal.size() == 0) then {
-        st.ambitoGlobal = new StringBuilder(val_peek(0).sval);
-    } else st.ambitoGlobal.append(":" + val_peek(0).sval);
+    if (SymbolTable.ambitoGlobal.length() == 0) {
+        SymbolTable.ambitoGlobal = new StringBuilder(val_peek(0).sval);
+    } else SymbolTable.ambitoGlobal.append(":" + val_peek(0).sval);
         };
 
 declaracion_funcion:
@@ -160,7 +169,7 @@ declaracion_funcion:
 
         // Si la palabra a borrar existe en el StringBuilder, elimínala
         if (inicio != -1) {
-            st.ambitoGlobal.delete(inicio, inicio + val_peek(4).sval.length());
+            st.ambitoGlobal.delete(inicio, inicio + val_peek(4).sval.length()+1);
         }
 
 
@@ -187,13 +196,22 @@ declaracion_funcion:
 
 parametro:
     tipo T_ID {
-        st.updateType(val_peek(0).sval, val_peek(1).sval);
-            //updatear uso de variable a variable
-            if(st.isTypePair(val_peek(1).sval)){//si el tipo
-                st.updateUse(val_peek(0).sval, "Nombre de variable par");
+        
+        //updatear uso de variable a variable
+        if(st.isTypePair(val_peek(1).sval)){//si el tipo
+            st.updateUse(val_peek(0).sval, "Nombre de variable par");
+        }else{
+            st.updateUse(val_peek(0).sval, "Nombre de parametro");
+        }
+        if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
+        }else{
+            if(st.getAmbitoByKey(val_peek(0).sval).equals(" ")){
+                st.updateAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal);
             }else{
-	            st.updateUse(val_peek(0).sval, "Nombre de parametro");
+                st.addValue(val_peek(0).sval,val_peek(1).sval,"Nombre de parametro",SymbolTable.ambitoGlobal.toString(), 278);
             }
+        }
         yyval.sval = val_peek(1).sval + ":" + val_peek(0).sval;
         
     }
@@ -569,7 +587,7 @@ acceso_par:
         if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
             yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
         } else {
-            yyval.sval = val_peek(3) + "{" + val_peek(1) + "}";
+            yyval.sval = val_peek(3).sval + "{" + val_peek(1).sval + "}";
         }
         
     }
@@ -696,21 +714,21 @@ unaria: '-' T_CTE {
                 if (!lexer.isLongintRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
-                    st.addValue(nombreConMenos, tipo,"Constante","",SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante"," ",SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
                     
-                    st.addValue(nombreConMenos, tipo,"Constante","", SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante"," ", SymbolTable.constantValue);
                 }
             }else if (tipo.equals("Octal")) {
                 if (!lexer.isOctalRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
-                    st.addValue(nombreConMenos, tipo,"Constante","", SymbolTable.constantValue);
+                    st.addValue(nombreConMenos, tipo,"Constante"," ", SymbolTable.constantValue);
                 }
             }
         } else {
@@ -720,7 +738,7 @@ unaria: '-' T_CTE {
     	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
-            st.addValue("-020000000000", "Octal","Constante","", SymbolTable.constantValue);
+            st.addValue("-020000000000", "Octal","Constante"," ", SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
         	System.err.println("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
 
@@ -732,22 +750,22 @@ unaria: '-' T_CTE {
 
             /* Si está por debajo del máximo permitido, lo mantenemos*/
             if (valorDouble < maxNegativeDouble) {
-                st.addValue("-1.7976931348623156d+308", "double","Constante","", SymbolTable.constantValue);
+                st.addValue("-1.7976931348623156d+308", "double","Constante"," ", SymbolTable.constantValue);
             } 
             /* Si está por debajo del mínimo permitido pero mayor al mínimo ajustado*/
             else if (valorDouble > minNegativeDouble) {
-                st.addValue("-2.2250738585072015d-308", "double","Constante","", SymbolTable.constantValue);
+                st.addValue("-2.2250738585072015d-308", "double","Constante"," ", SymbolTable.constantValue);
             } 
             /* Si está en el rango permitido*/
             else {
-                st.addValue("-" + nombreConstante, "double","Constante","", SymbolTable.constantValue);
+                st.addValue("-" + nombreConstante, "double","Constante"," ", SymbolTable.constantValue);
             }
             
         } else{ /*ya se sabe que es entero*/
             /* Lógica para longint*/
         	System.err.println("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
             nombreConMenos = "-2147483648"; /* Asignar valor mínimo si está fuera de rango*/
-            st.addValue(nombreConMenos, "longint","Constante","", SymbolTable.constantValue);
+            st.addValue(nombreConMenos, "longint","Constante"," ", SymbolTable.constantValue);
         }
         
     }

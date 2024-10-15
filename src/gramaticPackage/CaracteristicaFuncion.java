@@ -44,6 +44,5 @@ public class CaracteristicaFuncion {
                 ", tipoParametro='" + tipoParametro + '\'' +
                 ", nombreParametro='" + nombreParametro + '\'' +
                 '}';
-    }
-    
+    }  
 }

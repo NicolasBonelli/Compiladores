@@ -19,7 +19,7 @@ public class SymbolTable {
 	private  List<Integer> posicionesPolaca = new ArrayList<>();
 	private  List<String> polaca = new ArrayList<>();
 	private  Stack<Integer> pila = new Stack<>();
-	public static  StringBuilder ambitoGlobal;
+	public static  StringBuilder ambitoGlobal=new StringBuilder();
 
 	public boolean updateUse(String variable, String newUse) {
 	    for (Symbol symbol : symbolMap.keySet()) {
@@ -52,9 +52,9 @@ public class SymbolTable {
 			this.symbolMap.put(sym,valor);
 		}
 	}
-	public boolean updateType(String variable, String nuevoTipo) {
+	public boolean updateType(String variable,String ambito, String nuevoTipo) {
 	    for (Symbol symbol : symbolMap.keySet()) {
-	        if (symbol.getNombre().equals(variable)) {
+	        if (symbol.getNombre().equals(variable) && symbol.getAmbito().equals(ambito)) {
 	            symbol.setTipo(nuevoTipo); // Actualiza el tipo del símbolo
 	            return true; 
 	        }
@@ -62,14 +62,26 @@ public class SymbolTable {
 	    return false;  // No se encontro el símbolo
 	}
 
-	public boolean updateAmbito(String variable, String nuevoAmbito) {
+	public boolean updateAmbito(String variable, StringBuilder nuevoAmbito) {
 	    for (Symbol symbol : symbolMap.keySet()) {
-	        if (symbol.getNombre().equals(variable)) {
-	            symbol.setAmbito(nuevoAmbito); // Actualiza el ambito
+	        if (symbol.getNombre().equals(variable)) { 
+	    		symbol.setAmbito(nuevoAmbito.toString()); // Actualiza el ambito
 	            return true; 
 	        }
 	    }
 	    return false;  // No se encontro el símbolo
+	}
+	public String getAmbitoByKey(String nombre) {
+		for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(nombre)) {
+	        	return symbol.getAmbito();
+	        }
+	    }
+	    return "";
+	}
+	public boolean contieneSymbolAmbito(String nombre, StringBuilder nuevoAmbito) {
+		Symbol simb= new Symbol(nombre,null,null,nuevoAmbito.toString());
+		return this.symbolMap.containsKey(simb);
 	}
 
 
@@ -92,8 +104,12 @@ public class SymbolTable {
 	    return null; 
 	}
 	public boolean hasKey(String key) {
-		Symbol sym= new Symbol(key,null,null,null);
-        return symbolMap.containsKey(sym);
+		for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(key)) {
+	            return true; // Si el nombre coincide, devolvemos el tipo
+	        }
+	    }
+	    return false; 
     }
 	@Override
 	public String toString() {

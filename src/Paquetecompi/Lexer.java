@@ -138,7 +138,6 @@ public class Lexer {
 
     String obtenerTipo(String variable) {
         
-        
         if (tabla.hasKey(variable)) return variable;
 
         return tabla.getType(variable);  

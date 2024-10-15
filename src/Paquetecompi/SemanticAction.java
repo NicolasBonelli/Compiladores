@@ -62,7 +62,7 @@ class AS3 extends SemanticAction {
                 System.err.println("Linea: " + Lexer.nmrLinea + ": El identificador " + lexeme.toString() +"  fue truncado a: " + token);
             }
             if (!lex.containsSymbol(token)) {
-                lex.insertSymbolTable(token, "String",null,"", SymbolTable.identifierValue);
+                lex.insertSymbolTable(token, "String",null," ", SymbolTable.identifierValue);
             }
             lex.setDevolvi(true);
             lex.addToken(new Pair(token, SymbolTable.identifierValue));
@@ -93,7 +93,7 @@ class AS4 extends SemanticAction {
                 }
                 
                 // Insertar el valor ajustado en la tabla de símbolos
-                lex.insertSymbolTable(representacionOctal, "Octal","Constante","", SymbolTable.constantValue);
+                lex.insertSymbolTable(representacionOctal, "Octal","Constante"," ", SymbolTable.constantValue);
                 lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));
                 
@@ -108,7 +108,7 @@ class AS4 extends SemanticAction {
                 	System.err.println("El numero usado en la linea " + lex.getNroLinea() + " supera el rango permitido para enteros. Se redujo.");
                 	token= "2147483647";//se redujo al maximo
                 } 
-                lex.insertSymbolTable(token, "longint","Constante","", SymbolTable.constantValue);
+                lex.insertSymbolTable(token, "longint","Constante"," ", SymbolTable.constantValue);
                 lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));
             } catch (NumberFormatException e) {
@@ -136,7 +136,7 @@ class AS5 extends SemanticAction {
             if ((number.compareTo(minPositive) > 0 && number.compareTo(maxPositive) < 0) || 
                 number.compareTo(BigDecimal.ZERO) == 0) {
                 
-                lex.insertSymbolTable(lexeme.toString(), "double","Constante","", SymbolTable.constantValue);
+                lex.insertSymbolTable(lexeme.toString(), "double","Constante"," ", SymbolTable.constantValue);
                 lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 
             } else {
@@ -148,7 +148,7 @@ class AS5 extends SemanticAction {
                 } else {
                     token = "1.7976931348623156d+308";
                 }
-                lex.insertSymbolTable(token, "double","Constante","", SymbolTable.constantValue);
+                lex.insertSymbolTable(token, "double","Constante"," ", SymbolTable.constantValue);
                 lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 
             }
@@ -182,10 +182,10 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
 		        .replace("]", "")
 		        .replaceAll("\\s+", " ");  // Reemplaza cualquier tipo de espacio o salto de línea por un solo espacio
 		    
-		    lex.insertSymbolTable(cadenaSinSaltos, "String","Cadena multilinea","", SymbolTable.stringValue);
+		    lex.insertSymbolTable(cadenaSinSaltos, "String","Cadena multilinea"," ", SymbolTable.stringValue);
 		    valor = SymbolTable.stringValue;
 		}else if(currentChar == '@') {
-    		lex.insertSymbolTable(lexeme.toString(),"String","Nombre de etiqueta","",SymbolTable.tagValue);
+    		lex.insertSymbolTable(lexeme.toString(),"String","Nombre de etiqueta"," ",SymbolTable.tagValue);
     		valor = SymbolTable.tagValue;
     	}
     	else {

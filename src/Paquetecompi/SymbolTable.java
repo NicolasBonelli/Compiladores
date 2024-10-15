@@ -19,7 +19,7 @@ public class SymbolTable {
 	private  List<Integer> posicionesPolaca = new ArrayList<>();
 	private  List<String> polaca = new ArrayList<>();
 	private  Stack<Integer> pila = new Stack<>();
-	public static  StringBuilder ambitoGlobal=new StringBuilder();
+	public static  StringBuilder ambitoGlobal = new StringBuilder();
 
 	public boolean updateUse(String variable, String newUse) {
 	    for (Symbol symbol : symbolMap.keySet()) {
@@ -62,6 +62,33 @@ public class SymbolTable {
 	    return false;  // No se encontro el símbolo
 	}
 
+		// Método auxiliar para verificar si un ámbito es compatible con el ámbito actual
+	private boolean esAmbitoCompatible(String ambitoVar) {
+		// Si el ámbito de la variable es el mismo o está contenido en el ámbito actual, es compatible
+		return ambitoGlobal.toString().startsWith(ambitoVar);
+	}
+
+	public boolean esUsoValidoAmbito(String var1) {
+		// Verifica si var1  declarada en el ámbito actual o en ámbitos superiores
+		String ambitoVar1 = getAmbitoByKey(var1);
+	
+		if (ambitoVar1 == null) {
+			// Si alguna variable no está declarada, devolvemos false
+			System.out.println("Error: La variable " + var1 +" no está declarada en ningún ámbito");
+			return false;
+		}
+	
+		// Verificamos si var1 puede usar var2, o viceversa, de acuerdo a sus ámbitos
+		if (esAmbitoCompatible(ambitoVar1)) {
+			return true; // Ambas variables están en ámbitos compatibles
+		} else {
+			System.err.println("Error: No se puede usar la variable " + var1);
+			return false;
+		}
+	}
+
+
+
 	public boolean updateAmbito(String variable, StringBuilder nuevoAmbito) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) { 
@@ -77,8 +104,10 @@ public class SymbolTable {
 	        	return symbol.getAmbito();
 	        }
 	    }
-	    return "";
+	    return null;
 	}
+
+
 	public boolean contieneSymbolAmbito(String nombre, StringBuilder nuevoAmbito) {
 		Symbol simb= new Symbol(nombre,null,null,nuevoAmbito.toString());
 		return this.symbolMap.containsKey(simb);

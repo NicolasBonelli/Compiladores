@@ -318,6 +318,8 @@ salida: OUTF '(' T_CADENA ')' ';'
       | OUTF '(' ')' ';'  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta contenido en el OUTF");}
       ;
 
+
+
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' { 
 
         System.out.println("2do");
@@ -331,29 +333,75 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         double limiteInferior = subrango.getLimiteInferior(); /* Limite inferior */
         double limiteSuperior = subrango.getLimiteSuperior(); /* Limite superior */
         // Almacenar en la tabla de tipos
-        //FALTA CHEQUEAR MISMO TIPO
-        if (tipoBase.toLowerCase().equals("longint")){
-            long limiteInferiorLong = (long) limiteInferior; // Convertir a longint
-            long limiteSuperiorLong = (long) limiteSuperior; // Convertir a longint
-            this.st.insertTT(nombreTipo, new TipoSubrango(tipoBase, limiteInferiorLong, limiteSuperiorLong));
 
-        } else this.st.insertTT(nombreTipo, new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
-        //updatear uso
-        st.updateUse(nombreTipo, "Nombre de tipo");
+        if(st.contieneSymbolAmbito(nombreTipo,SymbolTable.ambitoGlobal)){
+            System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(4).sval);
+        }else{
 
+                //FALTA CHEQUEAR MISMO TIPO
+            if (tipoBase.toLowerCase().equals("longint")){
+                long limiteInferiorLong = (long) limiteInferior; // Convertir a longint
+                long limiteSuperiorLong = (long) limiteSuperior; // Convertir a longint
+                this.st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango(tipoBase, limiteInferiorLong, limiteSuperiorLong));
+
+            } else this.st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
+            //updatear uso
+            st.updateUse(nombreTipo, "Nombre de tipo");
+
+            if(st.getAmbitoByKey(nombreTipo).equals(" ")){
+                st.updateAmbito(nombreTipo,SymbolTable.ambitoGlobal);
+            }else{
+                st.addValue(nombreTipo,"String","Nombre de tipo",SymbolTable.ambitoGlobal.toString(), 278);
+            }
+        }
 
         }
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
             String nombreTipo = val_peek(1).sval; /* T_ID*/
-            //updatear uso
-            st.updateUse(nombreTipo, "Nombre de tipo de par");
-            st.insertTT(nombreTipo, new TipoSubrango("longint", -2147483647, 2147483647));
+
+
+
+            if(st.contieneSymbolAmbito(nombreTipo,SymbolTable.ambitoGlobal)){
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
+            }else{
+    
+                //FALTA CHEQUEAR MISMO TIPO
+                st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("longint", -2147483647, 2147483647));
+
+            
+                //updatear uso
+                st.updateUse(nombreTipo, "Nombre de tipo de par");
+    
+                if(st.getAmbitoByKey(nombreTipo).equals(" ")){
+                    st.updateAmbito(nombreTipo,SymbolTable.ambitoGlobal);
+                }else{
+                    st.addValue(nombreTipo,"String","Nombre de tipo de par",SymbolTable.ambitoGlobal.toString(), 278);
+                }
+            }
+
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
             String nombreTipo = val_peek(1).sval; /* T_ID*/
-            //updatear uso
-            st.updateUse(nombreTipo, "Nombre de tipo de par");
-            st.insertTT(nombreTipo, new TipoSubrango("double", -1.7976931348623157E+308, 1.7976931348623157E+308));		
+            
+            
+
+            if(st.contieneSymbolAmbito(nombreTipo,SymbolTable.ambitoGlobal)){
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
+            }else{
+    
+                //FALTA CHEQUEAR MISMO TIPO
+                st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("double", -1.7976931348623157E+308, 1.7976931348623157E+308));	
+                
+            
+                //updatear uso
+                st.updateUse(nombreTipo, "Nombre de tipo de par");
+    
+                if(st.getAmbitoByKey(nombreTipo).equals(" ")){
+                    st.updateAmbito(nombreTipo,SymbolTable.ambitoGlobal);
+                }else{
+                    st.addValue(nombreTipo,"String","Nombre de tipo de par",SymbolTable.ambitoGlobal.toString(), 278);
+                }
+            }
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaracion de tipo.");
@@ -506,7 +554,12 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 for (int i = 0; i < listaVariables.size(); i++) {
                     if (i < listaExpresiones.size()) {
                         String variable= listaVariables.get(i).toString();
+                        if (!st.getUse(variable).equals("Constante"))
+                            st.esUsoValidoAmbito(variable);
                         String expresion= listaExpresiones.get(i).toString();
+                        if (!st.getUse(expresion).equals("Constante"))
+                            st.esUsoValidoAmbito(expresion);
+
                         chequeoPares(variable,expresion);
                                                
                     } else {
@@ -518,7 +571,12 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
                     String variable= listaVariables.get(i).toString();
+                    if (!st.getUse(variable).equals("Constante"))
+                            st.esUsoValidoAmbito(variable);
+
                     String expresion= listaExpresiones.get(i).toString();
+                    if (!st.getUse(expresion).equals("Constante"))
+                            st.esUsoValidoAmbito(expresion);
                     chequeoPares(variable,expresion);
                        
                 }
@@ -526,7 +584,12 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 // Generar el código para cada asignación correspondiente
                 for (int i = 0; i < listaVariables.size(); i++) {
                     String variable= listaVariables.get(i).toString();
+                    if (!st.getUse(variable).equals("Constante"))
+                            st.esUsoValidoAmbito(variable);
+                            
                     String expresion= listaExpresiones.get(i).toString();
+                    if (!st.getUse(expresion).equals("Constante"))
+                            st.esUsoValidoAmbito(expresion);
                     chequeoPares(variable,expresion);
                 }
             }
@@ -843,10 +906,27 @@ boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
 public void chequeoPares(String variable, String expresion){
+    if (st.getUse(variable) == null && st.getUse(expresion) == null) {
+        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
+        System.out.println("Las variables: "+ variable + " " + expresion + " nunca fueron declaradas");
+
+    }
+    else
+    if (st.getUse(variable) == null) {
+        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
+        System.out.println("La variable: "+ variable + " nunca fue declarada");
+
+    } else if (st.getUse(expresion) == null) {
+        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
+        System.out.println("La variable: "+ expresion + " nunca fue declarada");
+
+    }
+
+    else 
     if((st.getUse(variable).equals("Nombre de variable par") &&!st.getUse(expresion).equals("Nombre de variable par"))
     ||(!st.getUse(variable).equals("Nombre de variable par") &&st.getUse(expresion).equals("Nombre de variable par"))){
         System.out.println("Warning: No se pueden utilizar los tipos pares en operaciones que conlleven tipos distintos ");        
-        System.out.println("Error en asignacion:"+variable + " := " + expresion + ";");
+        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
     }else{
         System.out.println(variable + " := " + expresion + ";");
     }

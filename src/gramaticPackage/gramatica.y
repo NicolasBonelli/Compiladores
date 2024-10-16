@@ -553,6 +553,7 @@ comparador:MENOR_IGUAL
            
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
         | IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {
+            
             // Obtener las listas de variables y expresiones
             List<String> listaVariables = (List<String>) val_peek(3).obj;
             List<String> listaExpresiones = (List<String>) val_peek(1).obj;
@@ -561,12 +562,20 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
             if (listaVariables.size() > listaExpresiones.size()) {
                 System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
+                    String variable= listaVariables.get(i).toString();
                     if (i < listaExpresiones.size()) {
-                        String variable= listaVariables.get(i).toString();
+                        
                         String expresion= listaExpresiones.get(i).toString();
+                        
+                        SymbolTable.aggPolaca(variable);
+                        SymbolTable.aggPolaca(":=");
+                        
                         chequeoPares(variable,expresion);                       
                     } else {
+                        SymbolTable.aggPolaca("0");
+                        SymbolTable.aggPolaca(variable);
                         // Asignar 0 a las variables sobrantes
+                        SymbolTable.aggPolaca(":=");
                         System.out.println(listaVariables.get(i).toString() + " := 0;");
                     }
                 }
@@ -575,14 +584,19 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 for (int i = 0; i < listaVariables.size(); i++) {
                     String variable= listaVariables.get(i).toString();
                     String expresion= listaExpresiones.get(i).toString();
+                    
+                    SymbolTable.aggPolaca(variable);
+                    SymbolTable.aggPolaca(":=");
                     chequeoPares(variable,expresion);
                        
                 }
             } else {
                 // Generar el código para cada asignación correspondiente
                 for (int i = 0; i < listaVariables.size(); i++) {
-                    String variable= listaVariables.get(i).toString();    
+                    String variable= listaVariables.get(i).toString();
                     String expresion= listaExpresiones.get(i).toString();
+                    SymbolTable.aggPolaca(variable);
+                    SymbolTable.aggPolaca(":=");
                     chequeoPares(variable,expresion);
                 }
             }
@@ -608,6 +622,7 @@ expresion_list:
              
 
 IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
+                
                 // Agregar el identificador a la lista
                 st.esUsoValidoAmbito(val_peek(0).sval);
                 List<String> lista = (List<String>) val_peek(2).obj;
@@ -621,6 +636,7 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
                 yyval.obj = lista;
             } 
             | T_ID {
+                
                 st.esUsoValidoAmbito(val_peek(0).sval);
                 // Crear lista con el primer identificador
                 List<String> lista = new ArrayList<>();
@@ -667,7 +683,6 @@ invocacion_funcion: T_ID '(' parametro_real ')' {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
             }
             st.esUsoValidoAmbito(val_peek(3).sval);
-            
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
         } else {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
@@ -686,28 +701,38 @@ parametro_real: expresion_aritmetica {
 
 expresion_aritmetica:
       expresion_aritmetica '+' expresion_aritmetica {
-          yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("+");
+        yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
       }
     | expresion_aritmetica '-' expresion_aritmetica {
-          yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("-");
+        yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
       }
     | expresion_aritmetica '*' expresion_aritmetica {
-          yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("*");
+        yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
       }
     | expresion_aritmetica '/' expresion_aritmetica {
-          yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("/");
+        yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
       }
     | T_CTE {
-          yyval.sval = val_peek(0).sval;  // La constante como cadena
+        
+        yyval.sval = val_peek(0).sval;  // La constante como cadena
       }
     | T_ID {
-          yyval.sval = val_peek(0).sval;  // El identificador como cadena
+        
+        yyval.sval = val_peek(0).sval;  // El identificador como cadena
       }
     | acceso_par {
-          yyval.sval = val_peek(0).sval;  // El resultado del acceso
+        yyval.sval = val_peek(0).sval;  // El resultado del acceso
       }
     | unaria {
-          yyval.sval = val_peek(0).sval;  // El valor unario
+        yyval.sval = val_peek(0).sval;  // El valor unario
       }
 ;
 
@@ -716,6 +741,8 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("+");
             // Devuelve la expresión como una cadena que representa la suma
             yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
         }
@@ -723,6 +750,8 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("-");
             // Devuelve la expresión como una cadena que representa la resta
             yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
         }
@@ -730,6 +759,8 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("*");
             // Devuelve la expresión como una cadena que representa la multiplicación
             yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
         }
@@ -737,14 +768,18 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("/");
             // Devuelve la expresión como una cadena que representa la división
             yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
         }
     |   T_CTE {
+            
             // Devuelve el valor de la constante como cadena
             yyval.sval = val_peek(0).sval;
         }
     |   T_ID {
+             
             // Devuelve el identificador como cadena
             st.esUsoValidoAmbito(val_peek(0).sval);
             yyval.sval = val_peek(0).sval;
@@ -765,6 +800,8 @@ expresion:
     ;
 
 unaria: '-' T_CTE { 
+    SymbolTable.aggPolaca(val_peek(0).sval);
+    SymbolTable.aggPolaca("-");
     double valor = val_peek(0).dval;  
     // Devuelve el valor unario con el signo negativo
     yyval.sval = "-" + val_peek(0).sval;

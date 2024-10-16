@@ -16,11 +16,18 @@ public class SymbolTable {
 	public static final int tagValue=280;
 	private Map<String, TipoSubrango> tablaTipos;
 	private Map<String, CaracteristicaFuncion> tablaFuncion;
-	private  List<Integer> posicionesPolaca = new ArrayList<>();
-	private  List<String> polaca = new ArrayList<>();
-	private  Stack<Integer> pila = new Stack<>();
-	public static  StringBuilder ambitoGlobal = new StringBuilder();
-
+	public static  List<Integer> posicionesPolaca = new ArrayList<>();
+    public static  List<String> polaca = new ArrayList<>();
+    public static  Stack<Integer> pila = new Stack<>();
+    public static  StringBuilder ambitoGlobal = new StringBuilder();
+    private static int posActualPolaca;
+    
+    
+    public static void aggPolaca(String valor){
+        polaca.add(valor);
+        posicionesPolaca.add(posActualPolaca);
+        posActualPolaca+=1;
+    }
 	public boolean updateUse(String variable, String newUse) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) {
@@ -88,7 +95,12 @@ public class SymbolTable {
 	}
 
 
+	public void imprimirTablaTipos() {
 
+        System.out.println(this.tablaTipos);
+        System.out.println(polaca); System.out.println(posicionesPolaca);
+
+      }
 	public boolean updateAmbito(String variable, StringBuilder nuevoAmbito) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) { 
@@ -153,12 +165,7 @@ public class SymbolTable {
 	    return sb.toString();
 	}
 
-	public void imprimirTablaTipos() {
-
-		System.out.println(this.tablaTipos);  
-	  
-	  }
-
+	
 	  public boolean containsKeyTT(String tipo){
 		return this.tablaTipos.containsKey(tipo);
 	  }
@@ -166,7 +173,7 @@ public class SymbolTable {
 	  public void insertTT(String nombreTipo, TipoSubrango tipoSubrango){
 		this.tablaTipos.put(nombreTipo, tipoSubrango);
 	  }
-
+	
 	  public TipoSubrango getTipoSubrango(String nombreTipo){
 		return this.tablaTipos.get(nombreTipo);
 	  }

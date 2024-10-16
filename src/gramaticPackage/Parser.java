@@ -729,7 +729,7 @@ final static String yyrule[] = {
 "unaria : '-' T_CTE",
 };
 
-//#line 840 "gramatica.y"
+//#line 880 "gramatica.y"
 
 public void yyerror(String s) {
     System.err.println("Error en linea: " + Lexer.nmrLinea + " String: " +s);
@@ -1680,6 +1680,7 @@ break;
 case 104:
 //#line 555 "gramatica.y"
 {
+            
             /* Obtener las listas de variables y expresiones*/
             List<String> listaVariables = (List<String>) val_peek(3).obj;
             List<String> listaExpresiones = (List<String>) val_peek(1).obj;
@@ -1688,12 +1689,20 @@ case 104:
             if (listaVariables.size() > listaExpresiones.size()) {
                 System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
                 for (int i = 0; i < listaVariables.size(); i++) {
+                    String variable= listaVariables.get(i).toString();
                     if (i < listaExpresiones.size()) {
-                        String variable= listaVariables.get(i).toString();
+                        
                         String expresion= listaExpresiones.get(i).toString();
+                        SymbolTable.aggPolaca(expresion);
+                        SymbolTable.aggPolaca(variable);
+                        SymbolTable.aggPolaca(":=");
+                        
                         chequeoPares(variable,expresion);                       
                     } else {
+                        SymbolTable.aggPolaca("0");
+                        SymbolTable.aggPolaca(variable);
                         /* Asignar 0 a las variables sobrantes*/
+                        SymbolTable.aggPolaca(":=");
                         System.out.println(listaVariables.get(i).toString() + " := 0;");
                     }
                 }
@@ -1702,25 +1711,33 @@ case 104:
                 for (int i = 0; i < listaVariables.size(); i++) {
                     String variable= listaVariables.get(i).toString();
                     String expresion= listaExpresiones.get(i).toString();
+                    SymbolTable.aggPolaca(expresion);
+                    SymbolTable.aggPolaca(variable);
+                    SymbolTable.aggPolaca(":=");
                     chequeoPares(variable,expresion);
                        
                 }
             } else {
                 /* Generar el código para cada asignación correspondiente*/
                 for (int i = 0; i < listaVariables.size(); i++) {
-                    String variable= listaVariables.get(i).toString();    
+                    String variable= listaVariables.get(i).toString();
+                      
                     String expresion= listaExpresiones.get(i).toString();
+                    SymbolTable.aggPolaca(expresion);
+                    SymbolTable.aggPolaca(variable);
+                    SymbolTable.aggPolaca(":=");
+                    
                     chequeoPares(variable,expresion);
                 }
             }
         }
 break;
 case 105:
-//#line 591 "gramatica.y"
+//#line 608 "gramatica.y"
 { System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta lado derecho de la asignacion"); }
 break;
 case 106:
-//#line 595 "gramatica.y"
+//#line 612 "gramatica.y"
 {
            /* Crear una nueva lista con una sola expresión*/
            List<String> lista = new ArrayList<>();
@@ -1729,7 +1746,7 @@ case 106:
         }
 break;
 case 107:
-//#line 601 "gramatica.y"
+//#line 618 "gramatica.y"
 {
             /* Agregar la expresión a la lista existente*/
             List<String> lista = (List<String>) val_peek(2).obj;
@@ -1738,8 +1755,9 @@ case 107:
         }
 break;
 case 108:
-//#line 610 "gramatica.y"
+//#line 627 "gramatica.y"
 {
+                
                 /* Agregar el identificador a la lista*/
                 st.esUsoValidoAmbito(val_peek(0).sval);
                 List<String> lista = (List<String>) val_peek(2).obj;
@@ -1748,7 +1766,7 @@ case 108:
             }
 break;
 case 109:
-//#line 617 "gramatica.y"
+//#line 635 "gramatica.y"
 {
                  /* Agregar acceso_par (acceso a atributos o elementos) a la lista*/
                 List<String> lista = (List<String>) val_peek(2).obj;
@@ -1757,8 +1775,9 @@ case 109:
             }
 break;
 case 110:
-//#line 623 "gramatica.y"
+//#line 641 "gramatica.y"
 {
+                
                 st.esUsoValidoAmbito(val_peek(0).sval);
                 /* Crear lista con el primer identificador*/
                 List<String> lista = new ArrayList<>();
@@ -1767,7 +1786,7 @@ case 110:
             }
 break;
 case 111:
-//#line 630 "gramatica.y"
+//#line 649 "gramatica.y"
 {
                 /* Crear una nueva lista con acceso_par*/
                 List<String> lista = new ArrayList<>();
@@ -1776,19 +1795,19 @@ case 111:
             }
 break;
 case 112:
-//#line 636 "gramatica.y"
+//#line 655 "gramatica.y"
 { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
 break;
 case 113:
-//#line 637 "gramatica.y"
+//#line 656 "gramatica.y"
 { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
 break;
 case 114:
-//#line 638 "gramatica.y"
+//#line 657 "gramatica.y"
 { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");}
 break;
 case 115:
-//#line 643 "gramatica.y"
+//#line 662 "gramatica.y"
 {
             
         if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
@@ -1801,27 +1820,27 @@ case 115:
     }
 break;
 case 116:
-//#line 653 "gramatica.y"
+//#line 672 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " Se debe utilizar el indice 1 o 2 para acceder a los pares");}
 break;
 case 117:
-//#line 654 "gramatica.y"
+//#line 673 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " Se utilizan las llaves para acceder a los pares");}
 break;
 case 119:
-//#line 658 "gramatica.y"
+//#line 677 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); }
 break;
 case 120:
-//#line 659 "gramatica.y"
+//#line 678 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");}
 break;
 case 121:
-//#line 660 "gramatica.y"
+//#line 679 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");}
 break;
 case 122:
-//#line 663 "gramatica.y"
+//#line 682 "gramatica.y"
 {
         /* Verifica que el parámetro no sea nulo antes de intentar convertirlo a cadena*/
         if (val_peek(1).sval != null) {
@@ -1829,7 +1848,6 @@ case 122:
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
             }
             st.esUsoValidoAmbito(val_peek(3).sval);
-            
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
         } else {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
@@ -1838,149 +1856,171 @@ case 122:
     }
 break;
 case 123:
-//#line 677 "gramatica.y"
+//#line 695 "gramatica.y"
 {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocacion a funcion mal definida"); 
         }
 break;
 case 124:
-//#line 682 "gramatica.y"
+//#line 700 "gramatica.y"
 {
     /* Asegúrate de que el valor de la expresión aritmética se pase correctamente hacia arriba*/
     yyval.sval = val_peek(0).sval;
 }
 break;
 case 125:
-//#line 688 "gramatica.y"
+//#line 706 "gramatica.y"
 {
-          yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("+");
+        yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
       }
 break;
 case 126:
-//#line 691 "gramatica.y"
+//#line 711 "gramatica.y"
 {
-          yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("-");
+        yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
       }
 break;
 case 127:
-//#line 694 "gramatica.y"
+//#line 716 "gramatica.y"
 {
-          yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("*");
+        yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
       }
 break;
 case 128:
-//#line 697 "gramatica.y"
+//#line 721 "gramatica.y"
 {
-          yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
+        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+        SymbolTable.aggPolaca("/");
+        yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
       }
 break;
 case 129:
-//#line 700 "gramatica.y"
+//#line 726 "gramatica.y"
 {
-          yyval.sval = val_peek(0).sval;  /* La constante como cadena*/
+        
+        yyval.sval = val_peek(0).sval;  /* La constante como cadena*/
       }
 break;
 case 130:
-//#line 703 "gramatica.y"
+//#line 730 "gramatica.y"
 {
-          yyval.sval = val_peek(0).sval;  /* El identificador como cadena*/
+        
+        yyval.sval = val_peek(0).sval;  /* El identificador como cadena*/
       }
 break;
 case 131:
-//#line 706 "gramatica.y"
+//#line 734 "gramatica.y"
 {
-          yyval.sval = val_peek(0).sval;  /* El resultado del acceso*/
+        yyval.sval = val_peek(0).sval;  /* El resultado del acceso*/
       }
 break;
 case 132:
-//#line 709 "gramatica.y"
+//#line 737 "gramatica.y"
 {
-          yyval.sval = val_peek(0).sval;  /* El valor unario*/
+        yyval.sval = val_peek(0).sval;  /* El valor unario*/
       }
 break;
 case 133:
-//#line 715 "gramatica.y"
+//#line 743 "gramatica.y"
 {
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("+");
             /* Devuelve la expresión como una cadena que representa la suma*/
             yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
         }
 break;
 case 134:
-//#line 722 "gramatica.y"
+//#line 752 "gramatica.y"
 {
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("-");
             /* Devuelve la expresión como una cadena que representa la resta*/
             yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
         }
 break;
 case 135:
-//#line 729 "gramatica.y"
+//#line 761 "gramatica.y"
 {
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("*");
             /* Devuelve la expresión como una cadena que representa la multiplicación*/
             yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
         }
 break;
 case 136:
-//#line 736 "gramatica.y"
+//#line 770 "gramatica.y"
 {
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
+            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("/");
             /* Devuelve la expresión como una cadena que representa la división*/
             yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
         }
 break;
 case 137:
-//#line 743 "gramatica.y"
+//#line 779 "gramatica.y"
 {
+            
             /* Devuelve el valor de la constante como cadena*/
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 138:
-//#line 747 "gramatica.y"
+//#line 784 "gramatica.y"
 {
+             
             /* Devuelve el identificador como cadena*/
             st.esUsoValidoAmbito(val_peek(0).sval);
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 139:
-//#line 752 "gramatica.y"
+//#line 790 "gramatica.y"
 {
             /* Devuelve el resultado del acceso a un parámetro*/
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 140:
-//#line 756 "gramatica.y"
+//#line 794 "gramatica.y"
 {
             /* Devuelve el resultado de la invocación de una función*/
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 141:
-//#line 760 "gramatica.y"
+//#line 798 "gramatica.y"
 {
             /* Devuelve la expresión unaria*/
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 142:
-//#line 764 "gramatica.y"
+//#line 802 "gramatica.y"
 {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
 break;
 case 143:
-//#line 767 "gramatica.y"
+//#line 805 "gramatica.y"
 { 
+    SymbolTable.aggPolaca(val_peek(0).sval);
+    SymbolTable.aggPolaca("-");
     double valor = val_peek(0).dval;  
     /* Devuelve el valor unario con el signo negativo*/
     yyval.sval = "-" + val_peek(0).sval;
@@ -2052,7 +2092,7 @@ case 143:
     }
 }
 break;
-//#line 1979 "Parser.java"
+//#line 2019 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

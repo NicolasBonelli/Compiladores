@@ -558,50 +558,48 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
             List<String> listaVariables = (List<String>) val_peek(3).obj;
             List<String> listaExpresiones = (List<String>) val_peek(1).obj;
 
-            // Verificar si hay más variables que expresiones
-            if (listaVariables.size() > listaExpresiones.size()) {
-                System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
-                for (int i = 0; i < listaVariables.size(); i++) {
-                    String variable= listaVariables.get(i).toString();
-                    if (i < listaExpresiones.size()) {
-                        
+            if (listaVariables != null){ 
+                // Verificar si hay más variables que expresiones
+                if (listaVariables.size() > listaExpresiones.size()) {
+                    System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
+                    for (int i = 0; i < listaVariables.size(); i++) {
+                        String variable= listaVariables.get(i).toString();
+                        if (i < listaExpresiones.size()) {
+                            String expresion= listaExpresiones.get(i).toString();
+                            chequeoPares(variable,expresion);                       
+                        } else {
+                            SymbolTable.aggPolaca("0");
+                            
+                            System.out.println(listaVariables.get(i).toString() + " := 0;");
+                        }
+                        SymbolTable.aggPolaca(variable);
+                        // Asignar 0 a las variables sobrantes
+                        SymbolTable.aggPolaca(":=");
+                    }
+                } else if (listaVariables.size() < listaExpresiones.size()) {
+                    System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
+                    for (int i = 0; i < listaVariables.size(); i++) {
+                        String variable= listaVariables.get(i).toString();
                         String expresion= listaExpresiones.get(i).toString();
                         
                         SymbolTable.aggPolaca(variable);
                         SymbolTable.aggPolaca(":=");
+                        chequeoPares(variable,expresion);
                         
-                        chequeoPares(variable,expresion);                       
-                    } else {
-                        SymbolTable.aggPolaca("0");
+                    }
+                } else {
+                    // Generar el código para cada asignación correspondiente
+                    for (int i = 0; i < listaVariables.size(); i++) {
+                        String variable= listaVariables.get(i).toString();
+                        String expresion= listaExpresiones.get(i).toString();
+                        System.out.println("expresion: " + expresion);
                         SymbolTable.aggPolaca(variable);
-                        // Asignar 0 a las variables sobrantes
                         SymbolTable.aggPolaca(":=");
-                        System.out.println(listaVariables.get(i).toString() + " := 0;");
+                        chequeoPares(variable,expresion);
                     }
                 }
-            } else if (listaVariables.size() < listaExpresiones.size()) {
-                System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
-                for (int i = 0; i < listaVariables.size(); i++) {
-                    String variable= listaVariables.get(i).toString();
-                    String expresion= listaExpresiones.get(i).toString();
-                    
-                    SymbolTable.aggPolaca(variable);
-                    SymbolTable.aggPolaca(":=");
-                    chequeoPares(variable,expresion);
-                       
-                }
-            } else {
-                // Generar el código para cada asignación correspondiente
-                for (int i = 0; i < listaVariables.size(); i++) {
-                    String variable= listaVariables.get(i).toString();
-                    String expresion= listaExpresiones.get(i).toString();
-                    SymbolTable.aggPolaca(variable);
-                    SymbolTable.aggPolaca(":=");
-                    chequeoPares(variable,expresion);
-                }
-            }
         }
-
+    }
         | IDENTIFIER_LIST T_ASIGNACION ';'{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta lado derecho de la asignacion"); }
         ;
 
@@ -652,17 +650,21 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
             | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
             | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //no anda
             | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
+            | T_CTE {System.err.println("No puede haber constantes a la izquierda en la asignacion");}
+            | IDENTIFIER_LIST ',' T_CTE {System.err.println("No puede haber constantes a la izquierda en la asignacion");}
             ;
 
 
 acceso_par: 
     T_ID '{' T_CTE '}' {
-            
+
         if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
             yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
         } else {
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "{" + val_peek(1).sval + "}";
+            SymbolTable.aggPolaca(val_peek(3).sval + "{" + val_peek(1).sval + "}"); 
+
         }
         
     }
@@ -684,6 +686,8 @@ invocacion_funcion: T_ID '(' parametro_real ')' {
             }
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
+            SymbolTable.aggPolaca(val_peek(3).sval + "(" + val_peek(1).sval + ")"); 
+
         } else {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
             yyval.sval = val_peek(3).sval + "()";  // Asume que no hay parámetros si es nulo
@@ -701,31 +705,27 @@ parametro_real: expresion_aritmetica {
 
 expresion_aritmetica:
       expresion_aritmetica '+' expresion_aritmetica {
-        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
         SymbolTable.aggPolaca("+");
         yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
       }
     | expresion_aritmetica '-' expresion_aritmetica {
-        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
         SymbolTable.aggPolaca("-");
         yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
       }
     | expresion_aritmetica '*' expresion_aritmetica {
-        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
         SymbolTable.aggPolaca("*");
         yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
       }
     | expresion_aritmetica '/' expresion_aritmetica {
-        SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
         SymbolTable.aggPolaca("/");
         yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
       }
     | T_CTE {
-        
+        SymbolTable.aggPolaca(val_peek(0).sval);
         yyval.sval = val_peek(0).sval;  // La constante como cadena
       }
     | T_ID {
-        
+        SymbolTable.aggPolaca(val_peek(0).sval);
         yyval.sval = val_peek(0).sval;  // El identificador como cadena
       }
     | acceso_par {
@@ -741,7 +741,6 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
-            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
             SymbolTable.aggPolaca("+");
             // Devuelve la expresión como una cadena que representa la suma
             yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
@@ -750,7 +749,6 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
-            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
             SymbolTable.aggPolaca("-");
             // Devuelve la expresión como una cadena que representa la resta
             yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
@@ -759,7 +757,6 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
-            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
             SymbolTable.aggPolaca("*");
             // Devuelve la expresión como una cadena que representa la multiplicación
             yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
@@ -768,18 +765,17 @@ expresion:
             if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
-            SymbolTable.aggPolaca(val_peek(2).sval); SymbolTable.aggPolaca(val_peek(0).sval);
             SymbolTable.aggPolaca("/");
             // Devuelve la expresión como una cadena que representa la división
             yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
         }
     |   T_CTE {
-            
+            SymbolTable.aggPolaca(val_peek(0).sval);
             // Devuelve el valor de la constante como cadena
             yyval.sval = val_peek(0).sval;
         }
     |   T_ID {
-             
+              SymbolTable.aggPolaca(val_peek(0).sval);
             // Devuelve el identificador como cadena
             st.esUsoValidoAmbito(val_peek(0).sval);
             yyval.sval = val_peek(0).sval;

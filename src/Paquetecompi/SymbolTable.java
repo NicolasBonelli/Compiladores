@@ -40,7 +40,7 @@ public class SymbolTable {
 	public String getUse(String variable) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) {
-	           
+				System.out.println("Nombre simbolo: "+symbol.getNombre() + " Uso: "+ symbol.getUso());
 	            return symbol.getUso(); 
 	        }
 	    }
@@ -84,7 +84,7 @@ public class SymbolTable {
 			System.out.println("Error: "+var1 +" no está declarada en ningún ámbito");
 			return false;
 		}
-	
+		
 		// Verificamos si var1 puede usar var2, o viceversa, de acuerdo a sus ámbitos
 		if (esAmbitoCompatible(ambitoVar1)) {
 			return true; // Ambas variables están en ámbitos compatibles
@@ -92,6 +92,7 @@ public class SymbolTable {
 			System.err.println("Error: "+ var1 +" nunca ha sido declarada");
 			return false;
 		}
+
 	}
 
 

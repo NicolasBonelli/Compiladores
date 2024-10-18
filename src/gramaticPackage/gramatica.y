@@ -245,8 +245,7 @@ repeat_sentencia: bloque_sentencias
 tipo: DOUBLE { yyval.sval = "double"; }
     | LONGINT { yyval.sval = "longint"; }
     | T_ID
-    {
-        
+    {  
         /* Verificando si el tipo esta en la tabla de tipos definidos*/
         
         if (st.containsKeyTT(val_peek(0).sval+":"+SymbolTable.ambitoGlobal.toString())) {
@@ -257,28 +256,53 @@ tipo: DOUBLE { yyval.sval = "double"; }
     };
     
 
+bloque_THEN: THEN repeat_sentencia {
+    
+        int posicion = SymbolTable.pila.pop();
+        SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
+        SymbolTable.pila.push(SymbolTable.polaca.size());
 
-if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
-            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';'
-            | IF '(' condicion ')' THEN repeat_sentencia repeat_sentencia END_IF ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ELSE en el IF");}
-            | IF '(' condicion ')' THEN repeat_sentencia END_IF {
+
+};
+
+
+bloque_THEN_CON_ELSE: THEN repeat_sentencia {
+    
+    int posicion = SymbolTable.pila.pop();
+    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()+2));
+    SymbolTable.pila.push(SymbolTable.polaca.size());
+    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI");
+
+};
+bloque_ELSE: ELSE repeat_sentencia {
+    int posicion = SymbolTable.pila.pop();
+    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
+
+};
+
+
+
+if_statement: IF '(' condicion ')' bloque_THEN END_IF ';' 
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';'
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE repeat_sentencia END_IF ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ELSE en el IF");}
+            | IF '(' condicion ')' bloque_THEN END_IF {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
             }
-            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF  {
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF  {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
             }
             
-            | IF '('  ')' THEN repeat_sentencia END_IF ';' {
+            | IF '('  ')' bloque_THEN END_IF ';' {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
             }
-            | IF '('  ')' THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {
+            | IF '('  ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';' {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
             }
 
-            | IF '('condicion  ')'  repeat_sentencia END_IF ';' {
+            | IF '('condicion ')'  repeat_sentencia END_IF ';' {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
             }
-            | IF '(' condicion ')'  repeat_sentencia ELSE repeat_sentencia END_IF ';' {
+            | IF '(' condicion ')'  repeat_sentencia bloque_ELSE END_IF ';' {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
             }
             
@@ -288,28 +312,33 @@ if_statement: IF '(' condicion ')' THEN repeat_sentencia END_IF ';'
             | IF '(' condicion ')' THEN   ELSE  END_IF ';' {
                 System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
             }
-            | IF  condicion  THEN repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF  condicion  THEN repeat_sentencia ELSE repeat_sentencia END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF '(' condicion ')' THEN repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
-            | IF '(' condicion ')' THEN repeat_sentencia ELSE repeat_sentencia error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF  condicion  bloque_THEN END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
+            | IF  condicion  bloque_THEN_CON_ELSE bloque_ELSE END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
+            | IF '(' condicion ')' bloque_THEN error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
             
             ;
             
             
+inicio_while: REPEAT {SymbolTable.pila.push(SymbolTable.polaca.size());};
 
-
-repeat_while_statement: REPEAT repeat_sentencia WHILE '(' condicion ')' ';'
-    | REPEAT repeat_sentencia WHILE '(' condicion ')' {
+repeat_while_statement: inicio_while repeat_sentencia WHILE '(' condicion ')' ';' {
+    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI");
+    int posicion = SymbolTable.pila.pop();
+    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
+    SymbolTable.polaca.set(SymbolTable.polaca.size()-2, String.valueOf(SymbolTable.pila.pop()));
+    }
+    | inicio_while repeat_sentencia WHILE '(' condicion ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia WHILE.");
     }
-    | REPEAT WHILE '(' condicion ')' {
+    | inicio_while WHILE '(' condicion ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaracion REPEAT.");
     }
-    | REPEAT repeat_sentencia WHILE '('  ')' ';'{
+    | inicio_while repeat_sentencia WHILE '('  ')' ';'{
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del WHILE.");
     }
-    | REPEAT repeat_sentencia WHILE  condicion  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta () en la sentencia while");}
-    | REPEAT repeat_sentencia error '(' condicion ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta while en el bucle repeat");}
+    | inicio_while repeat_sentencia WHILE  condicion  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta () en la sentencia while");}
+    | inicio_while repeat_sentencia error '(' condicion ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta while en el bucle repeat");}
     ;
 
 
@@ -536,18 +565,21 @@ subrango: '{' T_CTE ',' T_CTE '}'{
     };
 
 
-condicion: expresion comparador expresion 
+condicion: expresion comparador expresion {
+    SymbolTable.aggPolaca(val_peek(1).sval);
+    SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("");  SymbolTable.aggPolaca("BF"); 
+}
          | expresion error expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta comparador en la condicion");}
          | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 2da expresion en la condicion");}
          | comparador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 1ra expresion en la condicion");}
          ;
 
-comparador:MENOR_IGUAL  
-        |MAYOR_IGUAL 
-        |DISTINTO 
-        |'=' 
-        |'<' 
-        |'>' 
+comparador:MENOR_IGUAL  {yyval.sval = "<=" ;}
+        |MAYOR_IGUAL {yyval.sval = ">=";}
+        |DISTINTO {yyval.sval = "!=";}
+        |'=' {yyval.sval = "=";}
+        |'<' {yyval.sval = "<";}
+        |'>' {yyval.sval = ">";}
         ;
 
            
@@ -557,33 +589,47 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
             // Obtener las listas de variables y expresiones
             List<String> listaVariables = (List<String>) val_peek(3).obj;
             List<String> listaExpresiones = (List<String>) val_peek(1).obj;
-
+            st.imprimirTablaTipos();
             if (listaVariables != null){ 
                 // Verificar si hay más variables que expresiones
                 if (listaVariables.size() > listaExpresiones.size()) {
                     System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
                     for (int i = 0; i < listaVariables.size(); i++) {
-                        String variable= listaVariables.get(i).toString();
+                        String variable = listaVariables.get(i).toString();
                         if (i < listaExpresiones.size()) {
                             String expresion= listaExpresiones.get(i).toString();
+                            
                             chequeoPares(variable,expresion);                       
                         } else {
                             SymbolTable.aggPolaca("0");
                             
                             System.out.println(listaVariables.get(i).toString() + " := 0;");
                         }
-                        SymbolTable.aggPolaca(variable);
-                        // Asignar 0 a las variables sobrantes
-                        SymbolTable.aggPolaca(":=");
+
+                        for (int j = 0; j < SymbolTable.polaca.size(); j++) {
+                            if (SymbolTable.polaca.get(j).equals(" ")) {
+                                SymbolTable.polaca.set(j, variable);
+                                SymbolTable.polaca.set(j+1, ":=");
+
+                                break;  // Salir del loop una vez que reemplace el primer espacio
+                            }
+                        }
                     }
                 } else if (listaVariables.size() < listaExpresiones.size()) {
                     System.out.println("Warning: Hay más expresiones que variables. Se descartarán las expresiones sobrantes.");
                     for (int i = 0; i < listaVariables.size(); i++) {
                         String variable= listaVariables.get(i).toString();
                         String expresion= listaExpresiones.get(i).toString();
-                        
-                        SymbolTable.aggPolaca(variable);
-                        SymbolTable.aggPolaca(":=");
+                        // Buscar el primer espacio vacío y reemplazarlo con la variable
+                        for (int j = 0; j < SymbolTable.polaca.size(); j++) {
+                            if (SymbolTable.polaca.get(j).equals(" ")) {
+                                SymbolTable.polaca.set(j, variable);
+                                SymbolTable.polaca.set(j+1, ":=");
+
+                                break;  // Salir del loop una vez que reemplace el primer espacio
+                            }
+                        }
+
                         chequeoPares(variable,expresion);
                         
                     }
@@ -593,8 +639,16 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                         String variable= listaVariables.get(i).toString();
                         String expresion= listaExpresiones.get(i).toString();
                         System.out.println("expresion: " + expresion);
-                        SymbolTable.aggPolaca(variable);
-                        SymbolTable.aggPolaca(":=");
+                        
+                        // Buscar el primer espacio vacío y reemplazarlo con la variable
+                        for (int j = 0; j < SymbolTable.polaca.size(); j++) {
+                            if (SymbolTable.polaca.get(j).equals(" ")) {
+                                SymbolTable.polaca.set(j, variable);
+                                SymbolTable.polaca.set(j+1, ":=");
+                                break;  // Salir del loop una vez que reemplace el primer espacio
+                            }
+                        }
+
                         chequeoPares(variable,expresion);
                     }
                 }
@@ -605,12 +659,16 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
 
 expresion_list:
         expresion {
+            SymbolTable.aggPolaca(" "); SymbolTable.aggPolaca(" ");
+
            // Crear una nueva lista con una sola expresión
            List<String> lista = new ArrayList<>();
            lista.add(val_peek(0).sval);  // Almacenar la expresión como cadena de texto
            yyval.obj = lista;
         }
     |   expresion_list ',' expresion {
+            SymbolTable.aggPolaca(" "); SymbolTable.aggPolaca(" ");
+
             // Agregar la expresión a la lista existente
             List<String> lista = (List<String>) val_peek(2).obj;
             lista.add(val_peek(0).sval);  // Almacenar la nueva expresión
@@ -738,7 +796,7 @@ expresion_aritmetica:
 
 expresion:
         expresion '+' expresion {
-            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("+");
@@ -746,7 +804,7 @@ expresion:
             yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
         }
     |   expresion '-' expresion {
-            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("-");
@@ -754,7 +812,7 @@ expresion:
             yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
         }
     |   expresion '*' expresion {
-            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("*");
@@ -762,7 +820,7 @@ expresion:
             yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
         }
     |   expresion '/' expresion {
-            if(isPair(val_peek(0).sval)|| isPair(val_peek(2).sval)){
+            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("/");
@@ -775,7 +833,7 @@ expresion:
             yyval.sval = val_peek(0).sval;
         }
     |   T_ID {
-              SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca(val_peek(0).sval);
             // Devuelve el identificador como cadena
             st.esUsoValidoAmbito(val_peek(0).sval);
             yyval.sval = val_peek(0).sval;

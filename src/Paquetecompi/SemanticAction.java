@@ -185,8 +185,10 @@ class AS7 extends SemanticAction {//TABLA PALABRA RESERVADAS
 		    lex.insertSymbolTable(cadenaSinSaltos, "String","Cadena multilinea"," ", SymbolTable.stringValue);
 		    valor = SymbolTable.stringValue;
 		}else if(currentChar == '@') {
-    		lex.insertSymbolTable(lexeme.toString(),"String","Nombre de etiqueta"," ",SymbolTable.tagValue);
-    		valor = SymbolTable.tagValue;
+			if (!lex.containsSymbol(lexeme.toString())) {
+				lex.insertSymbolTable(lexeme.toString(),"String","Nombre de etiqueta"," ",SymbolTable.tagValue);
+			}
+			valor = SymbolTable.tagValue;
     	}
     	else {
     		valor = lex.getReservedWordToken(lexeme.toString());

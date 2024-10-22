@@ -19,9 +19,65 @@ public class SymbolTable {
 	public static  List<Integer> posicionesPolaca = new ArrayList<>();
     public static  List<String> polaca = new ArrayList<>();
     public static  Stack<Integer> pila = new Stack<>();
+    public static  Stack<TipoEtiqueta> pilaGotos = new Stack<>();
+    public static  Stack<TipoEtiqueta> pilaEtiquetas = new Stack<>();
     public static  StringBuilder ambitoGlobal = new StringBuilder();
     private static int posActualPolaca;
     
+    public void aggPilaGotos(TipoEtiqueta valor){
+    	SymbolTable.pilaGotos.push(valor);
+    }
+    public void aggPilaEtiquetas(TipoEtiqueta valor){
+        SymbolTable.pilaEtiquetas.push(valor);
+    }
+    public boolean containsTypeEtiquetas(TipoEtiqueta valor) {
+    	return SymbolTable.pilaEtiquetas.contains(valor);
+    }
+    public boolean containsTypeGotos(TipoEtiqueta valor) {
+    	return SymbolTable.pilaGotos.contains(valor);
+    }
+    public int popFirstOccurrenceByNameGotos(String nombre) {
+        Stack<TipoEtiqueta> pilaAuxiliar = new Stack<>(); // Pila auxiliar para mantener los elementos
+        int posicion = -1; // Inicializa la posición como no encontrada
+
+        // Recorrer la pila y encontrar la primera ocurrencia
+        while (!pilaGotos.isEmpty()) {
+            TipoEtiqueta actual = pilaGotos.pop();
+            if (actual.getNombre().equals(nombre)&& actual.getAmbito().startsWith(SymbolTable.ambitoGlobal.toString()) && posicion == -1) {
+                posicion = actual.getposicion(); // Guarda la posición del elemento que se va a remover
+                break; // Sale del loop una vez encontrada la primera ocurrencia
+            }
+            pilaAuxiliar.push(actual); // Guarda los elementos que no son el que buscamos
+        }
+
+        // Vuelve a colocar los elementos en la pila original (excepto el eliminado)
+        while (!pilaAuxiliar.isEmpty()) {
+            pilaGotos.push(pilaAuxiliar.pop());
+        }
+
+        return posicion; // Retorna la posición del elemento eliminado, o -1 si no lo encontró
+    }
+    public int popFirstOccurrenceByNameEtiquetas(String nombre) {
+        Stack<TipoEtiqueta> pilaAuxiliar = new Stack<>(); // Pila auxiliar para mantener los elementos
+        int posicion = -1; // Inicializa la posición como no encontrada
+
+        // Recorrer la pila y encontrar la primera ocurrencia
+        while (!pilaEtiquetas.isEmpty()) {
+            TipoEtiqueta actual = pilaEtiquetas.pop();
+            if (actual.getNombre().equals(nombre)&& esAmbitoCompatible(actual.getAmbito()) && posicion == -1) {
+                posicion = actual.getposicion(); // Guarda la posición del elemento que se va a remover
+                break; // Sale del loop una vez encontrada la primera ocurrencia
+            }
+            pilaAuxiliar.push(actual); // Guarda los elementos que no son el que buscamos
+        }
+
+        // Vuelve a colocar los elementos en la pila original (excepto el eliminado)
+        while (!pilaAuxiliar.isEmpty()) {
+            pilaEtiquetas.push(pilaAuxiliar.pop());
+        }
+
+        return posicion; // Retorna la posición del elemento eliminado, o -1 si no lo encontró
+    }
     
     public static void aggPolaca(String valor){
         polaca.add(valor);

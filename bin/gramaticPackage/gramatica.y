@@ -8,7 +8,7 @@ import javax.swing.JFileChooser;
 import Paquetecompi.Lexer;
 import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
-    
+import Paquetecompi.TipoEtiqueta;    
  
    
 
@@ -79,7 +79,28 @@ sentencia: declaracion
          | declaracion_funcion
          | goto_statement
          | sentencia_declarativa_tipos
-         | T_ETIQUETA
+         | T_ETIQUETA {
+            
+            if(st.containsTypeGotos(new TipoEtiqueta(val_peek(0).sval,null,null))){
+                int posicion = st.popFirstOccurrenceByNameGotos(val_peek(0).sval);
+                if(posicion != -1){
+                    SymbolTable.polaca.set(posicion,String.valueOf(SymbolTable.polaca.size()+1));
+                }
+            }else{
+                st.aggPilaEtiquetas(new TipoEtiqueta(val_peek(0).sval,SymbolTable.polaca.size(),SymbolTable.ambitoGlobal.toString()));
+            }
+            SymbolTable.aggPolaca(val_peek(0).sval);
+
+            if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
+                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
+            }else{
+                if(st.getAmbitoByKey(val_peek(0).sval).equals(" ")){
+                    st.updateAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal);
+                }else{
+                    st.addValue(val_peek(0).sval,"String","Nombre de variable",SymbolTable.ambitoGlobal.toString(), 280);
+                }
+            }
+         }
          | RET '(' expresion ')' ';'
          | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
          | RET '('  ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
@@ -493,9 +514,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
         }
     } 
     |'{' '-' T_CTE ',' T_CTE '}' {
-
        //CODIGO PARA PARTE SEMANTICA
-
        String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
        String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
         try {
@@ -731,9 +750,27 @@ acceso_par:
     ;
 
 
-goto_statement: GOTO T_ETIQUETA';' | GOTO ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); }
-              | GOTO T_ETIQUETA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");}
-              | GOTO error {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
+goto_statement: GOTO T_ETIQUETA';' {
+            System.err.println("ENTRE AL GOTO");
+            if(st.containsTypeEtiquetas(new TipoEtiqueta(val_peek(1).sval,null,null))){//YA HUBO UNA ETIQUETA DECLARADA ANTES
+                int posicion = st.popFirstOccurrenceByNameEtiquetas(val_peek(1).sval);
+                if(posicion!=-1){
+
+                    SymbolTable.aggPolaca(String.valueOf(posicion+1));
+                }else{
+                    SymbolTable.aggPolaca("");
+                }
+            }else{
+                st.aggPilaGotos(new TipoEtiqueta(val_peek(1).sval,SymbolTable.polaca.size(),SymbolTable.ambitoGlobal.toString()));
+                SymbolTable.aggPolaca("");
+            }
+            SymbolTable.aggPolaca("BI");
+
+            st.esUsoValidoAmbito(val_peek(1).sval);
+            }
+            | GOTO ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); }
+            | GOTO T_ETIQUETA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");}
+            | GOTO error {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
 
 
 invocacion_funcion: T_ID '(' parametro_real ')' {
@@ -796,7 +833,7 @@ expresion_aritmetica:
 
 expresion:
         expresion '+' expresion {
-            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+            if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("+");
@@ -804,7 +841,7 @@ expresion:
             yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
         }
     |   expresion '-' expresion {
-            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+            if( (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("-");
@@ -812,7 +849,7 @@ expresion:
             yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
         }
     |   expresion '*' expresion {
-            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+            if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("*");
@@ -820,7 +857,7 @@ expresion:
             yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
         }
     |   expresion '/' expresion {
-            if((st.esUsoValidoAmbito(val_peek(0).sval) && st.esUsoValidoAmbito(val_peek(2).sval)) && (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+            if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("/");
@@ -1025,10 +1062,11 @@ public void chequeoPares(String variable, String expresion){
     }
 }
 public boolean isPair(String variable){
-    if(st.getUse(variable).equals("Nombre de variable par")){
-        return true;
-    }
-    return false;
+    if (st.getUse(variable)!=null)
+        if(st.getUse(variable).equals("Nombre de variable par")){
+            return true;
+        }
+        return false;
 }
 public String borrarUltimoAmbito(){
     String originalString = SymbolTable.ambitoGlobal.toString();

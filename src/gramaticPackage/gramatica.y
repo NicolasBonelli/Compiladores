@@ -780,7 +780,7 @@ invocacion_funcion: T_ID '(' parametro_real ')' {
             }
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
-            SymbolTable.aggPolaca(val_peek(3).sval + "(" + val_peek(1).sval + ")"); 
+            SymbolTable.aggPolaca(val_peek(3).sval); 
 
         } else {
             System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
@@ -798,37 +798,59 @@ parametro_real: expresion_aritmetica {
 }; 
 
 expresion_aritmetica:
-      expresion_aritmetica '+' expresion_aritmetica {
-        SymbolTable.aggPolaca("+");
-        yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
-      }
-    | expresion_aritmetica '-' expresion_aritmetica {
-        SymbolTable.aggPolaca("-");
-        yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
-      }
-    | expresion_aritmetica '*' expresion_aritmetica {
-        SymbolTable.aggPolaca("*");
-        yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
-      }
-    | expresion_aritmetica '/' expresion_aritmetica {
-        SymbolTable.aggPolaca("/");
-        yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
-      }
-    | T_CTE {
-        SymbolTable.aggPolaca(val_peek(0).sval);
-        yyval.sval = val_peek(0).sval;  // La constante como cadena
-      }
-    | T_ID {
-        SymbolTable.aggPolaca(val_peek(0).sval);
-        yyval.sval = val_peek(0).sval;  // El identificador como cadena
-      }
-    | acceso_par {
-        yyval.sval = val_peek(0).sval;  // El resultado del acceso
-      }
-    | unaria {
-        yyval.sval = val_peek(0).sval;  // El valor unario
-      }
-;
+    expresion_aritmetica '+' expresion_aritmetica {
+                if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                }
+                SymbolTable.aggPolaca("+");
+                // Devuelve la expresión como una cadena que representa la suma
+                yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
+            }
+        |   expresion_aritmetica '-' expresion_aritmetica {
+                if( (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                }
+                SymbolTable.aggPolaca("-");
+                // Devuelve la expresión como una cadena que representa la resta
+                yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
+            }
+        |   expresion_aritmetica '*' expresion_aritmetica {
+                if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                }
+                SymbolTable.aggPolaca("*");
+                // Devuelve la expresión como una cadena que representa la multiplicación
+                yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
+            }
+        |   expresion_aritmetica '/' expresion_aritmetica {
+                if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
+                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                }
+                SymbolTable.aggPolaca("/");
+                // Devuelve la expresión como una cadena que representa la división
+                yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
+            }
+        |   T_CTE {
+                SymbolTable.aggPolaca(val_peek(0).sval);
+                // Devuelve el valor de la constante como cadena
+                yyval.sval = val_peek(0).sval;
+            }
+        |   T_ID {
+                SymbolTable.aggPolaca(val_peek(0).sval);
+                // Devuelve el identificador como cadena
+                st.esUsoValidoAmbito(val_peek(0).sval);
+                yyval.sval = val_peek(0).sval;
+            }
+        |   acceso_par {
+                // Devuelve el resultado del acceso a un parámetro
+                yyval.sval = val_peek(0).sval;
+            }
+        
+        |   unaria {
+                // Devuelve la expresión unaria
+                yyval.sval = val_peek(0).sval;
+            }
+    ;
 
 expresion:
         expresion '+' expresion {

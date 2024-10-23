@@ -806,7 +806,7 @@ expresion_aritmetica:
                 // Devuelve la expresión como una cadena que representa la suma
                 yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
             }
-        |   expresion_aritmetica '-' expresion_aritmetica {
+        |expresion_aritmetica '-' expresion_aritmetica {
                 if( (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                     System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
@@ -814,7 +814,7 @@ expresion_aritmetica:
                 // Devuelve la expresión como una cadena que representa la resta
                 yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
             }
-        |   expresion_aritmetica '*' expresion_aritmetica {
+        |expresion_aritmetica '*' expresion_aritmetica {
                 if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                     System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
@@ -822,7 +822,7 @@ expresion_aritmetica:
                 // Devuelve la expresión como una cadena que representa la multiplicación
                 yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
             }
-        |   expresion_aritmetica '/' expresion_aritmetica {
+        |expresion_aritmetica '/' expresion_aritmetica {
                 if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                     System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
@@ -831,9 +831,9 @@ expresion_aritmetica:
                 yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
             }
         |   T_CTE {
-                SymbolTable.aggPolaca(val_peek(0).sval);
-                // Devuelve el valor de la constante como cadena
-                yyval.sval = val_peek(0).sval;
+            SymbolTable.aggPolaca(val_peek(0).sval);
+            // Devuelve el valor de la constante como cadena
+            yyval.sval = val_peek(0).sval;
             }
         |   T_ID {
                 SymbolTable.aggPolaca(val_peek(0).sval);

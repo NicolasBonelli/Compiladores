@@ -76,29 +76,36 @@ class AS4 extends SemanticAction {
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
     	lex.setEstado(true);
         String token = lexeme.toString();
-        
-        if (token.startsWith("0") && !token.matches(".*[89].*")) { //si el numero es octal (empieza con 0 y no contiene ni 8 ni 9
+        boolean escalo=false;
+        if (token.startsWith("0") && !token.matches(".*[89].*")) { // Si el número es octal (empieza con 0 y no contiene ni 8 ni 9)
             try {
-                long numeroOctal = Long.parseLong(token, 8);// Convertimos el token en número octal (base 8)
-                String representacionOctal = "0" + Long.toOctalString(numeroOctal);
-                // Verificar si el número octal está en el rango permitido
-                 
-                long maxOctal = Long.parseLong("017777777777", 8);   // Rango máximo en octal
+                long numeroOctal = Long.parseLong(token, 8); // Convertimos el token en número octal (base 8)
                 
+                // Verificar si el número octal está en el rango permitido
+                long maxOctal = Long.parseLong("017777777777", 8); // Rango máximo en octal
                 
                 if (numeroOctal > maxOctal) {
+                	escalo=true;
                     numeroOctal = maxOctal; // Si es mayor, ajustamos al máximo
-                    representacionOctal = "0" + Long.toOctalString(numeroOctal);
-                    System.err.println("El numero octal en la linea " + lex.getNroLinea() + " superaba el rango permitido. Se ajusto");
+                    System.err.println("El número octal en la línea " + lex.getNroLinea() + " superaba el rango permitido. Se ajustó.");
                 }
+                String representacionOriginalConCeros="";
+                if(escalo) {
+                    representacionOriginalConCeros = "0"+Long.toOctalString(numeroOctal);;
+
+                }else {
+                    representacionOriginalConCeros = token;
+
+                }
+                // Aquí mantenemos los ceros iniciales del token original
                 
-                // Insertar el valor ajustado en la tabla de símbolos
-                lex.insertSymbolTable(representacionOctal, "Octal","Constante"," ", SymbolTable.constantValue);
+                // Insertar el valor ajustado en la tabla de símbolos usando la representación original
+                lex.insertSymbolTable(representacionOriginalConCeros, "Octal", "Constante", " ", SymbolTable.constantValue);
                 lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue));
                 
             } catch (NumberFormatException e) {
-                System.err.println("El numero en la linea " + lex.getNroLinea() + " no es un octal valido.");
+                System.err.println("El número en la línea " + lex.getNroLinea() + " no es un octal válido.");
             }
         } else {
             // Manejo de números no octales (decimal)

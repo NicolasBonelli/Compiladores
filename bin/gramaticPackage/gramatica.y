@@ -50,6 +50,7 @@ class Subrango{
 
 
 programa: nombre bloque_sentencias {
+    SymbolTable.aggPolaca(val_peek(1).sval+"%");
     System.out.println("Programa compilado correctamente");
     //updatear uso nombre funcion
     st.updateUse(val_peek(1).sval, "Nombre de programa");
@@ -161,8 +162,9 @@ lista_var: lista_var ',' T_ID {
 
 
 nombre: T_ID { yyval.sval = val_peek(0).sval;
-    System.out.println("Entre a Funcion antes (o despues?) de la derecha");
 
+    System.out.println("Entre a Funcion antes (o despues?) de la derecha");
+    SymbolTable.aggPolaca(val_peek(0).sval+"$");
     if (SymbolTable.ambitoGlobal.length() == 0) {
         SymbolTable.ambitoGlobal = new StringBuilder(val_peek(0).sval);
     } else SymbolTable.ambitoGlobal.append(":" + val_peek(0).sval);
@@ -201,6 +203,7 @@ declaracion_funcion:
         if (inicio != -1) {
             st.ambitoGlobal.delete(inicio, inicio + val_peek(4).sval.length()+1);
         }
+        SymbolTable.aggPolaca(val_peek(4).sval+"%");
 
 
     }

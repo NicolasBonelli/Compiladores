@@ -101,7 +101,7 @@ sentencia: declaracion
                 }
             }
          }
-         | RET '(' expresion ')' ';'
+         | RET '(' expresion ')' ';' {SymbolTable.aggPolaca("RET");}
          | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
          | RET '('  ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
          ;
@@ -365,8 +365,9 @@ repeat_while_statement: inicio_while repeat_sentencia WHILE '(' condicion ')' ';
 
 
 
-salida: OUTF '(' T_CADENA ')' ';' 
-      | OUTF '(' expresion ')' ';' 
+salida: OUTF '(' T_CADENA ')' ';' {         SymbolTable.aggPolaca(val_peek(2).sval);
+                                            SymbolTable.aggPolaca("OUTF");}
+      | OUTF '(' expresion ')' ';' { SymbolTable.aggPolaca("OUTF");}
       | OUTF '(' expresion ')' {
         System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
         }

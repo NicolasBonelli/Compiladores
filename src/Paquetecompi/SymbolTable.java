@@ -22,6 +22,8 @@ public class SymbolTable {
     public static  Stack<TipoEtiqueta> pilaGotos = new Stack<>();
     public static  Stack<TipoEtiqueta> pilaEtiquetas = new Stack<>();
     public static  StringBuilder ambitoGlobal = new StringBuilder();
+    public static HashMap<String, Double> conversionesRangos = new HashMap<>();
+    
     private static int posActualPolaca;
     
     public void aggPilaGotos(TipoEtiqueta valor){
@@ -35,6 +37,15 @@ public class SymbolTable {
     }
     public boolean containsTypeGotos(TipoEtiqueta valor) {
     	return SymbolTable.pilaGotos.contains(valor);
+    }
+    public boolean containsUnsignedGoto() {
+        for (int i = 0; i < polaca.size() - 1; i++) {
+            // Verificar si el elemento actual es un espacio en blanco y el siguiente es "BI"
+            if ("".equals(polaca.get(i)) && "BI".equals(polaca.get(i + 1))) {
+                return true;
+            }
+        }
+        return false;
     }
     public int popFirstOccurrenceByNameGotos(String nombre) {
         Stack<TipoEtiqueta> pilaAuxiliar = new Stack<>(); // Pila auxiliar para mantener los elementos

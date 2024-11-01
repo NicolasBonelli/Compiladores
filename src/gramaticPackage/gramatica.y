@@ -9,7 +9,7 @@ import Paquetecompi.Lexer;
 import Paquetecompi.Pair;
 import Paquetecompi.SymbolTable;
 import Paquetecompi.TipoEtiqueta;    
- 
+import java.math.BigDecimal;
    
 
 class Subrango{
@@ -54,7 +54,11 @@ programa: nombre bloque_sentencias {
     System.out.println("Programa compilado correctamente");
     //updatear uso nombre funcion
     st.updateUse(val_peek(1).sval, "Nombre de programa");
-    
+    if(st.containsUnsignedGoto()){//INCORPORAR LISTA DE ERRORES
+        Parser.crearEjecutable=false;
+        System.err.println("No se puede crear el ejecutable"); 
+
+    }
     
 } 
 | T_ID { 
@@ -835,9 +839,12 @@ expresion_aritmetica:
                 yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
             }
         |   T_CTE {
-            SymbolTable.aggPolaca(val_peek(0).sval);
-            // Devuelve el valor de la constante como cadena
-            yyval.sval = val_peek(0).sval;
+                String constante = val_peek(0).sval;
+                String valorString =getStringByType(constante);
+                // Agregar el valorString a la polaca inversa en la SymbolTable
+                SymbolTable.aggPolaca(valorString);
+                // Devuelve el valor de la constante como cadena
+                yyval.sval = constante;
             }
         |   T_ID {
                 SymbolTable.aggPolaca(val_peek(0).sval);
@@ -890,10 +897,13 @@ expresion:
             yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
         }
     |   T_CTE {
-            SymbolTable.aggPolaca(val_peek(0).sval);
+            String constante = val_peek(0).sval;
+            String valorString =getStringByType(constante);
+            // Agregar el valorString a la polaca inversa en la SymbolTable
+            SymbolTable.aggPolaca(valorString);
             // Devuelve el valor de la constante como cadena
-            yyval.sval = val_peek(0).sval;
-        }
+            yyval.sval = constante;
+    }
     |   T_ID {
             SymbolTable.aggPolaca(val_peek(0).sval);
             // Devuelve el identificador como cadena
@@ -916,8 +926,8 @@ expresion:
     ;
 
 unaria: '-' T_CTE { 
-    SymbolTable.aggPolaca(val_peek(0).sval);
-    SymbolTable.aggPolaca("-");
+
+
     double valor = val_peek(0).dval;  
     // Devuelve el valor unario con el signo negativo
     yyval.sval = "-" + val_peek(0).sval;
@@ -932,13 +942,14 @@ unaria: '-' T_CTE {
                 if (!lexer.isLongintRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
+                    SymbolTable.aggPolaca(nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ",SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
-                    
+                    SymbolTable.aggPolaca(nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ", SymbolTable.constantValue);
                 }
             }else if (tipo.equals("Octal")) {
@@ -946,6 +957,7 @@ unaria: '-' T_CTE {
                     System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
+                    SymbolTable.aggPolaca(nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ", SymbolTable.constantValue);
                 }
             }
@@ -956,6 +968,7 @@ unaria: '-' T_CTE {
     	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
+            SymbolTable.aggPolaca("020000000000");
             st.addValue("-020000000000", "Octal","Constante"," ", SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
         	System.err.println("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
@@ -968,14 +981,17 @@ unaria: '-' T_CTE {
 
             /* Si está por debajo del máximo permitido, lo mantenemos*/
             if (valorDouble < maxNegativeDouble) {
+                SymbolTable.aggPolaca("1.7976931348623156d+308");
                 st.addValue("-1.7976931348623156d+308", "double","Constante"," ", SymbolTable.constantValue);
             } 
             /* Si está por debajo del mínimo permitido pero mayor al mínimo ajustado*/
             else if (valorDouble > minNegativeDouble) {
                 st.addValue("-2.2250738585072015d-308", "double","Constante"," ", SymbolTable.constantValue);
+                SymbolTable.aggPolaca("2.2250738585072015d-308");
             } 
             /* Si está en el rango permitido*/
             else {
+                SymbolTable.aggPolaca(nombreConstante);
                 st.addValue("-" + nombreConstante, "double","Constante"," ", SymbolTable.constantValue);
             }
             
@@ -984,13 +1000,19 @@ unaria: '-' T_CTE {
         	System.err.println("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
             nombreConMenos = "-2147483648"; /* Asignar valor mínimo si está fuera de rango*/
             st.addValue(nombreConMenos, "longint","Constante"," ", SymbolTable.constantValue);
+            SymbolTable.aggPolaca("2147483648");
+
         }
         
     }
+
+    SymbolTable.aggPolaca("-");
+
 };
 
 %%
-
+public static boolean crearEjecutable=true;
+private boolean dentroFuncion=false;
 public void yyerror(String s) {
     System.err.println("Error en linea: " + Lexer.nmrLinea + " String: " +s);
   }
@@ -1109,8 +1131,92 @@ public String borrarUltimoAmbito(){
     }
     return nuevoStringBuilder.toString();
 }
+public int getTypeOfConst(String constValue){
+    // Verificar si es Octal: empieza con 0 y no contiene 8 ni 9
+    if (constValue.startsWith("0") && constValue.matches("[0-7]+")) {
+        return 0; // Es Octal
+    }
+    
+    // Verificar si es Double: contiene una 'd' o un signo '+' o '-'
+    if (constValue.toLowerCase().contains("d") || constValue.contains("+") || constValue.contains("-")) {
+        return 1; // Es Double
+    }
+    
+    // Si no es Octal ni Double, asumimos que es Longint
+    return 2; // Es Longint
+}
 
+String getStringByType(String constante){
+    int tipo = getTypeOfConst(constante);
+    String valorString="";
+    switch (tipo) {
+        case 0:{ /* Octal*/
+            System.err.println("Detecte OCTAL");
 
+        
+            Double valor = SymbolTable.conversionesRangos.get(constante);
+            if (valor != null) {
+                    long valorOctal = valor.longValue();
+                    valorString = "0" + Long.toOctalString(valorOctal); // Convertimos a octal y lo representamos como cadena.
+                    System.err.println("Entre valor no null: " + valorString);
+
+            }else{
+                System.err.println("entre valor null");
+
+                valorString = constante;
+            }
+            break;
+        }    
+
+        case 1:{ /* Double*/
+            System.err.println("Detecte DOUBLE");
+
+            // Guardamos el valor original de `constante` sin reemplazar 'd' o 'D'
+            String valorOriginal = constante;
+
+            // Reemplazamos 'd' o 'D' con 'E' para convertirlo al formato científico para `BigDecimal`
+            
+            // Buscamos el valor en `SymbolTable.conversionesRangos` usando el valor en formato `Double`
+            Double valor = SymbolTable.conversionesRangos.get(valorOriginal);
+            
+            if (valor != null) {
+                // Si encontramos el valor en el rango de conversiones, lo usamos
+                String valorModificado=valor.toString().replace("E","d");
+                valorString = valorModificado;
+            } else {
+                // Si no lo encontramos, usamos la constante original
+                valorString = valorOriginal;
+            }
+            break;
+        }
+        case 2:{ /* Longint*/
+            System.err.println("Detecte Longint");
+
+            try {
+                
+                
+                Double valor = SymbolTable.conversionesRangos.get(constante);
+                
+                if (valor != null) {
+                    long valorLong = valor.longValue();
+                
+                    String valorCambiado = Long.toString(valorLong);
+                    
+                    valorString = valorCambiado;
+                } else {
+                    valorString = constante;
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("Error: El valor no es un número Longint válido - " + constante);
+                valorString = constante; // En caso de error, usamos la constante original
+            }
+            break;
+        }    
+        default:
+            System.err.println("Tipo de constante desconocido.");
+    }
+    return valorString;
+}
 
 
 String obtenerTipo(String variable) {

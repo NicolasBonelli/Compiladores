@@ -88,6 +88,7 @@ class AS4 extends SemanticAction {
                 	escalo=true;
                     numeroOctal = maxOctal; // Si es mayor, ajustamos al máximo
                     System.err.println("El número octal en la línea " + lex.getNroLinea() + " superaba el rango permitido. Se ajustó.");
+                    SymbolTable.conversionesRangos.put(token, (double) maxOctal);
                 }
                 String representacionOriginalConCeros="";
                 if(escalo) {
@@ -113,7 +114,10 @@ class AS4 extends SemanticAction {
                 double numero = Double.parseDouble(token);
                 if (numero > Math.pow(2, 31)-1) {
                 	System.err.println("El numero usado en la linea " + lex.getNroLinea() + " supera el rango permitido para enteros. Se redujo.");
+                	SymbolTable.conversionesRangos.put(token, Double.parseDouble("2147483647"));
                 	token= "2147483647";//se redujo al maximo
+                    
+
                 } 
                 lex.insertSymbolTable(token, "longint","Constante"," ", SymbolTable.constantValue);
                 lex.setDevolvi(true);
@@ -123,6 +127,8 @@ class AS4 extends SemanticAction {
             }
         }
     }
+
+	
 }
 
 class AS5 extends SemanticAction {
@@ -151,10 +157,13 @@ class AS5 extends SemanticAction {
 
                 
                 if (number.compareTo(minPositive) <= 0) {
+                	SymbolTable.conversionesRangos.put(token,Double.parseDouble("2.2250738585072015e-308") );
                     token = "2.2250738585072015d-308";
                 } else {
+                	SymbolTable.conversionesRangos.put(token,Double.parseDouble("1.7976931348623156e+308") );
                     token = "1.7976931348623156d+308";
                 }
+                
                 lex.insertSymbolTable(token, "double","Constante"," ", SymbolTable.constantValue);
                 lex.setDevolvi(true);
                 lex.addToken(new Pair(lexeme.toString(), SymbolTable.constantValue)); 

@@ -155,20 +155,23 @@ public class SymbolTable {
 	public boolean esUsoValidoAmbito(String var1) {
 		// Verifica si var1  declarada en el ámbito actual o en ámbitos superiores
 		String ambitoVar1 = getAmbitoByKey(var1);
-	
-		if (ambitoVar1 == null) {
-			// Si alguna variable no está declarada, devolvemos false
-			SymbolTable.aggListaErrores("Error: "+var1 +" no está declarada en ningún ámbito");
-			return false;
+		if (!var1.endsWith("@")){ 
+			if (ambitoVar1 == null) {
+				// Si alguna variable no está declarada, devolvemos false
+				SymbolTable.aggListaErrores("Error: "+var1 +" no está declarada en ningún ámbito");
+				return false;
+			}
+			
+			// Verificamos si var1 puede usar var2, o viceversa, de acuerdo a sus ámbitos
+			if (esAmbitoCompatible(ambitoVar1)) {
+				return true; // Ambas variables están en ámbitos compatibles
+			} else {
+				
+				SymbolTable.aggListaErrores("Error: "+ var1 +" nunca ha sido declarada");
+				return false;
+			}
 		}
-		
-		// Verificamos si var1 puede usar var2, o viceversa, de acuerdo a sus ámbitos
-		if (esAmbitoCompatible(ambitoVar1)) {
-			return true; // Ambas variables están en ámbitos compatibles
-		} else {
-			SymbolTable.aggListaErrores("Error: "+ var1 +" nunca ha sido declarada");
-			return false;
-		}
+		return true;
 
 	}
 

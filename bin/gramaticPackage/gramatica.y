@@ -302,7 +302,7 @@ bloque_THEN: signo_THEN repeat_sentencia {
     
         int posicion = SymbolTable.pila.pop();
         SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
-        SymbolTable.pila.push(SymbolTable.polaca.size());
+        SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
         if (dentroFuncion)
             returnChecker.exitBlock();
 
@@ -314,14 +314,14 @@ bloque_THEN_CON_ELSE: signo_THEN repeat_sentencia {
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()+2));
     SymbolTable.pila.push(SymbolTable.polaca.size());
-    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI");
+    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI"); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
     if (dentroFuncion)
         returnChecker.exitBlock();
 
 };
 bloque_ELSE: signo_ELSE repeat_sentencia {
     int posicion = SymbolTable.pila.pop();
-    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
+    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size())); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
     if (dentroFuncion) {
         returnChecker.exitBlock();
         
@@ -368,7 +368,7 @@ if_statement: IF '(' condicion ')' bloque_THEN END_IF ';'
             ;
             
             
-inicio_while: REPEAT {SymbolTable.pila.push(SymbolTable.polaca.size());
+inicio_while: REPEAT {   SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("L"+SymbolTable.polaca.size());
                       if (dentroFuncion)
                         returnChecker.enterBlock();
                     };
@@ -378,6 +378,7 @@ repeat_while_statement: inicio_while repeat_sentencia WHILE '(' condicion ')' ';
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
     SymbolTable.polaca.set(SymbolTable.polaca.size()-2, String.valueOf(SymbolTable.pila.pop()));
+    SymbolTable.aggPolaca("L"+SymbolTable.polaca.size());
     if (dentroFuncion) {
         returnChecker.exitBlock();
     }

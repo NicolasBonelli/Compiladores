@@ -10,11 +10,15 @@ abstract class SemanticAction {
 class ASE extends SemanticAction {
 private String errorType;
 public ASE(String errorType) {
-this.errorType = errorType;
+    this.errorType = errorType;
 }
     @Override
     void execute(Lexer lex,StringBuilder lexeme, char currentChar) {
-    	System.err.println(errorType + " at linea: "+ lex.getNroLinea());
+        switch(errorType){
+            case "Despues del # DEBE ir un #": System.err.println(errorType); break;
+            default: SymbolTable.aggListaErrores(errorType + " at linea: "+ lex.getNroLinea());
+
+        }   
     	
     }
 }

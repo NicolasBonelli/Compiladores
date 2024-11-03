@@ -23,7 +23,7 @@ public class SymbolTable {
     public static  Stack<TipoEtiqueta> pilaEtiquetas = new Stack<>();
     public static  StringBuilder ambitoGlobal = new StringBuilder();
     public static HashMap<String, Double> conversionesRangos = new HashMap<>();
-    
+    public static ArrayList<String> errores = new ArrayList<>();
     private static int posActualPolaca;
     
     public void aggPilaGotos(TipoEtiqueta valor){
@@ -68,6 +68,16 @@ public class SymbolTable {
 
         return posicion; // Retorna la posición del elemento eliminado, o -1 si no lo encontró
     }
+
+	public static void imprimirErrores(){
+		for (String error : SymbolTable.errores) {
+			System.out.println(error);
+		}
+	}
+
+	public static void aggListaErrores(String error){
+		errores.add(error);
+	}
     public int popFirstOccurrenceByNameEtiquetas(String nombre) {
         Stack<TipoEtiqueta> pilaAuxiliar = new Stack<>(); // Pila auxiliar para mantener los elementos
         int posicion = -1; // Inicializa la posición como no encontrada
@@ -148,7 +158,7 @@ public class SymbolTable {
 	
 		if (ambitoVar1 == null) {
 			// Si alguna variable no está declarada, devolvemos false
-			System.out.println("Error: "+var1 +" no está declarada en ningún ámbito");
+			SymbolTable.aggListaErrores("Error: "+var1 +" no está declarada en ningún ámbito");
 			return false;
 		}
 		
@@ -156,7 +166,7 @@ public class SymbolTable {
 		if (esAmbitoCompatible(ambitoVar1)) {
 			return true; // Ambas variables están en ámbitos compatibles
 		} else {
-			System.err.println("Error: "+ var1 +" nunca ha sido declarada");
+			SymbolTable.aggListaErrores("Error: "+ var1 +" nunca ha sido declarada");
 			return false;
 		}
 

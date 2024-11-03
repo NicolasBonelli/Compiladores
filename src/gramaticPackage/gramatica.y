@@ -33,10 +33,6 @@ class Subrango{
     }
 }
 
-
-
-
-
 %}
 
 %token IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET REPEAT WHILE PAIR GOTO
@@ -51,25 +47,29 @@ class Subrango{
 
 programa: nombre bloque_sentencias {
     SymbolTable.aggPolaca(val_peek(1).sval+"%");
-    System.out.println("Programa compilado correctamente");
+    if (SymbolTable.errores.isEmpty())
+        System.out.println("Programa compilado correctamente");
+    else {System.err.println("No se puede crear el ejecutable");
+            SymbolTable.imprimirErrores();}
     //updatear uso nombre funcion
     st.updateUse(val_peek(1).sval, "Nombre de programa");
     if(st.containsUnsignedGoto()){//INCORPORAR LISTA DE ERRORES
         Parser.crearEjecutable=false;
-        System.err.println("No se puede crear el ejecutable"); 
+        if (SymbolTable.errores.isEmpty())
+            System.err.println("No se puede crear el ejecutable"); 
 
     }
     
 } 
 | T_ID { 
-    System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
+    SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias."); 
 } 
-| bloque_sentencias {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del programa");}
+| bloque_sentencias {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del programa");}
 
 
 
 bloque_sentencias: BEGIN sentencias END 
-                | BEGIN END {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
+                | BEGIN END {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
                 ;
                 
 sentencias:  sentencia
@@ -97,7 +97,7 @@ sentencia: declaracion
             SymbolTable.aggPolaca(val_peek(0).sval);
 
             if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
             }else{
                 if(st.getAmbitoByKey(val_peek(0).sval).equals(" ")){
                     st.updateAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal);
@@ -106,9 +106,12 @@ sentencia: declaracion
                 }
             }
          }
-         | RET '(' expresion ')' ';' {SymbolTable.aggPolaca("RET");}
-         | RET '(' expresion ')' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
-         | RET '('  ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
+         | RET '(' expresion ')' ';' {
+            if (!dentroFuncion) SymbolTable.aggListaErrores("Error en linea: "+ Lexer.nmrLinea + " - No se puede usar ret fuera de función");
+            else {SymbolTable.aggPolaca("RET"); returnChecker.registerReturn();}
+            }
+         | RET '(' expresion ')' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
+         | RET '('  ')' ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
          ;
 
 
@@ -129,7 +132,7 @@ declaracion: tipo lista_var ';' {
 
 
             if(st.contieneSymbolAmbito(variable,SymbolTable.ambitoGlobal)){
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
             }else{
                 if(st.getAmbitoByKey(variable).equals(" ")){
                     st.updateAmbito(variable,SymbolTable.ambitoGlobal);
@@ -141,11 +144,11 @@ declaracion: tipo lista_var ';' {
             st.updateType(variable,SymbolTable.ambitoGlobal.toString(), val_peek(2).sval);
             
 	    } else {
-	        System.err.println("Error, la variable no está en la tabla de símbolos: " + variable);
+	        SymbolTable.aggListaErrores("Error, la variable no está en la tabla de símbolos: " + variable);
 	    }
 	}
-} |tipo lista_var error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");}
-  |tipo ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta variable en la sentencia declarativa");}; 
+} |tipo lista_var error {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta ; al final de sentencia declarativa");}
+  |tipo ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta variable en la sentencia declarativa");}; 
 
 
 
@@ -161,7 +164,7 @@ lista_var: lista_var ',' T_ID {
     variables.add(val_peek(0).sval);  /* Agregar la primera variable*/
     yyval.obj = variables; 
 } 
-  |lista_var T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
+  |lista_var T_ID { SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
   ;
 
 
@@ -174,8 +177,9 @@ nombre: T_ID { yyval.sval = val_peek(0).sval;
     } else SymbolTable.ambitoGlobal.append(":" + val_peek(0).sval);
         };
 
-declaracion_funcion:
-    tipo FUN nombre  '(' parametro ')' bloque_sentencias {
+
+encabezado_funcion: tipo FUN { dentroFuncion = true; returnChecker.enterFunction();};
+declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentencias {
         
         System.out.println("Entre a la 2da llave");
         //updatear uso nombre funcion
@@ -188,7 +192,7 @@ declaracion_funcion:
         String nombreParametro = tipoYNombre[1];
 
         if(st.contieneSymbolAmbito(val_peek(4).sval,SymbolTable.ambitoGlobal)){
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar funciones en el mismo ambito. Error con el nombre de la funcion:"+val_peek(4).sval);
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar funciones en el mismo ambito. Error con el nombre de la funcion:"+val_peek(4).sval);
         }else{
             if(st.getAmbitoByKey(val_peek(4).sval).equals(" ")){
                 StringBuilder ambitoOrig= new StringBuilder(borrarUltimoAmbito());
@@ -208,27 +212,28 @@ declaracion_funcion:
             st.ambitoGlobal.delete(inicio, inicio + val_peek(4).sval.length()+1);
         }
         SymbolTable.aggPolaca(val_peek(4).sval+"%");
-
+        returnChecker.exitFunction();
+        dentroFuncion = false;
 
     }
-    | tipo FUN nombre '(' parametros_error ')' bloque_sentencias {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
+    | encabezado_funcion nombre '(' parametros_error ')' bloque_sentencias {
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
     }
     
     
-    | tipo FUN nombre '(' tipo ')' bloque_sentencias {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parametro de la funcion.");
+    | encabezado_funcion nombre '(' tipo ')' bloque_sentencias {
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del parametro de la funcion.");
     }
 
     | tipo nombre '(' tipo T_ID ')' bloque_sentencias {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta palabra reservada FUN.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta palabra reservada FUN.");
     }
 
-    | tipo FUN '(' tipo T_ID ')' bloque_sentencias {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la funcion.");
+    | encabezado_funcion '(' tipo T_ID ')' bloque_sentencias {
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre de la funcion.");
     }
-    | tipo FUN nombre '(' parametro ')' bloque_sentencias ';'{
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se puede poner ; al final de la declaracion de una fucnion");
+    | encabezado_funcion nombre '(' parametro ')' bloque_sentencias ';'{
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se puede poner ; al final de la declaracion de una fucnion");
     };
 
 parametro:
@@ -241,7 +246,7 @@ parametro:
             st.updateUse(val_peek(0).sval, "Nombre de parametro");
         }
         if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
         }else{
             if(st.getAmbitoByKey(val_peek(0).sval).equals(" ")){
                 st.updateAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal);
@@ -255,13 +260,13 @@ parametro:
 
 parametros_error:
     parametro ',' parametro {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
     }
     | parametros_error ','  parametro{
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - La funcion no debe tener mas de un parametro.");
     }
     | /* vacio */ {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - La funcion debe tener un parametro.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - La funcion debe tener un parametro.");
     };
 
 repeat_sentencia: bloque_sentencias 
@@ -279,94 +284,115 @@ tipo: DOUBLE { yyval.sval = "double"; }
         if (st.containsKeyTT(val_peek(0).sval+":"+SymbolTable.ambitoGlobal.toString())) {
             yyval = val_peek(0); /* Si el tipo esta definido, se usa el nombre del tipo*/
         } else {
-            yyerror("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0).sval);
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Tipo no definido: " + val_peek(0).sval);
         } 
     };
-    
 
-bloque_THEN: THEN repeat_sentencia {
+signo_THEN: THEN {
+    if (dentroFuncion)
+            returnChecker.enterBlock();
+}
+
+signo_ELSE: ELSE {
+    if (dentroFuncion)
+            returnChecker.enterBlock();
+}
+
+bloque_THEN: signo_THEN repeat_sentencia {
     
         int posicion = SymbolTable.pila.pop();
         SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
         SymbolTable.pila.push(SymbolTable.polaca.size());
-
+        if (dentroFuncion)
+            returnChecker.exitBlock();
 
 };
 
 
-bloque_THEN_CON_ELSE: THEN repeat_sentencia {
+bloque_THEN_CON_ELSE: signo_THEN repeat_sentencia {
     
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()+2));
     SymbolTable.pila.push(SymbolTable.polaca.size());
     SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI");
+    if (dentroFuncion)
+        returnChecker.exitBlock();
 
 };
-bloque_ELSE: ELSE repeat_sentencia {
+bloque_ELSE: signo_ELSE repeat_sentencia {
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
-
+    if (dentroFuncion) {
+        returnChecker.exitBlock();
+        
+    }
 };
 
 
 
 if_statement: IF '(' condicion ')' bloque_THEN END_IF ';' 
-            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';'
-            | IF '(' condicion ')' bloque_THEN_CON_ELSE repeat_sentencia END_IF ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ELSE en el IF");}
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';' 
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE repeat_sentencia END_IF ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ELSE en el IF");}
             | IF '(' condicion ')' bloque_THEN END_IF {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
             }
             | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF  {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
             }
             
             | IF '('  ')' bloque_THEN END_IF ';' {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
             }
             | IF '('  ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';' {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del IF.");
             }
 
             | IF '('condicion ')'  repeat_sentencia END_IF ';' {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
             }
             | IF '(' condicion ')'  repeat_sentencia bloque_ELSE END_IF ';' {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta THEN en el IF.");
             }
             
-             | IF '('condicion  ')' THEN END_IF ';' {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
+             | IF '('condicion  ')' signo_THEN END_IF ';' {
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
             }
-            | IF '(' condicion ')' THEN   ELSE  END_IF ';' {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
+            | IF '(' condicion ')' signo_THEN   signo_ELSE  END_IF ';' {
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan sentencias en el IF.");
             }
-            | IF  condicion  bloque_THEN END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF  condicion  bloque_THEN_CON_ELSE bloque_ELSE END_IF ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
-            | IF '(' condicion ')' bloque_THEN error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
-            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE error ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF  condicion  bloque_THEN END_IF ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
+            | IF  condicion  bloque_THEN_CON_ELSE bloque_ELSE END_IF ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan parentesis en el IF.");}
+            | IF '(' condicion ')' bloque_THEN error ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE error ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta END_IF.");}
             
             ;
             
             
-inicio_while: REPEAT {SymbolTable.pila.push(SymbolTable.polaca.size());};
+inicio_while: REPEAT {SymbolTable.pila.push(SymbolTable.polaca.size());
+                      if (dentroFuncion)
+                        returnChecker.enterBlock();
+                    };
 
 repeat_while_statement: inicio_while repeat_sentencia WHILE '(' condicion ')' ';' {
     SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI");
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
     SymbolTable.polaca.set(SymbolTable.polaca.size()-2, String.valueOf(SymbolTable.pila.pop()));
+    if (dentroFuncion) {
+        returnChecker.exitBlock();
+    }
     }
     | inicio_while repeat_sentencia WHILE '(' condicion ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia WHILE.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia WHILE.");
     }
     | inicio_while WHILE '(' condicion ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaracion REPEAT.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el bloque de sentencias en la declaracion REPEAT.");
     }
     | inicio_while repeat_sentencia WHILE '('  ')' ';'{
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del WHILE.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta la condicion del WHILE.");
     }
-    | inicio_while repeat_sentencia WHILE  condicion  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta () en la sentencia while");}
-    | inicio_while repeat_sentencia error '(' condicion ')' ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta while en el bucle repeat");}
+    | inicio_while repeat_sentencia WHILE  condicion  ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta () en la sentencia while");}
+    | inicio_while repeat_sentencia error '(' condicion ')' ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta while en el bucle repeat");}
     ;
 
 
@@ -376,13 +402,13 @@ salida: OUTF '(' T_CADENA ')' ';' {         SymbolTable.aggPolaca(val_peek(2).sv
                                             SymbolTable.aggPolaca("OUTF");}
       | OUTF '(' expresion ')' ';' { SymbolTable.aggPolaca("OUTF");}
       | OUTF '(' expresion ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
         }
       | OUTF '(' T_CADENA ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; en la salida.");
       } 
-      | OUTF '(' sentencia ')' ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");}
-      | OUTF '(' ')' ';'  {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta contenido en el OUTF");}
+      | OUTF '(' sentencia ')' ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Parametro incorrecto en sentencia OUTF");}
+      | OUTF '(' ')' ';'  {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta contenido en el OUTF");}
       ;
 
 
@@ -396,13 +422,16 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         String tipoBase = val_peek(2).sval;
         
         Subrango subrango = (Subrango) val_peek(1).obj;
-    
-        double limiteInferior = subrango.getLimiteInferior(); /* Limite inferior */
-        double limiteSuperior = subrango.getLimiteSuperior(); /* Limite superior */
+        double limiteInferior, limiteSuperior;
+        if (subrango != null){ 
+            limiteInferior = subrango.getLimiteInferior(); /* Limite inferior */
+            limiteSuperior = subrango.getLimiteSuperior(); /* Limite superior */
+        } else {limiteInferior = 0; /* Limite inferior */
+            limiteSuperior = 0;}
         // Almacenar en la tabla de tipos
 
         if(st.contieneSymbolAmbito(nombreTipo,SymbolTable.ambitoGlobal)){
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(4).sval);
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(4).sval);
         }else{
 
                 //FALTA CHEQUEAR MISMO TIPO
@@ -429,7 +458,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 
 
             if(st.contieneSymbolAmbito(nombreTipo,SymbolTable.ambitoGlobal)){
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
             }else{
     
                 //FALTA CHEQUEAR MISMO TIPO
@@ -453,7 +482,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
             
 
             if(st.contieneSymbolAmbito(nombreTipo,SymbolTable.ambitoGlobal)){
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
             }else{
     
                 //FALTA CHEQUEAR MISMO TIPO
@@ -471,30 +500,30 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
             }
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaracion de tipo.");
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta tipo base en la declaracion de tipo.");
         }
         | TYPEDEF PAIR  DOUBLE  T_ID ';' {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
         }
         | TYPEDEF PAIR  LONGINT  T_ID ';' {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan '<' '>' en la declaracion de tipo.");
         }
         | TYPEDEF T_ID T_ASIGNACION tipo subrango {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaracion de tipo.");
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la declaracion de tipo.");
         }
         | TYPEDEF PAIR '<' T_ID '>' T_ID ';' {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Solo se pueden declarar pares de tipos basicos como LONGINT y DOUBLE");
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Solo se pueden declarar pares de tipos basicos como LONGINT y DOUBLE");
         }
-        | TYPEDEF PAIR '<' LONGINT '>' T_ID {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");}
-        | TYPEDEF PAIR '<' DOUBLE '>' T_ID {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");};
-        | TYPEDEF  '<' LONGINT '>' T_ID ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el PAIR en la sentencia de declaracion de par");}
-        | TYPEDEF  '<' DOUBLE '>' T_ID ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el PAIR en la sentencia de declaracion de par");};
-        | TYPEDEF PAIR '<' LONGINT '>'  ';' { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el identificador en la sentencia de declaracion de par");}
-        | TYPEDEF PAIR '<' DOUBLE '>'  ';' { System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el identificador en la sentencia de declaracion de par");}
-        | TYPEDEF  T_ASIGNACION tipo subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del tipo definido");}
-        | TYPEDEF T_ID T_ASIGNACION  subrango ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el tipo base del nuevo tipo");}
-        | TYPEDEF T_ID  T_ASIGNACION tipo  ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta el subrango del nuevo tipo");}
-        | TYPEDEF T_ID tipo subrango ';'{System.err.println("Error en linea: " + Lexer.nmrLinea + " - Falta la asignacion en la definicion de nuevos tipos");}
+        | TYPEDEF PAIR '<' LONGINT '>' T_ID {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");}
+        | TYPEDEF PAIR '<' DOUBLE '>' T_ID {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final del PAIR");};
+        | TYPEDEF  '<' LONGINT '>' T_ID ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el PAIR en la sentencia de declaracion de par");}
+        | TYPEDEF  '<' DOUBLE '>' T_ID ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el PAIR en la sentencia de declaracion de par");};
+        | TYPEDEF PAIR '<' LONGINT '>'  ';' { SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el identificador en la sentencia de declaracion de par");}
+        | TYPEDEF PAIR '<' DOUBLE '>'  ';' { SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el identificador en la sentencia de declaracion de par");}
+        | TYPEDEF  T_ASIGNACION tipo subrango ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del tipo definido");}
+        | TYPEDEF T_ID T_ASIGNACION  subrango ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el tipo base del nuevo tipo");}
+        | TYPEDEF T_ID  T_ASIGNACION tipo  ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el subrango del nuevo tipo");}
+        | TYPEDEF T_ID tipo subrango ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta la asignacion en la definicion de nuevos tipos");}
         ;
 subrango: '{' T_CTE ',' T_CTE '}'{
         
@@ -518,7 +547,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
             }
             
         } catch (NumberFormatException e) {
-            System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
+            SymbolTable.aggListaErrores("Error al convertir los limites del subrango a double: " + e.getMessage());
         }
     } 
     |'{' '-' T_CTE ',' T_CTE '}' {
@@ -541,7 +570,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
             }
             
         } catch (NumberFormatException e) {
-            System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
+            SymbolTable.aggListaErrores("Error al convertir los limites del subrango a double: " + e.getMessage());
         }
 
     }
@@ -561,7 +590,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
              
              
          } catch (NumberFormatException e) {
-             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
+             SymbolTable.aggListaErrores("Error al convertir los limites del subrango a double: " + e.getMessage());
          }}
     |'{' '-' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
         String limiteInferiorStr = val_peek(4).sval; // T_CTE (limites inferiores)
@@ -584,11 +613,12 @@ subrango: '{' T_CTE ',' T_CTE '}'{
              
              
          } catch (NumberFormatException e) {
-             System.err.println("Error al convertir los limites del subrango a double: " + e.getMessage());
+             SymbolTable.aggListaErrores("Error al convertir los limites del subrango a double: " + e.getMessage());
          }}
-    |'{' '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " -Falta el rango en el subrango");}
+    |'{' '}'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " -Falta el rango en el subrango");}
     |error {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
+        System.out.println("Error??");
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
     };
 
 
@@ -596,9 +626,9 @@ condicion: expresion comparador expresion {
     SymbolTable.aggPolaca(val_peek(1).sval);
     SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("");  SymbolTable.aggPolaca("BF"); 
 }
-         | expresion error expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta comparador en la condicion");}
-         | expresion comparador {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 2da expresion en la condicion");}
-         | comparador expresion {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta 1ra expresion en la condicion");}
+         | expresion error expresion {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Falta comparador en la condicion");}
+         | expresion comparador {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Falta 2da expresion en la condicion");}
+         | comparador expresion {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Falta 1ra expresion en la condicion");}
          ;
 
 comparador:MENOR_IGUAL  {yyval.sval = "<=" ;}
@@ -610,7 +640,7 @@ comparador:MENOR_IGUAL  {yyval.sval = "<=" ;}
         ;
 
            
-asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
+asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
         | IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {
             
             // Obtener las listas de variables y expresiones
@@ -681,7 +711,7 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ System.err.printl
                 }
         }
     }
-        | IDENTIFIER_LIST T_ASIGNACION ';'{ System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta lado derecho de la asignacion"); }
+        | IDENTIFIER_LIST T_ASIGNACION ';'{ SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Falta lado derecho de la asignacion"); }
         ;
 
 expresion_list:
@@ -732,11 +762,11 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
                 lista.add(val_peek(0).sval);
                 yyval.obj = lista;
             } 
-            | acceso_par error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
-            | T_ID error acceso_par  { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //no anda
-            | acceso_par error T_ID { System.err.println("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
-            | T_CTE {System.err.println("No puede haber constantes a la izquierda en la asignacion");}
-            | IDENTIFIER_LIST ',' T_CTE {System.err.println("No puede haber constantes a la izquierda en la asignacion");}
+            | acceso_par error acceso_par  { SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
+            | T_ID error acceso_par  { SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //no anda
+            | acceso_par error T_ID { SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Faltan ',' en las variables de las asignaciones multiples ");} //anda
+            | T_CTE {SymbolTable.aggListaErrores("No puede haber constantes a la izquierda en la asignacion");}
+            | IDENTIFIER_LIST ',' T_CTE {SymbolTable.aggListaErrores("No puede haber constantes a la izquierda en la asignacion");}
             ;
 
 
@@ -753,8 +783,8 @@ acceso_par:
         }
         
     }
-    |T_ID '{' '}'{System.err.println("Error en linea: " + Lexer.nmrLinea + " Se debe utilizar el indice 1 o 2 para acceder a los pares");}
-    |T_ID T_CADENA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Se utilizan las llaves para acceder a los pares");}
+    |T_ID '{' '}'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Se debe utilizar el indice 1 o 2 para acceder a los pares");}
+    |T_ID T_CADENA {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Se utilizan las llaves para acceder a los pares");}
     ;
 
 
@@ -775,28 +805,28 @@ goto_statement: GOTO T_ETIQUETA';' {
 
             st.esUsoValidoAmbito(val_peek(1).sval);
             }
-            | GOTO ';' {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); }
-            | GOTO T_ETIQUETA {System.err.println("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");}
-            | GOTO error {System.err.println("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
+            | GOTO ';' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta"); }
+            | GOTO T_ETIQUETA {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Falta ; al final del GOTO");}
+            | GOTO error {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Error: hay goto sin etiqueta");};
 
 
 invocacion_funcion: T_ID '(' parametro_real ')' {
         // Verifica que el parámetro no sea nulo antes de intentar convertirlo a cadena
         if (val_peek(1).sval != null) {
             if (st.getUse(val_peek(3).sval) == null) {
-                System.err.println("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
             }
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";
             SymbolTable.aggPolaca(val_peek(3).sval); 
 
         } else {
-            System.err.println("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
+            SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
             yyval.sval = val_peek(3).sval + "()";  // Asume que no hay parámetros si es nulo
         }
     }
       | T_ID '(' error ')' {
-        System.err.println("Error en linea: " + Lexer.nmrLinea + " - Invocacion a funcion mal definida"); 
+        SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Invocacion a funcion mal definida"); 
         }
       ; 
 
@@ -922,7 +952,7 @@ expresion:
             // Devuelve la expresión unaria
             yyval.sval = val_peek(0).sval;
         }
-    |  error {System.err.println("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
+    |  error {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
     ;
 
 unaria: '-' T_CTE { 
@@ -940,21 +970,21 @@ unaria: '-' T_CTE {
             /* Verifica si el valor original (sin negativo) esta en el rango adecuado segun el tipo.*/
             if (tipo.equals("longint")) {
                 if (!lexer.isLongintRange(valor)) {
-                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
+                    SymbolTable.aggListaErrores("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
                     SymbolTable.aggPolaca(nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ",SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
-                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
+                    SymbolTable.aggListaErrores("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
                     SymbolTable.aggPolaca(nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ", SymbolTable.constantValue);
                 }
             }else if (tipo.equals("Octal")) {
                 if (!lexer.isOctalRange(valor)) {
-                    System.err.println("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
+                    SymbolTable.aggListaErrores("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
                     SymbolTable.aggPolaca(nombreConstante);
@@ -962,16 +992,16 @@ unaria: '-' T_CTE {
                 }
             }
         } else {
-            System.err.println("Error: El tipo de la constante no pudo ser determinado.");
+            SymbolTable.aggListaErrores("Error: El tipo de la constante no pudo ser determinado.");
         }
     } else { /*se trata de numero negativo menor al menor negativo.*/
     	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
-        	System.err.println("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
+        	SymbolTable.aggListaErrores("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
             SymbolTable.aggPolaca("020000000000");
             st.addValue("-020000000000", "Octal","Constante"," ", SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
-        	System.err.println("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
+        	SymbolTable.aggListaErrores("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
 
             /* Parseamos el valor como double para comparaciones*/
             double valorDouble = Double.parseDouble("-" + nombreConstante.replace("d", "e"));
@@ -997,7 +1027,7 @@ unaria: '-' T_CTE {
             
         } else{ /*ya se sabe que es entero*/
             /* Lógica para longint*/
-        	System.err.println("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
+        	SymbolTable.aggListaErrores("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
             nombreConMenos = "-2147483648"; /* Asignar valor mínimo si está fuera de rango*/
             st.addValue(nombreConMenos, "longint","Constante"," ", SymbolTable.constantValue);
             SymbolTable.aggPolaca("2147483648");
@@ -1011,10 +1041,14 @@ unaria: '-' T_CTE {
 };
 
 %%
+
 public static boolean crearEjecutable=true;
-private boolean dentroFuncion=false;
+private ReturnChecker returnChecker = new ReturnChecker();
+private int nivel = 0;
+private boolean dentroFuncion = false;
+
 public void yyerror(String s) {
-    System.err.println("Error en linea: " + Lexer.nmrLinea + " String: " +s);
+    SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " String: " +s);
   }
 
 int yylex() {
@@ -1079,22 +1113,24 @@ boolean verificarRangoLongInt(double valor) {
     return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
 }
 
+
+
 boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
 public void chequeoPares(String variable, String expresion){
     if (st.getUse(variable) == null && st.getUse(expresion) == null) {
-        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
+        SymbolTable.aggListaErrores("Error en asignacion: "+variable + " := " + expresion + ";");
         System.out.println("Las variables: "+ variable + " " + expresion + " nunca fueron declaradas");
 
     }
     else
     if (st.getUse(variable) == null) {
-        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
+        SymbolTable.aggListaErrores("Error en asignacion: "+variable + " := " + expresion + ";");
         System.out.println("La variable: "+ variable + " nunca fue declarada");
 
     } else if (st.getUse(expresion) == null) {
-        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
+        SymbolTable.aggListaErrores("Error en asignacion: "+variable + " := " + expresion + ";");
         System.out.println("La variable: "+ expresion + " nunca fue declarada");
 
     }
@@ -1103,7 +1139,7 @@ public void chequeoPares(String variable, String expresion){
     if((st.getUse(variable).equals("Nombre de variable par") &&!st.getUse(expresion).equals("Nombre de variable par"))
     ||(!st.getUse(variable).equals("Nombre de variable par") &&st.getUse(expresion).equals("Nombre de variable par"))){
         System.out.println("Warning: No se pueden utilizar los tipos pares en operaciones que conlleven tipos distintos ");        
-        System.out.println("Error en asignacion: "+variable + " := " + expresion + ";");
+        SymbolTable.aggListaErrores("Error en asignacion: "+variable + " := " + expresion + ";");
     }else{
         System.out.println(variable + " := " + expresion + ";");
     }
@@ -1151,17 +1187,14 @@ String getStringByType(String constante){
     String valorString="";
     switch (tipo) {
         case 0:{ /* Octal*/
-            System.err.println("Detecte OCTAL");
 
         
             Double valor = SymbolTable.conversionesRangos.get(constante);
             if (valor != null) {
                     long valorOctal = valor.longValue();
                     valorString = "0" + Long.toOctalString(valorOctal); // Convertimos a octal y lo representamos como cadena.
-                    System.err.println("Entre valor no null: " + valorString);
 
             }else{
-                System.err.println("entre valor null");
 
                 valorString = constante;
             }
@@ -1169,7 +1202,6 @@ String getStringByType(String constante){
         }    
 
         case 1:{ /* Double*/
-            System.err.println("Detecte DOUBLE");
 
             // Guardamos el valor original de `constante` sin reemplazar 'd' o 'D'
             String valorOriginal = constante;
@@ -1190,7 +1222,6 @@ String getStringByType(String constante){
             break;
         }
         case 2:{ /* Longint*/
-            System.err.println("Detecte Longint");
 
             try {
                 
@@ -1207,13 +1238,13 @@ String getStringByType(String constante){
                     valorString = constante;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("Error: El valor no es un número Longint válido - " + constante);
+                SymbolTable.aggListaErrores("Error: El valor no es un número Longint válido - " + constante);
                 valorString = constante; // En caso de error, usamos la constante original
             }
             break;
         }    
         default:
-            System.err.println("Tipo de constante desconocido.");
+            SymbolTable.aggListaErrores("Tipo de constante desconocido.");
     }
     return valorString;
 }

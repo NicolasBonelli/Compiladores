@@ -34,7 +34,7 @@ public class TablaTipos {
         String tipoOp2 = getTipo(op2);
         String tipoFinal = tipoResultante(tipoOp1, tipoOp2, operador);
         if (tipoFinal.equals(ERROR_TYPE)) { //si es error
-        	System.err.println("No se puede realizar la operacion " + operador + " entre los tipos " + tipoOp1 + " y " + tipoOp2+ " en linea:"+Lexer.nmrLinea);
+        	System.err.println("No se puede realizar la operacion " + operador + " entre los tipos " + tipoOp1 + " y " + tipoOp2+ " en linea: "+Lexer.nmrLinea);
             GeneradorCodigo.errorSemantico=true;
         }
         return tipoFinal;

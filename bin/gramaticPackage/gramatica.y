@@ -47,18 +47,17 @@ class Subrango{
 
 programa: nombre bloque_sentencias {
     SymbolTable.aggPolaca(val_peek(1).sval+"%");
-    if (SymbolTable.errores.isEmpty())
+    if (SymbolTable.errores.isEmpty() && !st.containsUnsignedGoto()){
         System.out.println("Programa compilado correctamente");
-    else {System.err.println("No se puede crear el ejecutable");
-            SymbolTable.imprimirErrores();}
+        gc.generarCodigo();
+    }
+    else {
+        System.err.println("No se puede crear el ejecutable");
+        SymbolTable.imprimirErrores();
+        Parser.crearEjecutable=false;
+    }
     //updatear uso nombre funcion
     st.updateUse(val_peek(1).sval, "Nombre de programa");
-    if(st.containsUnsignedGoto()){//INCORPORAR LISTA DE ERRORES
-        Parser.crearEjecutable=false;
-        if (SymbolTable.errores.isEmpty())
-            System.err.println("No se puede crear el ejecutable"); 
-
-    }
     
 } 
 | T_ID { 
@@ -89,12 +88,12 @@ sentencia: declaracion
             if(st.containsTypeGotos(new TipoEtiqueta(val_peek(0).sval,null,null))){
                 int posicion = st.popFirstOccurrenceByNameGotos(val_peek(0).sval);
                 if(posicion != -1){
-                    SymbolTable.polaca.set(posicion,String.valueOf(SymbolTable.polaca.size()+1));
+                    SymbolTable.polaca.set(posicion,String.valueOf(SymbolTable.polaca.size()));
                 }
             }else{
                 st.aggPilaEtiquetas(new TipoEtiqueta(val_peek(0).sval,SymbolTable.polaca.size(),SymbolTable.ambitoGlobal.toString()));
             }
-            SymbolTable.aggPolaca(val_peek(0).sval);
+            SymbolTable.aggPolaca("L"+val_peek(0).sval);
 
             if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
@@ -108,7 +107,7 @@ sentencia: declaracion
          }
          | RET '(' expresion ')' ';' {
             if (!dentroFuncion) SymbolTable.aggListaErrores("Error en linea: "+ Lexer.nmrLinea + " - No se puede usar ret fuera de función");
-            else {SymbolTable.aggPolaca("RET"); returnChecker.registerReturn();}
+            else {SymbolTable.aggPolaca("!RET"); returnChecker.registerReturn();}
             }
          | RET '(' expresion ')' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
          | RET '('  ')' ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
@@ -794,7 +793,7 @@ goto_statement: GOTO T_ETIQUETA';' {
                 int posicion = st.popFirstOccurrenceByNameEtiquetas(val_peek(1).sval);
                 if(posicion!=-1){
 
-                    SymbolTable.aggPolaca(String.valueOf(posicion+1));
+                    SymbolTable.aggPolaca(String.valueOf(posicion));//TOQUETEE EL +1
                 }else{
                     SymbolTable.aggPolaca("");
                 }
@@ -1042,7 +1041,6 @@ unaria: '-' T_CTE {
 };
 
 %%
-
 public static boolean crearEjecutable=true;
 private ReturnChecker returnChecker = new ReturnChecker();
 private int nivel = 0;
@@ -1262,7 +1260,8 @@ String obtenerTipo(String variable) {
 	private SymbolTable st;
 	private Lexer lexer;
 	private BufferedReader reader;
-
+    private GeneradorCodigo gc = new GeneradorCodigo(st);
+    
 	public Parser(String filePath) {
 	    this.st = new SymbolTable();
 	    try {

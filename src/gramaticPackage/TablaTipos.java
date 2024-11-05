@@ -32,6 +32,12 @@ public class TablaTipos {
         // mirar en la tabla del operando que tipo queda entre esos 2 tipos
         String tipoOp1 = getTipo(op1);
         String tipoOp2 = getTipo(op2);
+        if(!tipoOp1.equals("longint") && !tipoOp1.equals("double")) {
+        	tipoOp1= st.getTipoSubrango(tipoOp1+":"+st.getAmbitoByKey(tipoOp1)).getTipoBase();
+        }
+        if(!tipoOp2.equals("longint") && !tipoOp2.equals("double")){
+        	tipoOp2= st.getTipoSubrango(tipoOp2+":"+st.getAmbitoByKey(tipoOp2)).getTipoBase();
+        }
         String tipoFinal = tipoResultante(tipoOp1, tipoOp2, operador);
         if (tipoFinal.equals(ERROR_TYPE)) { //si es error
         	System.err.println("No se puede realizar la operacion " + operador + " entre los tipos " + tipoOp1 + " y " + tipoOp2+ " en linea: "+Lexer.nmrLinea);
@@ -41,15 +47,11 @@ public class TablaTipos {
     }
 
     public String getTipo(String op) {
-        if (st.getUse(op) == "Nombre de funcion") { //el operador es un llamado a funcion entonces tengo que saber su tipo
+        if (st.getUse(op).equals("Nombre de funcion") ) { //el operador es un llamado a funcion entonces tengo que saber su tipo
             CaracteristicaFuncion funcion = st.getCaracteristicaFuncion(op);
             return funcion.getTipoDevuelto();             
         }
         String tipo= st.getType(op);
-        if(!tipo.equals("longint")&& !tipo.equals("double")) {//tipo definido por el usuario
-        	String tipoSinAmbito = tipo.contains(":") ? tipo.substring(0, tipo.indexOf(":")) : tipo;
-        	tipo=st.getTipoSubrango(tipoSinAmbito).getTipoBase();
-        }
         return tipo; 
     }
 

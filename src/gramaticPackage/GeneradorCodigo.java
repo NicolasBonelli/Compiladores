@@ -20,8 +20,9 @@ public class GeneradorCodigo {
     private TablaTipos tablaTipos;
     private int numeroAuxiliar;
     private int idUnico = 0;
-    
+    private String nombreAux2bytes="@aux2bytes";
     private String lastComparation = "";
+    
        public GeneradorCodigo (SymbolTable st) {
            this.st=st;
            this.numeroAuxiliar = 1;
@@ -50,24 +51,28 @@ public class GeneradorCodigo {
                         break;
                     case "BF":
                         generarSalto(lastComparation);
-                    break;
+                        break;
+                    case "OUTF":
+                        generarCodigoImprimirPantalla();//TODO
+                        break;    
      
-                case "!RET":
-                    generarCodigoRetorno();
-                    break;
-                default:
-                    if (token.startsWith(Parser.STRING_CHAR)) { //encontramos una cadena ??
-                        token = token.substring(1);
-                        codigo.append("invoke MessageBox, NULL, addr ").append(token).append(", addr ").append(token).append(", MB_OK \n");
-                    } else if (token.startsWith(":")) {   //entramos un label
-                        codigo.append(token.substring(1)).append(":\n");
-                    } else if (token.startsWith("!")) {   // Encontramos el comienzo de una funcion
-                        generarCabeceraFuncion(token);
-                    } else {
-                        pila_tokens.push(token);
-                    }
-
-                    break;
+	                case "!RET":
+	                    generarCodigoRetorno();
+	                    break;
+	                default:
+	                     if (token.endsWith("@")) {   //entramos un label
+	                        codigo.append(token.replace("@", "")).append(":\n");
+	                    } else if (token.endsWith("$")&& posActualPolaca>0) {   // Encontramos el comienzo de una funcion
+	                        generarCabeceraFuncion(token);
+	                    }else if (token.endsWith("%")&& posActualPolaca<SymbolTable.polaca.size()-1) {   // Encontramos el comienzo de una funcion
+	                        generarFinalFuncion(token);
+	                    }else {
+	                        pila_tokens.push(token);
+	                    }
+	                    
+	                    
+	
+	                    break;
             }
 
 			++posActualPolaca;
@@ -82,8 +87,22 @@ public class GeneradorCodigo {
 
         generarCabecera();
     }
+    private void generarCodigoImprimirPantalla() {//TODO
+		String cadena = pila_tokens.pop();
+		//Implementar imprimir en pantalla	
+	}
 
-    private static void generarCabecera() {
+
+	private void generarCabeceraFuncion(String token) {
+        codigo.append(token.replace("$","")).append(" PROC\n");
+    }    
+    private void generarFinalFuncion(String token) {
+    	
+    	codigo.append(token.replace("%","")).append(" ENDP\n");
+	}
+
+
+	private static void generarCabecera() {
     //funcoin encargada de la generacion de la cabecera del codigo
         StringBuilder cabecera = new StringBuilder();
 
@@ -166,20 +185,9 @@ public class GeneradorCodigo {
         }
     }
 
-    private static void generarCabeceraFuncion(String token) {
-        codigo.append(token.substring(1)).append(" PROC\n");
-        // codigo.append("MOV EAX, ").append(token.substring(1)).append("\n");
-        // codigo.append("MOV @FUNCION_ACTUAL, EAX\n"); // en la variable @FUNCION_ACTUAL guardamos el nombre de la funcion actual
-    }
+    
 
-    private static void generarCodigoFinalFuncion(String token) {
-        String nombre_funcion = pila_tokens.pop();
-        codigo.append(nombre_funcion).append(" ").append(token.substring(1)).append("\n");
-    }
-
-  
-
-
+   
 
     public  void generarOperador(String operador) {
         String op2 = pila_tokens.pop();   //el primero que saco es el segundo operando, ya que fue el ultimo que lei de la polaca y el ultimo que agregue a la pila
@@ -190,20 +198,22 @@ public class GeneradorCodigo {
             op1 = op2;
             op2 = aux;
         }
-
+       
+     
         String tipo = tablaTipos.getTipoAbarcativo(op1, op2, operador);
         switch (tipo) {
-            case "longint":
-                generarOperacionEnteros(op1, op2, operador);
-                break;
-            case "double":
-                generarOperacionFlotantes(op1, op2, operador);
-                break;
-
-            default:
-                System.out.println("Algo esta mal");
-                
-        }
+	        case "longint":
+	            generarOperacionEnteros(op1, op2, operador);
+	            break;
+	        case "double":
+	            generarOperacionFlotantes(op1, op2, operador);
+	            break;
+	
+	        default:
+	            System.out.println("Algo esta mal");
+    	}
+        
+        
     }
  
     public static void generarOperacionFuncion(String op1, String op2) {
@@ -229,7 +239,7 @@ public class GeneradorCodigo {
     }
 
 
-    private static void generarErrorInvocacion(String funcion, String funcion_actual) {
+    private void generarErrorInvocacion(String funcion, String funcion_actual) {
         //genera el codigo necesario ante un error de invocacion de una funcion:
         //El codigo Assembler debera controlar que una funcion no pueda invocarse a si misma. 
      
@@ -287,9 +297,55 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case ":=":
-                codigo.append("MOV ECX, ").append(op2).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("MOV ").append(op1).append(", ECX\n");
-                break;
+            	String op2tipo=st.getType(op2);
+            	if(!op2tipo.equals("longint") && !op2tipo.equals("double")&& !st.getUse(op2tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
+            		// Obtener los límites de rango del tipo definido por el usuario
+            		Double limiteInferior = st.getTipoSubrango(op2tipo).getLimiteInferior();
+            		Double limiteSuperior = st.getTipoSubrango(op2tipo).getLimiteSuperior();
+
+            		// Crear etiquetas para control de flujo
+            		String etiquetaSinError = "DENTRO_RANGO_" + generarIdUnico();
+            		String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
+
+            		// Cargar el valor de `op2` en la FPU para verificar los rangos
+            		codigo.append("FLD ").append(op2).append("\n"); // Cargar `op2` en ST(0)
+
+            		// Comprobar límite inferior
+            		codigo.append("FLD ").append(limiteInferior).append("\n"); // Cargar límite inferior en ST(1)
+            		codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
+            		codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
+            		codigo.append("SAHF\n"); // Cargar el estado en los indicadores
+            		codigo.append("JB ").append(etiquetaErrorRango).append("\n"); // Si `op2` es menor que el límite inferior, ir a `etiquetaErrorRango`
+
+            		// Limpiar ST(1) después de la comparación
+            		codigo.append("FSTP ST(0)\n"); // Sacar el límite inferior de la pila de la FPU
+
+            		// Comprobar límite superior
+            		codigo.append("FLD ").append(limiteSuperior).append("\n"); // Cargar límite superior en ST(1)
+            		codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
+            		codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
+            		codigo.append("SAHF\n"); // Cargar el estado en los indicadores
+            		codigo.append("JA ").append(etiquetaErrorRango).append("\n"); // Si `op2` es mayor que el límite superior, ir a `etiquetaErrorRango`
+
+            		// Limpiar ST(1) después de la comparación
+            		codigo.append("FSTP ST(0)\n"); // Sacar el límite superior de la pila de la FPU
+
+            		// Si está dentro del rango, continuar con la asignación
+            		codigo.append(etiquetaSinError).append(":\n");
+            		codigo.append("MOV ECX, ").append(op2).append("\n"); // Mover `op2` a ECX (asignación)
+            		codigo.append("MOV ").append(op1).append(", ECX\n");
+
+            		// Manejo de error si está fuera del rango
+            		codigo.append(etiquetaErrorRango).append(":\n");
+            		codigo.append("invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK\n");
+            		codigo.append("invoke ExitProcess, 0\n");
+            	
+            	}else {
+            		codigo.append("MOV ECX, ").append(op2).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                    codigo.append("MOV ").append(op1).append(", ECX\n");
+                    break;
+            	}
+                
             case "/":   
                 aux = ocuparAuxiliar("longint"); // Registro o espacio auxiliar para el resultado
 
@@ -402,7 +458,7 @@ public class GeneradorCodigo {
 
         String aux;
 
-        //Si es ULONG, la tengo que convertir a DOUBLE
+        //Si es LONGINT, la tengo que convertir a DOUBLE
         if (st.getType(op1).equals("longint")) {
             aux = ocuparAuxiliar("double");
             codigo.append("FLD ").append(op1).append("\n");
@@ -429,11 +485,11 @@ public class GeneradorCodigo {
 
                 // Verificación de overflow en la suma
                 String etiquetaSinOverflow = "LABEL_NO_OVERFLOW_" + generarIdUnico(); // Etiqueta única para el control de flujo sin overflow
-                String nombreAux2bytes = ocuparAuxiliar("2bytes"); // Variable auxiliar para la palabra de estado
+                 // Variable auxiliar para la palabra de estado
 
                 // Almacenar la palabra de estado y verificar si hubo overflow
-                codigo.append("FSTSW ").append(nombreAux2bytes).append("\n"); // Almacena la palabra de estado en `nombreAux2bytes`
-                codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); // Carga la palabra de estado en AX
+                codigo.append("FSTSW ").append(nombreAux2bytes ).append("\n"); // Almacena la palabra de estado en `nombreAux2bytes`
+                codigo.append("MOV AX, ").append(nombreAux2bytes ).append("\n"); // Carga la palabra de estado en AX
                 codigo.append("SAHF\n"); // Almacena el valor de AH en los bits de indicador
 
                 // Verificar si se establece la bandera de overflow
@@ -473,9 +529,55 @@ public class GeneradorCodigo {
                 break;
             
             case ":=":
-                codigo.append("FLD ").append(op2).append("\n");
-                codigo.append("FSTP ").append(op1).append("\n");
-                break;
+            	String op2tipo=st.getType(op2);
+            	if(!op2tipo.equals("longint") && !op2tipo.equals("double")&& !st.getUse(op2tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
+            		// Obtener los límites de rango del tipo definido por el usuario
+            		Double limiteInferior = st.getTipoSubrango(op2tipo).getLimiteInferior();
+            		Double limiteSuperior = st.getTipoSubrango(op2tipo).getLimiteSuperior();
+
+            		// Crear etiquetas para control de flujo
+            		String etiquetaSinError = "DENTRO_RANGO_" + generarIdUnico();
+            		String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
+
+            		// Cargar el valor de `op2` en la FPU para verificar los rangos
+            		codigo.append("FLD ").append(op2).append("\n"); // Cargar `op2` en ST(0)
+
+            		// Comprobar límite inferior
+            		codigo.append("FLD ").append(limiteInferior).append("\n"); // Cargar límite inferior en ST(1)
+            		codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
+            		codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
+            		codigo.append("SAHF\n"); // Cargar el estado en los indicadores
+            		codigo.append("JB ").append(etiquetaErrorRango).append("\n"); // Si `op2` es menor que el límite inferior, ir a `etiquetaErrorRango`
+
+            		// Limpiar ST(1) después de la comparación
+            		codigo.append("FSTP ST(0)\n"); // Sacar el límite inferior de la pila de la FPU
+
+            		// Comprobar límite superior
+            		codigo.append("FLD ").append(limiteSuperior).append("\n"); // Cargar límite superior en ST(1)
+            		codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
+            		codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
+            		codigo.append("SAHF\n"); // Cargar el estado en los indicadores
+            		codigo.append("JA ").append(etiquetaErrorRango).append("\n"); // Si `op2` es mayor que el límite superior, ir a `etiquetaErrorRango`
+
+            		// Limpiar ST(1) después de la comparación
+            		codigo.append("FSTP ST(0)\n"); // Sacar el límite superior de la pila de la FPU
+
+            		// Si está dentro del rango, continuar con la asignación
+            		codigo.append(etiquetaSinError).append(":\n");
+            		codigo.append("MOV ECX, ").append(op2).append("\n"); // Mover `op2` a ECX (asignación)
+            		codigo.append("MOV ").append(op1).append(", ECX\n");
+
+            		// Manejo de error si está fuera del rango
+            		codigo.append(etiquetaErrorRango).append(":\n");
+            		codigo.append("invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK\n");
+            		codigo.append("invoke ExitProcess, 0\n");
+            	
+            	}else {
+            		codigo.append("FLD ").append(op2).append("\n");
+                    codigo.append("FSTP ").append(op1).append("\n");
+                    break;
+            	}
+                
             
             case "/":
                 aux = ocuparAuxiliar("double"); // Registro o espacio auxiliar para el resultado en double
@@ -578,19 +680,15 @@ public class GeneradorCodigo {
     private  void generarSalto(String salto) {
         String direccion = pila_tokens.pop();    
 
-        if (!salto.equals("JMP") && lastComparation.equals("")) {
+        if (!salto.equals("JMP") && lastComparation.equals("")) {//Es un salto con condicion
             String valor = pila_tokens.pop();
-            int punt_valor = SymbolTable.obtenerSimbolo(valor);
-            String uso = SymbolTable.obtenerAtributo(punt_valor, "uso");
             
-            if (uso.equals("variable"))
-                valor = renombre(valor);
-
             codigo.append("MOV ECX, ").append(valor).append("\n");
             codigo.append("OR ECX, 0\n");
             codigo.append("JE L").append(direccion).append("\n");
         } else {
-            codigo.append(salto).append(" L").append(direccion).append("\n");
+        	int direccionInt = Integer.parseInt(direccion);
+            codigo.append(salto).append(" ").append(SymbolTable.polaca.get(direccionInt).replace("@","")).append("\n");
         }
 
         lastComparation = "";
@@ -641,17 +739,7 @@ public class GeneradorCodigo {
         }
     }
 
-    private static String negacion(String comparacion) {
-        switch (comparacion) {
-            case "JE": return "JNE";
-            case "JNE": return "JE";
-            case "JG": return "JLE";
-            case "JLE": return "JG";
-            case "JL": return "JGE";
-            case "JGE": return "JL";
-            default: return comparacion;
-        }
-    }
+   
 
     private  String ocuparAuxiliar(String tipo) {
         String retorno = "@aux" + numeroAuxiliar;
@@ -661,8 +749,19 @@ public class GeneradorCodigo {
         return retorno;
     }
 
-    private  void generarCodigoRetorno() {
-        generarOperador(":=");
+    private void generarCodigoRetorno() {
+        String topePila = pila_tokens.pop();
+
+        // Verificar si el tipo es "double" o no
+        if (st.getType(topePila).equals("double")) {
+            // Cargar el valor al registro de coma flotante
+            codigo.append("FLD ").append(topePila).append("\n");  // FLD carga el valor en el tope de la pila de FPU
+        } else {
+            // Cargar el valor al registro EAX (para enteros)
+            codigo.append("MOV EAX, ").append(topePila).append("\n"); // Cargar el valor en EAX para el retorno de enteros
+        }
+
+        // Instrucción de retorno
         codigo.append("RET\n");
     }
 }

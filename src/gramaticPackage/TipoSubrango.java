@@ -9,6 +9,12 @@ public class TipoSubrango {
         this.limiteInferior = limiteInferior;
         this.limiteSuperior = limiteSuperior;
     }
+    public double getLimiteInferior() {
+    	return this.limiteInferior;
+    }
+    public double getLimiteSuperior() {
+    	return this.limiteSuperior;
+    }
     public String getTipoBase() {
     	return this.tipoBase;
     }

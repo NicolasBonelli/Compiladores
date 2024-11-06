@@ -53,7 +53,7 @@ public class GeneradorCodigo {
                         generarSalto(lastComparation);
                         break;
                     case "OUTF":
-                        generarCodigoImprimirPantalla();//TODO
+                        generarCodigoImprimirPantalla();
                         break;    
      
 	                case "!RET":
@@ -87,11 +87,18 @@ public class GeneradorCodigo {
 
         generarCabecera();
     }
-    private void generarCodigoImprimirPantalla() {//TODO
-		String cadena = pila_tokens.pop();
-		//Implementar imprimir en pantalla	
-	}
-
+    private void generarCodigoImprimirPantalla() {
+        // Obtenemos la cadena del tope de la pila
+        String cadena = pila_tokens.pop();
+        
+        // Suponiendo que el contenido de `cadena` es el nombre de la etiqueta en la sección de datos:
+        codigo.append("mov eax, 4\n");                // Código del sistema para escribir
+        codigo.append("mov ebx, 1\n");                // File descriptor 1 (salida estándar)
+        codigo.append("mov ecx, ").append(cadena).append("\n");  // Dirección de la cadena en `ecx`
+        codigo.append("mov edx, [").append(cadena).append("_len]\n"); // Tamaño de la cadena en `edx`
+        codigo.append("int 0x80\n");                  // Llamada a interrupción para ejecutar la salida
+    }
+    
 
 	private void generarCabeceraFuncion(String token) {
         codigo.append(token.replace("$","")).append(" PROC\n");
@@ -102,7 +109,7 @@ public class GeneradorCodigo {
 	}
 
 
-	private static void generarCabecera() {
+	private  void generarCabecera() {
     //funcoin encargada de la generacion de la cabecera del codigo
         StringBuilder cabecera = new StringBuilder();
 
@@ -128,60 +135,34 @@ public class GeneradorCodigo {
         codigo = cabecera;
     }
 
-    private static void generarCodigoDatos(StringBuilder cabecera) {
-        //funcion utilizada para generar el codigo necesario para todos los datos del programa, presentes en la tabla de simbolos
-        for (int simbolo : SymbolTable.obtenerConjuntoPunteros()) {
-            //tomamos el atributo 'uso' del simbolo actual, desde la tabla de simbolos
-            String uso = SymbolTable.obtenerAtributo(simbolo, "uso");
+    private  void generarCodigoDatos(StringBuilder cabecera) {
+            //funcion utilizada para generar el codigo necesario para todos los datos del programa, presentes en la tabla de simbolos
+        for (String simbolo : st.obtenerConjuntoSimbolos()) { 
+            // Obtenemos el tipo de uso y tipo de dato desde la tabla de símbolos
+            String uso = st.getUse(simbolo);
+            String tipo = st.getType(simbolo);
 
-            if (!uso.equals(SymbolTable.NO_ENCONTRADO_S) && uso.equals("funcion")) continue;
-
-            String tipo_actual = SymbolTable.obtenerAtributo(simbolo, "tipo");
-            String lexema_actual = SymbolTable.obtenerAtributo(simbolo, "lexema");
+            // Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
+            if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")) {
+                // Ejemplo: Definir variable con el tipo y símbolo
+                cabecera.append(simbolo).append(" dd 0\n"); // Suponiendo que es una variable de tipo entero en assembler
+            } else if (uso.equals("Nombre de funcion")) {
+                // Ejemplo: Definir espacio reservado o etiqueta para función
+                continue;
+            } else if (uso.equals("Constante")) {
+                // Ejemplo: Definir constante en assembler
+                cabecera.append(simbolo).append(" equ ").append(simbolo).append("\n"); // Constante con su valor
+            } else if (uso.equals("Cadena multilinea")){
+                String etiquetaUnica = simbolo + "_str"; // Agregamos un sufijo para evitar duplicados
             
-            if (tipo_actual.equals(SymbolTable.NO_ENCONTRADO_S)) continue;
+                cabecera.append(etiquetaUnica) // Usa la etiqueta única en lugar del símbolo original
+                        .append(" db \"")
+                        .append(simbolo) // Aquí se usa el símbolo como el contenido
+                        .append("\", 0\n"); // Terminador nulo para la cadena
 
-            switch (tipo_actual) {
-                case TablaTipos.STR_TYPE:
-                    //tomo el valor de la tabla de simbolos
-                    String valor_actual = SymbolTable.obtenerAtributo(simbolo, "valor");
-                    cabecera.append(lexema_actual.substring(1)).append(" db \"").append(valor_actual).append("\", 0\n");
-                    break;
-                
-                case "longint":
-                case TablaTipos.FUNC_TYPE:
-                    if (uso.equals("constante")) {
-                        String lexema = lexema_actual;
-                        lexema_actual = "@" + lexema_actual;
-                        cabecera.append(lexema_actual).append(" dd ").append(lexema).append("\n");
-                    } else {
-                        if (!lexema_actual.startsWith("@")) {
-                            cabecera.append("_");
-                        }
-                        
-                        cabecera.append(lexema_actual).append(" dd ? \n");
-                    }
-                   
-                    break;
-                
-                case "double":        //en caso que el simbolo de tipo double y sea una constante
-                    if (uso.equals("constante")) {
-                        String lexema = lexema_actual;
-
-                        if (lexema_actual.charAt(0) == '.')
-                            lexema = "0" + lexema;
-
-                        lexema_actual = "@" + lexema_actual.replace('.', '@').replace('-', '@').replace('+', '@');  //cambiamos el punto por una @ 
-                        cabecera.append(lexema_actual).append(" REAL4 ").append(lexema).append("\n");   //y agregamos el simbolo a la cabecera con REAL4
-                    } else {
-                        if (! lexema_actual.startsWith("@")) {
-                            cabecera.append("_");
-                        }
-                        cabecera.append(lexema_actual).append(" dq ?\n");
-                    }
-                    
-                    break;
             }
+            else continue;
+            // Añadir otros tipos de uso según sea necesario
         }
     }
 
@@ -215,7 +196,7 @@ public class GeneradorCodigo {
         
         
     }
- 
+ /*
     public static void generarOperacionFuncion(String op1, String op2) {
         int punt_op2 = SymbolTable.obtenerSimbolo(op2);
         String uso = SymbolTable.obtenerAtributo(punt_op2, "uso");
@@ -230,14 +211,7 @@ public class GeneradorCodigo {
         codigo.append("MOV ").append(op1).append(", EAX\n");
     }
 
-    private static void generarErrorDivCero(String aux){
-        // genera el codigo necesario ante un error de division por cero
-        codigo.append("JNE ").append(aux.substring(1)).append("\n");
-        codigo.append("invoke MessageBox, NULL, addr @ERROR_DIVISION_POR_CERO, addr @ERROR_DIVISION_POR_CERO, MB_OK\n");
-        codigo.append("invoke ExitProcess, 0\n");
-        codigo.append(aux.substring(1)).append(":\n"); //declaro una label        
-    }
-
+*/
 
     private void generarErrorInvocacion(String funcion, String funcion_actual) {
         //genera el codigo necesario ante un error de invocacion de una funcion:
@@ -725,14 +699,12 @@ public class GeneradorCodigo {
         }
     }
 
-    private static String renombre(String token) {
-        char caracter = token.charAt(0);
-        int puntToken = SymbolTable.obtenerSimbolo(token);
+    private String renombre(String token) {
 
         // Si es una constante, le cambio de nombre al cual fue declarada
-        if (SymbolTable.obtenerAtributo(puntToken, "uso").equals("constante")) {
+        if (st.getUse(token).equals("Constante")) {
             return "@" + token.replace('.', '@').replace('-', '@').replace('+', '@');
-        } else if (Character.isLowerCase(caracter) || Character.isUpperCase(caracter) || caracter == '_') {
+        } else if (st.getUse(token).equals("Nombre de variable") || st.getUse(token).equals("Nombre de funcion") || st.getUse(token).equals("Nombre de variable par")) {
             return "_" + token;
         } else {
             return token;

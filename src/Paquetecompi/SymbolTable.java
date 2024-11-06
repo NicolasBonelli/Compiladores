@@ -26,6 +26,7 @@ public class SymbolTable {
     public static ArrayList<String> errores = new ArrayList<>();
     private static int posActualPolaca;
     
+
     public void aggPilaGotos(TipoEtiqueta valor){
     	SymbolTable.pilaGotos.push(valor);
     }
@@ -366,6 +367,16 @@ public class SymbolTable {
             Symbol symbol = (Symbol)o;
             return this.nombre.compareTo(symbol.nombre);
         }
+	}
+
+
+	public  ArrayList<String> obtenerConjuntoSimbolos() {
+		ArrayList<String> simbolos = new ArrayList<>();
+
+		for (Symbol symbol : symbolMap.keySet()){ 
+			simbolos.add(symbol.getNombre());
+		}
+		return simbolos;
 	}
 
 }

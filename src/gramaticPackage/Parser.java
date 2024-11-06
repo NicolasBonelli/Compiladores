@@ -748,7 +748,7 @@ final static String yyrule[] = {
 "unaria : '-' T_CTE",
 };
 
-//#line 1044 "gramatica.y"
+//#line 1046 "gramatica.y"
 public static boolean crearEjecutable=true;
 private ReturnChecker returnChecker = new ReturnChecker();
 private int nivel = 0;
@@ -969,7 +969,7 @@ String obtenerTipo(String variable) {
 	private Lexer lexer;
 	private BufferedReader reader;
     private GeneradorCodigo gc = new GeneradorCodigo(st);
-
+    
 	public Parser(String filePath) {
 	    this.st = new SymbolTable();
 	    try {
@@ -1145,7 +1145,7 @@ case 1:
     SymbolTable.aggPolaca(val_peek(1).sval+"%");
     if (SymbolTable.errores.isEmpty() && !st.containsUnsignedGoto()){
         System.out.println("Programa compilado correctamente");
-        //gc.generarCodigo();
+        gc.generarCodigo();
     }
     else {
         System.err.println("No se puede crear el ejecutable");
@@ -2109,7 +2109,7 @@ case 124:
         } else {
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "{" + val_peek(1).sval + "}";
-            SymbolTable.aggPolaca(val_peek(3).sval + "{" + val_peek(1).sval + "}"); 
+            /*SymbolTable.aggPolaca(val_peek(3).sval + "{" + val_peek(1).sval + "}"); */
 
         }
         
@@ -2254,18 +2254,19 @@ case 140:
 //#line 885 "gramatica.y"
 {
                 /* Devuelve el resultado del acceso a un parámetro*/
+                SymbolTable.aggPolaca(val_peek(0).sval); 
                 yyval.sval = val_peek(0).sval;
             }
 break;
 case 141:
-//#line 890 "gramatica.y"
+//#line 891 "gramatica.y"
 {
                 /* Devuelve la expresión unaria*/
                 yyval.sval = val_peek(0).sval;
             }
 break;
 case 142:
-//#line 897 "gramatica.y"
+//#line 898 "gramatica.y"
 {
             if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
@@ -2276,7 +2277,7 @@ case 142:
         }
 break;
 case 143:
-//#line 905 "gramatica.y"
+//#line 906 "gramatica.y"
 {
             if( (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
@@ -2287,7 +2288,7 @@ case 143:
         }
 break;
 case 144:
-//#line 913 "gramatica.y"
+//#line 914 "gramatica.y"
 {
             if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
@@ -2298,7 +2299,7 @@ case 144:
         }
 break;
 case 145:
-//#line 921 "gramatica.y"
+//#line 922 "gramatica.y"
 {
             if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
                 System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
@@ -2309,7 +2310,7 @@ case 145:
         }
 break;
 case 146:
-//#line 929 "gramatica.y"
+//#line 930 "gramatica.y"
 {
             String constante = val_peek(0).sval;
             String valorString =getStringByType(constante);
@@ -2320,7 +2321,7 @@ case 146:
     }
 break;
 case 147:
-//#line 937 "gramatica.y"
+//#line 938 "gramatica.y"
 {
             SymbolTable.aggPolaca(val_peek(0).sval);
             /* Devuelve el identificador como cadena*/
@@ -2329,32 +2330,33 @@ case 147:
         }
 break;
 case 148:
-//#line 943 "gramatica.y"
+//#line 944 "gramatica.y"
 {
             /* Devuelve el resultado del acceso a un parámetro*/
+            SymbolTable.aggPolaca(val_peek(0).sval); 
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 149:
-//#line 947 "gramatica.y"
+//#line 949 "gramatica.y"
 {
             /* Devuelve el resultado de la invocación de una función*/
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 150:
-//#line 951 "gramatica.y"
+//#line 953 "gramatica.y"
 {
             /* Devuelve la expresión unaria*/
             yyval.sval = val_peek(0).sval;
         }
 break;
 case 151:
-//#line 955 "gramatica.y"
+//#line 957 "gramatica.y"
 {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
 break;
 case 152:
-//#line 958 "gramatica.y"
+//#line 960 "gramatica.y"
 { 
 
 
@@ -2440,7 +2442,7 @@ case 152:
 
 }
 break;
-//#line 2367 "Parser.java"
+//#line 2369 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

@@ -90,7 +90,7 @@ public class GeneradorCodigo {
     private void generarCodigoImprimirPantalla() {
         // Obtenemos la cadena del tope de la pila
         String cadena = pila_tokens.pop();
-        
+        cadena.replace("[","").replace("]","");
         // Suponiendo que el contenido de `cadena` es el nombre de la etiqueta en la sección de datos:
         codigo.append("mov eax, 4\n");                // Código del sistema para escribir
         codigo.append("mov ebx, 1\n");                // File descriptor 1 (salida estándar)
@@ -135,7 +135,7 @@ public class GeneradorCodigo {
         codigo = cabecera;
     }
 
-    private  void generarCodigoDatos(StringBuilder cabecera) {
+    private  void generarCodigoDatos(StringBuilder cabecera) {//TODO
             //funcion utilizada para generar el codigo necesario para todos los datos del programa, presentes en la tabla de simbolos
         for (String simbolo : st.obtenerConjuntoSimbolos()) { 
             // Obtenemos el tipo de uso y tipo de dato desde la tabla de símbolos

@@ -778,7 +778,6 @@ acceso_par:
         } else {
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "{" + val_peek(1).sval + "}";
-            SymbolTable.aggPolaca(val_peek(3).sval + "{" + val_peek(1).sval + "}"); 
 
         }
         
@@ -884,6 +883,7 @@ expresion_aritmetica:
             }
         |   acceso_par {
                 // Devuelve el resultado del acceso a un parámetro
+                SymbolTable.aggPolaca(val_peek(0).sval); 
                 yyval.sval = val_peek(0).sval;
             }
         
@@ -942,6 +942,7 @@ expresion:
         }
     |   acceso_par {
             // Devuelve el resultado del acceso a un parámetro
+            SymbolTable.aggPolaca(val_peek(0).sval); 
             yyval.sval = val_peek(0).sval;
         }
     |   invocacion_funcion {

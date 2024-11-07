@@ -837,7 +837,7 @@ parametro_real: expresion_aritmetica {
 expresion_aritmetica:
     expresion_aritmetica '+' expresion_aritmetica {
                 if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                    SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("+");
                 // Devuelve la expresión como una cadena que representa la suma
@@ -845,7 +845,7 @@ expresion_aritmetica:
             }
         |expresion_aritmetica '-' expresion_aritmetica {
                 if( (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                    SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("-");
                 // Devuelve la expresión como una cadena que representa la resta
@@ -853,7 +853,7 @@ expresion_aritmetica:
             }
         |expresion_aritmetica '*' expresion_aritmetica {
                 if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                    SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("*");
                 // Devuelve la expresión como una cadena que representa la multiplicación
@@ -861,7 +861,7 @@ expresion_aritmetica:
             }
         |expresion_aritmetica '/' expresion_aritmetica {
                 if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                    System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                    SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("/");
                 // Devuelve la expresión como una cadena que representa la división
@@ -896,7 +896,7 @@ expresion_aritmetica:
 expresion:
         expresion '+' expresion {
             if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("+");
             // Devuelve la expresión como una cadena que representa la suma
@@ -904,7 +904,7 @@ expresion:
         }
     |   expresion '-' expresion {
             if( (isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("-");
             // Devuelve la expresión como una cadena que representa la resta
@@ -912,7 +912,7 @@ expresion:
         }
     |   expresion '*' expresion {
             if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("*");
             // Devuelve la expresión como una cadena que representa la multiplicación
@@ -920,7 +920,7 @@ expresion:
         }
     |   expresion '/' expresion {
             if((isPair(val_peek(0).sval)|| isPair(val_peek(2).sval))){
-                System.out.println("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
+                SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("/");
             // Devuelve la expresión como una cadena que representa la división

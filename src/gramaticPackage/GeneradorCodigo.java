@@ -66,9 +66,9 @@ public class GeneradorCodigo {
 	                        generarCabeceraFuncion(token);
 	                    }else if (token.endsWith("%")&& posActualPolaca<SymbolTable.polaca.size()-1) {   // Encontramos el comienzo de una funcion
 	                        generarFinalFuncion(token);
-	                    }else {
-	                        pila_tokens.push(token);
-	                    }
+	                    }else if (st.getUse(token).equals("Nombre de funcion")){
+	                        generarLlamadoFuncion(token);
+	                    } else pila_tokens.push(token);
 	                    
 	                    
 	
@@ -144,8 +144,28 @@ public class GeneradorCodigo {
 
             // Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
             if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")) {
-                // Ejemplo: Definir variable con el tipo y símbolo
-                cabecera.append(simbolo).append(" dd 0\n"); // Suponiendo que es una variable de tipo entero en assembler
+                if (tipo.equals("longint")){
+                    cabecera.append(simbolo).append(" dd 0\n"); // Asumimos 32 bits para longint
+
+                } else if (tipo.equals("double")){
+                    cabecera.append(simbolo).append(" dq 0.0\n"); // Para almacenar un double en 64 bits
+                } else if (uso.equals("Nombre de tipo")){ //DEFINIDO POR EL USER pero no es pair
+                    TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
+                     if (tS.getTipoBase().equals("double")){
+                        cabecera.append(simbolo).append(" dq ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
+
+                    } else cabecera.append(simbolo).append(" dd ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
+             
+                } else { //PAIR
+                    TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
+                    if (tS.getTipoBase().equals("double")){
+                        cabecera.append(simbolo).append("_1 dq 0.0\n"); // Componente 1 del par (double)
+                        cabecera.append(simbolo).append("_2 dq 0.0\n"); // Componente 2 del par (double)
+                    } else {
+                        cabecera.append(simbolo).append("_1 dd 0\n"); // Componente 1 del par
+                        cabecera.append(simbolo).append("_2 dd 0\n"); // Componente 2 del par
+                    }
+                }
             } else if (uso.equals("Nombre de funcion")) {
                 // Ejemplo: Definir espacio reservado o etiqueta para función
                 continue;
@@ -213,28 +233,19 @@ public class GeneradorCodigo {
 
 */
 
-    private void generarErrorInvocacion(String funcion, String funcion_actual) {
-        //genera el codigo necesario ante un error de invocacion de una funcion:
-        //El codigo Assembler debera controlar que una funcion no pueda invocarse a si misma. 
-     
-        int punt_funcion = SymbolTable.obtenerSimbolo(funcion);
-        String uso = SymbolTable.obtenerAtributo(punt_funcion, "uso"); 
+        // Método para verificar si es un acceso a `pair` (por ejemplo, x{1} o x{2})
+    private boolean esAccesoPar(String operando) {
+        return operando.matches(".+\\{[12]\\}");
+    }
 
-        if (uso.equals("variable")) {
-            funcion = renombre(funcion);  //renombramos la variable de funcion
-            codigo.append("MOV EAX, [").append(funcion).append("]\n");
-        } else 
-            codigo.append("MOV EAX, ").append(funcion).append("\n");
+    // Método para obtener la componente específica del `pair`
+    private String obtenerComponentePar(String accesoPar) {
+        // Divide el acceso en variable y componente (e.g., "x{1}" -> "x", "1")
+        String variable = accesoPar.substring(0, accesoPar.indexOf('{'));
+        String componente = accesoPar.substring(accesoPar.indexOf('{') + 1, accesoPar.indexOf('}'));
 
-        String label = "@aux" + numeroAuxiliar;
-        ++numeroAuxiliar;
-
-        codigo.append("MOV EBX, ").append(funcion_actual).append("\n");
-        codigo.append("CMP EBX, EAX\n");
-        codigo.append("JNE ").append(label).append("\n");
-        codigo.append("invoke MessageBox, NULL, addr @ERROR_INVOCACION, addr @ERROR_INVOCACION, MB_OK\n");
-        codigo.append("invoke ExitProcess, 0\n");
-        codigo.append(label).append(":\n"); //declaro una label        
+        // Mapea "1" y "2" a las componentes en assembler correspondientes (ajustar según implementación)
+        return componente.equals("1") ? variable + "_1" : variable + "_2";
     }
 
 
@@ -247,9 +258,16 @@ public class GeneradorCodigo {
         op2 = renombre(op2); 
 
         String aux;
-
+         // Verifica si op1 o op2 son accesos a un par (patrón "variable{n}")
+        if (esAccesoPar(op1)) {
+            op1 = obtenerComponentePar(op1); // Traduce el acceso par a su representación assembler
+        }
+        if (esAccesoPar(op2)) {
+            op2 = obtenerComponentePar(op2);
+        }
         switch (operador) {
             case "+":
+
                 codigo.append("MOV ECX, ").append(op1).append("\n"); //muevo siempre al registro ECX ya que al usar auxiliares nunca voy a gastar mas de 1 registro, ademas este registro no es usado por las divisiones
                 codigo.append("ADD ECX, ").append(op2).append("\n");
                 aux = ocuparAuxiliar("longint");
@@ -271,8 +289,22 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case ":=":
-            	String op2tipo=st.getType(op2);
-            	if(!op2tipo.equals("longint") && !op2tipo.equals("double")&& !st.getUse(op2tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
+                String op2tipo = st.getType(op2);
+
+                // Verificar que el tipo es un par definido por el usuario
+                if (st.getUse(op2tipo).equals("Nombre de variable par")) {
+                    // Asignación de las componentes del par
+                    // Mover componente 1 de `op2` a `op1`
+                    codigo.append("MOV ECX, ").append(op2).append("{1}\n");
+                    codigo.append("MOV ").append(op1).append("{1}, ECX\n");
+            
+                    // Mover componente 2 de `op2` a `op1`
+                    codigo.append("MOV ECX, ").append(op2).append("{2}\n");
+                    codigo.append("MOV ").append(op1).append("{2}, ECX\n");
+            
+                } 
+
+            	else if(!op2tipo.equals("longint") && !op2tipo.equals("double")&& !st.getUse(op2tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
             		// Obtener los límites de rango del tipo definido por el usuario
             		Double limiteInferior = st.getTipoSubrango(op2tipo).getLimiteInferior();
             		Double limiteSuperior = st.getTipoSubrango(op2tipo).getLimiteSuperior();
@@ -431,7 +463,13 @@ public class GeneradorCodigo {
         op2 = renombre(op2);
 
         String aux;
-
+         // Verifica si op1 o op2 son accesos a un par (patrón "variable{n}")
+         if (esAccesoPar(op1)) {
+            op1 = obtenerComponentePar(op1); // Traduce el acceso par a su representación assembler
+        }
+        if (esAccesoPar(op2)) {
+            op2 = obtenerComponentePar(op2);
+        }
         //Si es LONGINT, la tengo que convertir a DOUBLE
         if (st.getType(op1).equals("longint")) {
             aux = ocuparAuxiliar("double");
@@ -503,8 +541,23 @@ public class GeneradorCodigo {
                 break;
             
             case ":=":
-            	String op2tipo=st.getType(op2);
-            	if(!op2tipo.equals("longint") && !op2tipo.equals("double")&& !st.getUse(op2tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
+            String op2tipo = st.getType(op2);
+
+            // Verificar que el tipo es un par definido por el usuario
+            if (st.getUse(op2tipo).equals("Nombre de variable par")) {
+                // Asignación de las componentes del par de tipo double
+                // Mover componente 1 de `op2` a `op1`
+                codigo.append("MOVSD XMM0, ").append(op2).append("{1}\n");
+                codigo.append("MOVSD ").append(op1).append("{1}, XMM0\n");
+            
+                // Mover componente 2 de `op2` a `op1`
+                codigo.append("MOVSD XMM0, ").append(op2).append("{2}\n");
+                codigo.append("MOVSD ").append(op1).append("{2}, XMM0\n");
+            
+            }
+            
+
+            else if(!op2tipo.equals("longint") && !op2tipo.equals("double")&& !st.getUse(op2tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
             		// Obtener los límites de rango del tipo definido por el usuario
             		Double limiteInferior = st.getTipoSubrango(op2tipo).getLimiteInferior();
             		Double limiteSuperior = st.getTipoSubrango(op2tipo).getLimiteSuperior();
@@ -668,36 +721,35 @@ public class GeneradorCodigo {
         lastComparation = "";
     }
 
-    private static void generarLlamadoFuncion() {
-        String parametro = pila_tokens.pop();
-        String funcion = pila_tokens.pop();
-        String funcion_actual = pila_tokens.pop();  //guardamos la funcion en ejeucucon actual.
-
-        int punt_funcion = SymbolTable.obtenerSimbolo(funcion);
-        int punt_parametro = SymbolTable.obtenerParametro(funcion);
-        String tipo_retorno = SymbolTable.obtenerAtributo(punt_funcion, "retorno");
-        String uso_funcion = SymbolTable.obtenerAtributo(punt_funcion, "uso");
-        String lexema_parametro = SymbolTable.obtenerAtributo(punt_parametro, "lexema");
-
-        // Si la funcion actual tiene un @, quiere decir que estamos fuera del MAIN
-        if (funcion_actual.contains("@"))
-            generarErrorInvocacion(funcion, funcion_actual);
-
-        pila_tokens.push(parametro);
-        pila_tokens.push(lexema_parametro);
-        generarOperador(":=");
-
-        parametro = renombre(parametro);
+    private void generarLlamadoFuncion(String nombreFuncion) {
+        String parametroReal = pila_tokens.pop();
+        String funcion = renombre(nombreFuncion);
         
-        if (uso_funcion.equals("variable")) {
-            codigo.append("CALL [_").append(funcion).append("]\n");   //es un puntero a funcion
-            String nombreFuncion = SymbolTable.obtenerAtributo(punt_funcion, "funcion_asignada");
-            pila_tokens.push("@ret@" + nombreFuncion);
-        } else {
-            codigo.append("CALL ").append(funcion).append("\n");    //es una funcion normal
-            pila_tokens.push("@ret@" + funcion); //pusheo el retorno de la funcion
+        CaracteristicaFuncion cF = st.getCaracteristicaFuncion(nombreFuncion);
+        // Asumimos que el tipo de parametro y retorno están disponibles
+        String tipoParametro = cF.getTipoParametro();
+        String tipoRetorno = cF.getTipoDevuelto();
+    
+        // Cargar el parámetro en el registro adecuado según el tipo
+        if (tipoParametro.equals("double") || st.getTipoSubrango(tipoParametro+":"+st.getAmbitoByKey(tipoParametro)).getTipoBase().equals("double")) {
+            codigo.append("MOVSD xmm0, ").append(parametroReal).append("\n");  // Carga double
+        } else if (tipoParametro.equals("longint") || st.getTipoSubrango(tipoParametro+":"+st.getAmbitoByKey(tipoParametro)).getTipoBase().equals("longint")) {
+            codigo.append("MOV EAX, ").append(parametroReal).append("\n");      // Carga longint
         }
+    
+        // Llamada a la función
+        codigo.append("CALL ").append(funcion).append("\n");
+    
+        // Guardar el retorno según el tipo de retorno
+        if (tipoRetorno.equals("double")) {
+            codigo.append("MOVSD @ret@, xmm0\n");      // Retorno double en xmm0
+        } else if (tipoRetorno.equals("longint")) {
+            codigo.append("MOV @ret@, EAX\n");         // Retorno longint en EAX
+        }
+    
+        pila_tokens.push("@ret@"); // Pusheo el valor de retorno
     }
+    
 
     private String renombre(String token) {
 

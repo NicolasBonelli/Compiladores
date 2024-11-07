@@ -50,6 +50,7 @@ programa: nombre bloque_sentencias {
     if (SymbolTable.errores.isEmpty() && !st.containsUnsignedGoto()){
         System.out.println("Programa compilado correctamente");
         gc.generarCodigo();
+
     }
     else {
         System.err.println("No se puede crear el ejecutable");
@@ -253,6 +254,7 @@ parametro:
                 st.addValue(val_peek(0).sval,val_peek(1).sval,"Nombre de parametro",SymbolTable.ambitoGlobal.toString(), 278);
             }
         }
+        st.updateType(val_peek(0).sval,SymbolTable.ambitoGlobal.toString(),val_peek(1).sval);//CAMBIAR TIPO
         yyval.sval = val_peek(1).sval + ":" + val_peek(0).sval;
         
     }
@@ -1261,10 +1263,12 @@ String obtenerTipo(String variable) {
 	private SymbolTable st;
 	private Lexer lexer;
 	private BufferedReader reader;
-    private GeneradorCodigo gc = new GeneradorCodigo(st);
+    private GeneradorCodigo gc ;
     
 	public Parser(String filePath) {
 	    this.st = new SymbolTable();
+        this.gc=new GeneradorCodigo(st);
+
 	    try {
 	        this.reader = new BufferedReader(new FileReader(filePath));
 	        this.lexer = new Lexer(st);

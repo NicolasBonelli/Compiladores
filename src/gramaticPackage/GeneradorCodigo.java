@@ -22,7 +22,7 @@ public class GeneradorCodigo {
     private int idUnico = 0;
     private String nombreAux2bytes="@aux2bytes";
     private String lastComparation = "";
-    
+    private String nombrePrograma="CodigoAssembler.asm";
        public GeneradorCodigo (SymbolTable st) {
            this.st=st;
            this.numeroAuxiliar = 1;
@@ -68,7 +68,8 @@ public class GeneradorCodigo {
 	                        generarFinalFuncion(token);
 	                    }else if (st.getUse(token).equals("Nombre de funcion")){
 	                        generarLlamadoFuncion(token);
-	                    } else pila_tokens.push(token);
+	                    } else if(posActualPolaca>0)
+	                    	pila_tokens.push(token);
 	                    
 	                    
 	
@@ -78,24 +79,28 @@ public class GeneradorCodigo {
 			++posActualPolaca;
             //Impresion por pantalla para debuggear el codigo
             //System.out.println("Se leyo el token: " + token + ", la pila actual es: " + pila_tokens);
-			if(errorSemantico)//ocurrio un error semantico
+			if(errorSemantico){//ocurrio un error semantico
+				FileASSEMCreator.eraseProgram(nombrePrograma);
 				break;
+			}
+			
         }
 
         codigo.append("invoke ExitProcess, 0\n")
               .append("end START");
 
         generarCabecera();
+        FileASSEMCreator.writeProgram(nombrePrograma, codigo.toString());
     }
     private void generarCodigoImprimirPantalla() {
         // Obtenemos la cadena del tope de la pila
-        String cadena = pila_tokens.pop();
-        cadena.replace("[","").replace("]","");
+        String cadena = pila_tokens.pop().replace("[","").replace("]","");
+       
         // Suponiendo que el contenido de `cadena` es el nombre de la etiqueta en la sección de datos:
         codigo.append("mov eax, 4\n");                // Código del sistema para escribir
         codigo.append("mov ebx, 1\n");                // File descriptor 1 (salida estándar)
-        codigo.append("mov ecx, ").append(cadena).append("\n");  // Dirección de la cadena en `ecx`
-        codigo.append("mov edx, [").append(cadena).append("_len]\n"); // Tamaño de la cadena en `edx`
+        codigo.append("mov ecx, ").append(cadena).append("_str \n");  // Dirección de la cadena en `ecx`
+        codigo.append("mov edx, ").append(cadena).append("_len \n"); // Tamaño de la cadena en `edx`
         codigo.append("int 0x80\n");                  // Llamada a interrupción para ejecutar la salida
     }
     
@@ -125,8 +130,8 @@ public class GeneradorCodigo {
             
             //agregamos las constantes de error
             .append("@ERROR_DIVISION_POR_CERO db \"" + "ERROR DIVISION 0" + "\", 0\n")
-            .append("@ERROR_OVERFLOW_PRODUCTO db \"" + "ERROR PRODUCTO" + "\", 0\n");
-            
+            .append("@ERROR_OVERFLOW db \"" + "ERROR OVERFLOW" + "\", 0\n")
+            .append("@ERROR_RANGO db \"" + "ERROR RANGO" + "\", 0\n");
 
         generarCodigoDatos(cabecera);
 
@@ -139,48 +144,51 @@ public class GeneradorCodigo {
             //funcion utilizada para generar el codigo necesario para todos los datos del programa, presentes en la tabla de simbolos
         for (String simbolo : st.obtenerConjuntoSimbolos()) { 
             // Obtenemos el tipo de uso y tipo de dato desde la tabla de símbolos
+        	String simboloRenombrado = renombre(simbolo);
             String uso = st.getUse(simbolo);
             String tipo = st.getType(simbolo);
+            if(uso!=null) {
+            	// Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
+                if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")|| uso.equals("Nombre de variable par")) {
+                    if (tipo.equals("longint")){
+                        cabecera.append(simboloRenombrado).append(" dd 0\n"); // Asumimos 32 bits para longint
 
-            // Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
-            if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")) {
-                if (tipo.equals("longint")){
-                    cabecera.append(simbolo).append(" dd 0\n"); // Asumimos 32 bits para longint
+                    } else if (tipo.equals("double")){
+                        cabecera.append(simboloRenombrado).append(" dq 0.0\n"); // Para almacenar un double en 64 bits
+                    } else if (st.getUse(tipo).equals("Nombre de tipo")){ //DEFINIDO POR EL USER pero no es pair
+                        TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
+                         if (tS.getTipoBase().equals("double")){
+                            cabecera.append(simboloRenombrado).append(" dq ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
 
-                } else if (tipo.equals("double")){
-                    cabecera.append(simbolo).append(" dq 0.0\n"); // Para almacenar un double en 64 bits
-                } else if (uso.equals("Nombre de tipo")){ //DEFINIDO POR EL USER pero no es pair
-                    TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
-                     if (tS.getTipoBase().equals("double")){
-                        cabecera.append(simbolo).append(" dq ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
-
-                    } else cabecera.append(simbolo).append(" dd ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
-             
-                } else { //PAIR
-                    TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
-                    if (tS.getTipoBase().equals("double")){
-                        cabecera.append(simbolo).append("_1 dq 0.0\n"); // Componente 1 del par (double)
-                        cabecera.append(simbolo).append("_2 dq 0.0\n"); // Componente 2 del par (double)
-                    } else {
-                        cabecera.append(simbolo).append("_1 dd 0\n"); // Componente 1 del par
-                        cabecera.append(simbolo).append("_2 dd 0\n"); // Componente 2 del par
+                        } else cabecera.append(simboloRenombrado).append(" dd ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
+                 
+                    } else if(uso.equals("Nombre de variable par")){ //PAIR
+                        TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
+                        if (tS.getTipoBase().equals("double")){
+                            cabecera.append(simboloRenombrado).append("_1 dq 0.0\n"); // Componente 1 del par (double)
+                            cabecera.append(simboloRenombrado).append("_2 dq 0.0\n"); // Componente 2 del par (double)
+                        } else {
+                            cabecera.append(simboloRenombrado).append("_1 dd 0\n"); // Componente 1 del par
+                            cabecera.append(simboloRenombrado).append("_2 dd 0\n"); // Componente 2 del par
+                        }
                     }
-                }
-            } else if (uso.equals("Nombre de funcion")) {
-                // Ejemplo: Definir espacio reservado o etiqueta para función
-                continue;
-            } else if (uso.equals("Constante")) {
-                // Ejemplo: Definir constante en assembler
-                cabecera.append(simbolo).append(" equ ").append(simbolo).append("\n"); // Constante con su valor
-            } else if (uso.equals("Cadena multilinea")){
-                String etiquetaUnica = simbolo + "_str"; // Agregamos un sufijo para evitar duplicados
-            
-                cabecera.append(etiquetaUnica) // Usa la etiqueta única en lugar del símbolo original
-                        .append(" db \"")
-                        .append(simbolo) // Aquí se usa el símbolo como el contenido
-                        .append("\", 0\n"); // Terminador nulo para la cadena
+                } else if (uso.equals("Nombre de funcion")) {
+                    // Ejemplo: Definir espacio reservado o etiqueta para función
+                    continue;
+                } else if (uso.equals("Constante")) {
+                    // Ejemplo: Definir constante en assembler
+                    cabecera.append(simboloRenombrado).append(" equ ").append(simbolo).append("\n"); // Constante con su valor
+                } else if (uso.equals("Cadena multilinea")){
+                    String etiquetaUnica = simbolo + "_str"; // Agregamos un sufijo para evitar duplicados
+                
+                    cabecera.append(etiquetaUnica) // Usa la etiqueta única en lugar del símbolo original
+                            .append(" db \"")
+                            .append(simbolo) // Aquí se usa el símbolo como el contenido
+                            .append("\", 0\n"); // Terminador nulo para la cadena
 
+                }
             }
+            
             else continue;
             // Añadir otros tipos de uso según sea necesario
         }
@@ -211,7 +219,7 @@ public class GeneradorCodigo {
 	            break;
 	
 	        default:
-	            System.out.println("Algo esta mal");
+	            System.out.println("Error de tipos");
     	}
         
         
@@ -254,9 +262,10 @@ public class GeneradorCodigo {
         return idUnico;
     }
     private  void generarOperacionEnteros(String op1, String op2, String operador) {
-        op1 = renombre(op1);
-        op2 = renombre(op2); 
-
+        String op1Renombrado = renombre(op1);
+        String op2Renombrado = renombre(op2); 
+        
+        
         String aux;
          // Verifica si op1 o op2 son accesos a un par (patrón "variable{n}")
         if (esAccesoPar(op1)) {
@@ -268,22 +277,22 @@ public class GeneradorCodigo {
         switch (operador) {
             case "+":
 
-                codigo.append("MOV ECX, ").append(op1).append("\n"); //muevo siempre al registro ECX ya que al usar auxiliares nunca voy a gastar mas de 1 registro, ademas este registro no es usado por las divisiones
-                codigo.append("ADD ECX, ").append(op2).append("\n");
+                codigo.append("MOV ECX, ").append(op1Renombrado).append("\n"); //muevo siempre al registro ECX ya que al usar auxiliares nunca voy a gastar mas de 1 registro, ademas este registro no es usado por las divisiones
+                codigo.append("ADD ECX, ").append(op2Renombrado).append("\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", ECX\n");
                 pila_tokens.push(aux);
                 break;
             case "-":
-                codigo.append("MOV ECX, ").append(op1).append("\n"); //muevo siempre al registro ECX ya que al usar auxiliares nunca voy a gastar mas de 1 registro, ademas este registro no es usado por las divisiones
-                codigo.append("SUB ECX, ").append(op2).append("\n");
+                codigo.append("MOV ECX, ").append(op1Renombrado).append("\n"); //muevo siempre al registro ECX ya que al usar auxiliares nunca voy a gastar mas de 1 registro, ademas este registro no es usado por las divisiones
+                codigo.append("SUB ECX, ").append(op2Renombrado).append("\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", ECX\n");
                 pila_tokens.push(aux);
                 break;
             case "*":
-                codigo.append("MOV EAX, ").append(op1).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("MUL ").append(op2).append("\n");
+                codigo.append("MOV EAX, ").append(op1Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("MUL ").append(op2Renombrado).append("\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", EAX\n");
                 pila_tokens.push(aux);
@@ -295,12 +304,12 @@ public class GeneradorCodigo {
                 if (st.getUse(op2tipo).equals("Nombre de variable par")) {
                     // Asignación de las componentes del par
                     // Mover componente 1 de `op2` a `op1`
-                    codigo.append("MOV ECX, ").append(op2).append("{1}\n");
-                    codigo.append("MOV ").append(op1).append("{1}, ECX\n");
+                    codigo.append("MOV ECX, ").append(op2Renombrado).append("{1}\n");
+                    codigo.append("MOV ").append(op1Renombrado).append("{1}, ECX\n");
             
                     // Mover componente 2 de `op2` a `op1`
-                    codigo.append("MOV ECX, ").append(op2).append("{2}\n");
-                    codigo.append("MOV ").append(op1).append("{2}, ECX\n");
+                    codigo.append("MOV ECX, ").append(op2Renombrado).append("{2}\n");
+                    codigo.append("MOV ").append(op1Renombrado).append("{2}, ECX\n");
             
                 } 
 
@@ -314,7 +323,7 @@ public class GeneradorCodigo {
             		String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
 
             		// Cargar el valor de `op2` en la FPU para verificar los rangos
-            		codigo.append("FLD ").append(op2).append("\n"); // Cargar `op2` en ST(0)
+            		codigo.append("FLD ").append(op2Renombrado).append("\n"); // Cargar `op2` en ST(0)
 
             		// Comprobar límite inferior
             		codigo.append("FLD ").append(limiteInferior).append("\n"); // Cargar límite inferior en ST(1)
@@ -338,8 +347,8 @@ public class GeneradorCodigo {
 
             		// Si está dentro del rango, continuar con la asignación
             		codigo.append(etiquetaSinError).append(":\n");
-            		codigo.append("MOV ECX, ").append(op2).append("\n"); // Mover `op2` a ECX (asignación)
-            		codigo.append("MOV ").append(op1).append(", ECX\n");
+            		codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); // Mover `op2` a ECX (asignación)
+            		codigo.append("MOV ").append(op1Renombrado).append(", ECX\n");
 
             		// Manejo de error si está fuera del rango
             		codigo.append(etiquetaErrorRango).append(":\n");
@@ -347,8 +356,8 @@ public class GeneradorCodigo {
             		codigo.append("invoke ExitProcess, 0\n");
             	
             	}else {
-            		codigo.append("MOV ECX, ").append(op2).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                    codigo.append("MOV ").append(op1).append(", ECX\n");
+            		codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                    codigo.append("MOV ").append(op1Renombrado).append(", ECX\n");
                     break;
             	}
                 
@@ -359,7 +368,7 @@ public class GeneradorCodigo {
                 String divisor = op2;
                 if (esInmediato(op2)) {  // Asumimos que tienes un método `esInmediato`
                     divisor = ocuparAuxiliar("longint"); // Reserva un registro temporal para el divisor
-                    codigo.append("MOV ").append(divisor).append(", ").append(op2).append("\n"); 
+                    codigo.append("MOV ").append(divisor).append(", ").append(op2Renombrado).append("\n"); 
                 }
             
                 // Verificación de división por cero directamente con CMP y salto condicional
@@ -375,7 +384,7 @@ public class GeneradorCodigo {
                 codigo.append(etiquetaSinError).append(":\n");
             
                 // Preparación para la división
-                codigo.append("MOV EAX, ").append(op1).append("\n"); // Mueve el dividendo a EAX
+                codigo.append("MOV EAX, ").append(op1Renombrado).append("\n"); // Mueve el dividendo a EAX
                 codigo.append("CDQ\n"); // Extiende el signo de EAX a EDX para divisiones con números negativos
             
                 // División
@@ -387,8 +396,8 @@ public class GeneradorCodigo {
             break;
         
             case ">=":
-                codigo.append("MOV ECX, ").append(op2).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("CMP ").append(op1).append(", ECX\n");
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", 0FFh\n"); //REVISAR pongo el aux en todos 1
                 codigo.append("JAE ").append(aux.substring(1)).append("\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
@@ -399,8 +408,8 @@ public class GeneradorCodigo {
                 break;
             
             case ">":
-                codigo.append("MOV ECX, ").append(op2).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("CMP ").append(op1).append(", ECX\n");
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", 0FFh\n"); //REVISAR pongo el aux en todos 1
                 codigo.append("JA ").append(aux.substring(1)).append("\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
@@ -411,8 +420,8 @@ public class GeneradorCodigo {
                 break;
             
             case "<=":
-                codigo.append("MOV ECX, ").append(op2).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("CMP ").append(op1).append(", ECX\n");
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", 0FFh\n"); //REVISAR pongo el aux en todos 1
                 codigo.append("JBE ").append(aux.substring(1)).append("\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
@@ -423,8 +432,8 @@ public class GeneradorCodigo {
                 break;
             
             case "<":
-                codigo.append("MOV ECX, ").append(op2).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("CMP ").append(op1).append(", ECX\n");
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV " + aux + ", 0FFh\n"); //REVISAR pongo el aux en todos 1
                 codigo.append("JB " + aux.substring(1) + "\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
@@ -459,8 +468,8 @@ public class GeneradorCodigo {
             
             
     private  void generarOperacionFlotantes(String op1, String op2, String operador) { 
-        op1 = renombre(op1);
-        op2 = renombre(op2);
+    	String op1Renombrado = renombre(op1);
+    	String op2Renombrado = renombre(op2);
 
         String aux;
          // Verifica si op1 o op2 son accesos a un par (patrón "variable{n}")
@@ -473,13 +482,13 @@ public class GeneradorCodigo {
         //Si es LONGINT, la tengo que convertir a DOUBLE
         if (st.getType(op1).equals("longint")) {
             aux = ocuparAuxiliar("double");
-            codigo.append("FLD ").append(op1).append("\n");
+            codigo.append("FLD ").append(op1Renombrado).append("\n");
             codigo.append("FSTP ").append(aux).append("\n");
             op1 = aux;
         }
         if (st.getType(op2).equals("longint")) {
             aux = ocuparAuxiliar("double");
-            codigo.append("FLD ").append(op2).append("\n");
+            codigo.append("FLD ").append(op2Renombrado).append("\n");
             codigo.append("FSTP ").append(aux).append("\n");
             op1 = aux;
         }
@@ -489,8 +498,8 @@ public class GeneradorCodigo {
             //nunca  va a llegar una operacion AND o OR entre doubles ya que al finalizar cada condicion guardo un ULONG con el resultado de la condicion.
             case "+":
                 // Cargar los operandos en la pila del coprocesador de punto flotante (FPU)
-                codigo.append("FLD ").append(op2).append("\n"); // Carga `op2` en la FPU
-                codigo.append("FLD ").append(op1).append("\n"); // Carga `op1` en la FPU
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); // Carga `op2` en la FPU
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); // Carga `op1` en la FPU
 
                 // Realizar la suma en punto flotante
                 codigo.append("FADD\n");
@@ -521,8 +530,8 @@ public class GeneradorCodigo {
                 break;
 
             case "-":
-                codigo.append("FLD ").append(op2).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
-                codigo.append("FLD ").append(op1).append("\n");
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
+                codigo.append("FLD ").append(op1Renombrado).append("\n");
 
                 codigo.append("FSUB\n");
                 aux = ocuparAuxiliar("double");
@@ -531,8 +540,8 @@ public class GeneradorCodigo {
                 break;
             
             case "*":
-                codigo.append("FLD ").append(op2).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
-                codigo.append("FLD ").append(op1).append("\n");
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
+                codigo.append("FLD ").append(op1Renombrado).append("\n");
                 
                 codigo.append("FMUL\n");
                 aux = ocuparAuxiliar("double");
@@ -547,12 +556,12 @@ public class GeneradorCodigo {
             if (st.getUse(op2tipo).equals("Nombre de variable par")) {
                 // Asignación de las componentes del par de tipo double
                 // Mover componente 1 de `op2` a `op1`
-                codigo.append("MOVSD XMM0, ").append(op2).append("{1}\n");
-                codigo.append("MOVSD ").append(op1).append("{1}, XMM0\n");
+                codigo.append("MOVSD XMM0, ").append(op2Renombrado).append("{1}\n");
+                codigo.append("MOVSD ").append(op1Renombrado).append("{1}, XMM0\n");
             
                 // Mover componente 2 de `op2` a `op1`
-                codigo.append("MOVSD XMM0, ").append(op2).append("{2}\n");
-                codigo.append("MOVSD ").append(op1).append("{2}, XMM0\n");
+                codigo.append("MOVSD XMM0, ").append(op2Renombrado).append("{2}\n");
+                codigo.append("MOVSD ").append(op1Renombrado).append("{2}, XMM0\n");
             
             }
             
@@ -567,7 +576,7 @@ public class GeneradorCodigo {
             		String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
 
             		// Cargar el valor de `op2` en la FPU para verificar los rangos
-            		codigo.append("FLD ").append(op2).append("\n"); // Cargar `op2` en ST(0)
+            		codigo.append("FLD ").append(op2Renombrado).append("\n"); // Cargar `op2` en ST(0)
 
             		// Comprobar límite inferior
             		codigo.append("FLD ").append(limiteInferior).append("\n"); // Cargar límite inferior en ST(1)
@@ -591,8 +600,8 @@ public class GeneradorCodigo {
 
             		// Si está dentro del rango, continuar con la asignación
             		codigo.append(etiquetaSinError).append(":\n");
-            		codigo.append("MOV ECX, ").append(op2).append("\n"); // Mover `op2` a ECX (asignación)
-            		codigo.append("MOV ").append(op1).append(", ECX\n");
+            		codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); // Mover `op2` a ECX (asignación)
+            		codigo.append("MOV ").append(op1Renombrado).append(", ECX\n");
 
             		// Manejo de error si está fuera del rango
             		codigo.append(etiquetaErrorRango).append(":\n");
@@ -600,8 +609,8 @@ public class GeneradorCodigo {
             		codigo.append("invoke ExitProcess, 0\n");
             	
             	}else {
-            		codigo.append("FLD ").append(op2).append("\n");
-                    codigo.append("FSTP ").append(op1).append("\n");
+            		codigo.append("FLD ").append(op2Renombrado).append("\n");
+                    codigo.append("FSTP ").append(op1Renombrado).append("\n");
                     break;
             	}
                 
@@ -610,7 +619,7 @@ public class GeneradorCodigo {
                 aux = ocuparAuxiliar("double"); // Registro o espacio auxiliar para el resultado en double
 
                 // Verificación de división por cero utilizando el coprocesador de punto flotante
-                codigo.append("FLD ").append(op2).append("\n"); // Carga `op2` (divisor) en la pila de FPU
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); // Carga `op2` (divisor) en la pila de FPU
             
                 // Comparación con cero para verificar si el divisor es cero
                 String etiquetaSinError = "DIV_POR_CERO_" +  generarIdUnico(); // Genera una etiqueta única
@@ -627,8 +636,8 @@ public class GeneradorCodigo {
                 codigo.append(etiquetaSinError).append(":\n");
             
                 // Preparación para la división en punto flotante
-                codigo.append("FLD ").append(op2).append("\n"); // Apila `op2` como divisor
-                codigo.append("FLD ").append(op1).append("\n"); // Apila `op1` como dividendo
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); // Apila `op2` como divisor
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); // Apila `op1` como dividendo
                 codigo.append("FDIV\n"); // Realiza la división ST(1) = ST(1) / ST y almacena en ST(1)
             
                 // Almacenar el resultado de la división en `aux`
@@ -639,8 +648,8 @@ public class GeneradorCodigo {
            
             
             case ">=":
-                codigo.append("FLD ").append(op1).append("\n"); 
-                codigo.append("FCOM ").append(op2).append("\n");
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); 
+                codigo.append("FCOM ").append(op2Renombrado).append("\n");
                 codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");// cargo la palabra de estado en la memoria
                 codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); //copia el contenido en el registro AX
                 codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
@@ -654,8 +663,8 @@ public class GeneradorCodigo {
                 break;
             
             case ">":
-                codigo.append("FLD ").append(op1).append("\n"); 
-                codigo.append("FCOM ").append(op2).append("\n");
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); 
+                codigo.append("FCOM ").append(op2Renombrado).append("\n");
                 codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");// cargo la palabra de estado en la memoria
                 codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); //copia el contenido en el registro AX
                 codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
@@ -669,8 +678,8 @@ public class GeneradorCodigo {
                 break;
             
             case "<=":
-                codigo.append("FLD ").append(op1).append("\n"); 
-                codigo.append("FCOM ").append(op2).append("\n");
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); 
+                codigo.append("FCOM ").append(op2Renombrado).append("\n");
                 codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");// cargo la palabra de estado en la memoria
                 codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); //copia el contenido en el registro AX
                 codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
@@ -684,8 +693,8 @@ public class GeneradorCodigo {
                 break;
             
             case "<":
-                codigo.append("FLD ").append(op1).append("\n"); 
-                codigo.append("FCOM ").append(op2).append("\n");
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); 
+                codigo.append("FCOM ").append(op2Renombrado).append("\n");
                 codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");// cargo la palabra de estado en la memoria
                 codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); //copia el contenido en el registro AX
                 codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
@@ -754,13 +763,17 @@ public class GeneradorCodigo {
     private String renombre(String token) {
 
         // Si es una constante, le cambio de nombre al cual fue declarada
-        if (st.getUse(token).equals("Constante")) {
-            return "@" + token.replace('.', '@').replace('-', '@').replace('+', '@');
-        } else if (st.getUse(token).equals("Nombre de variable") || st.getUse(token).equals("Nombre de funcion") || st.getUse(token).equals("Nombre de variable par")) {
-            return "_" + token;
-        } else {
-            return token;
+        if(st.getUse(token)!=null) {
+        	if (st.getUse(token).equals("Constante")) {
+                return "@" + token.replace('.', '@').replace('-', '@').replace('+', '@');
+            } else if (st.getUse(token).equals("Nombre de variable") || st.getUse(token).equals("Nombre de funcion") || st.getUse(token).equals("Nombre de variable par")|| st.getUse(token).equals("Nombre de parametro")) {
+                return "_" + token;
+            } else {
+                return token;
+            }
         }
+        return "";
+    	
     }
 
    
@@ -775,14 +788,14 @@ public class GeneradorCodigo {
 
     private void generarCodigoRetorno() {
         String topePila = pila_tokens.pop();
-
+        String renombrado= renombre(topePila);
         // Verificar si el tipo es "double" o no
         if (st.getType(topePila).equals("double")) {
             // Cargar el valor al registro de coma flotante
-            codigo.append("FLD ").append(topePila).append("\n");  // FLD carga el valor en el tope de la pila de FPU
+            codigo.append("FLD ").append(renombrado).append("\n");  // FLD carga el valor en el tope de la pila de FPU
         } else {
             // Cargar el valor al registro EAX (para enteros)
-            codigo.append("MOV EAX, ").append(topePila).append("\n"); // Cargar el valor en EAX para el retorno de enteros
+            codigo.append("MOV EAX, ").append(renombrado).append("\n"); // Cargar el valor en EAX para el retorno de enteros
         }
 
         // Instrucción de retorno

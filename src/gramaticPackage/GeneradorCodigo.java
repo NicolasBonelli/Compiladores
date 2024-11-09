@@ -159,9 +159,15 @@ public class GeneradorCodigo {
                         TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
                          if (tS.getTipoBase().equals("double")){
                             cabecera.append(simboloRenombrado).append(" dq ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
+                            cabecera.append(simboloRenombrado+"limiteInferior " + "dq ").append(tS.getLimiteInferior()).append("\n");
+                            cabecera.append(simboloRenombrado+"limiteSuperior " + "dq ").append(tS.getLimiteSuperior()).append("\n");
 
-                        } else cabecera.append(simboloRenombrado).append(" dd ").append(tS.getLimiteInferior()).append("\n"); // Ejemplo de valor inicial en rango
-                 
+                        } else { // Convertir el límite inferior y superior de double a int
+                            cabecera.append(simboloRenombrado).append(" dd ").append((int) Math.round(tS.getLimiteInferior())).append("\n");
+                            cabecera.append(simboloRenombrado).append("limiteInferior dd ").append((int) Math.round(tS.getLimiteInferior())).append("\n");
+                            cabecera.append(simboloRenombrado).append("limiteSuperior dd ").append((int) Math.round(tS.getLimiteSuperior())).append("\n");
+                            
+                    }
                     } else if(uso.equals("Nombre de variable par")){ //PAIR
                         TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
                         if (tS.getTipoBase().equals("double")){
@@ -198,9 +204,6 @@ public class GeneradorCodigo {
         }
     }
 
-    
-
-   
 
     public  void generarOperador(String operador) {
         String op2 = pila_tokens.pop();   //el primero que saco es el segundo operando, ya que fue el ultimo que lei de la polaca y el ultimo que agregue a la pila
@@ -302,10 +305,10 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case ":=":
-                String op2tipo = st.getType(op2);
+                String op1tipo = st.getType(op1);
 
                 // Verificar que el tipo es un par definido por el usuario
-                if (st.getUse(op2tipo).equals("Nombre de variable par")) {
+                if (st.getUse(op1tipo).equals("Nombre de variable par")) {
                     // Asignación de las componentes del par
                     // Mover componente 1 de `op2` a `op1`
                     codigo.append("MOV ECX, ").append(op2Renombrado).append("{1}\n");
@@ -317,54 +320,39 @@ public class GeneradorCodigo {
             
                 } 
 
-            	else if(!op2tipo.equals("longint") && !op2tipo.equals("double")&& !st.getUse(op2tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
-            		// Obtener los límites de rango del tipo definido por el usuario
-            		Double limiteInferior = st.getTipoSubrango(op2tipo).getLimiteInferior();
-            		Double limiteSuperior = st.getTipoSubrango(op2tipo).getLimiteSuperior();
+            	else if(!op1tipo.equals("longint") && !op1tipo.equals("double")&& !st.getUse(op1tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
 
-            		// Crear etiquetas para control de flujo
-            		String etiquetaSinError = "DENTRO_RANGO_" + generarIdUnico();
-            		String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
 
-            		// Cargar el valor de `op2` en la FPU para verificar los rangos
-            		codigo.append("FLD ").append(op2Renombrado).append("\n"); // Cargar `op2` en ST(0)
 
-            		// Comprobar límite inferior
-            		codigo.append("FLD ").append(limiteInferior).append("\n"); // Cargar límite inferior en ST(1)
-            		codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
-            		codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
-            		codigo.append("SAHF\n"); // Cargar el estado en los indicadores
-            		codigo.append("JB ").append(etiquetaErrorRango).append("\n"); // Si `op2` es menor que el límite inferior, ir a `etiquetaErrorRango`
+                        String etiquetaSinError = "DENTRO_RANGO_" + generarIdUnico();
+                        String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
 
-            		// Limpiar ST(1) después de la comparación
-            		codigo.append("FSTP ST(0)\n"); // Sacar el límite inferior de la pila de la FPU
+                        // Comparación con límite inferior
+                        codigo.append("MOV EAX, ").append(op2Renombrado).append("\n");  // Cargar `op2` en EAX
+                        codigo.append("CMP EAX, ").append(op1Renombrado + "limiteInferior").append("\n");  // Comparar con el límite inferior
+                        codigo.append("JL ").append(etiquetaErrorRango).append("\n");    // Salto si `op2` < límite inferior
 
-            		// Comprobar límite superior
-            		codigo.append("FLD ").append(limiteSuperior).append("\n"); // Cargar límite superior en ST(1)
-            		codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
-            		codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
-            		codigo.append("SAHF\n"); // Cargar el estado en los indicadores
-            		codigo.append("JA ").append(etiquetaErrorRango).append("\n"); // Si `op2` es mayor que el límite superior, ir a `etiquetaErrorRango`
+                        // Comparación con límite superior
+                        codigo.append("CMP EAX, ").append(op1Renombrado + "limiteSuperior").append("\n");  // Comparar con el límite superior
+                        codigo.append("JG ").append(etiquetaErrorRango).append("\n");    // Salto si `op2` > límite superior
+                        codigo.append("JMP ").append(etiquetaSinError).append("\n");
+                       
 
-            		// Limpiar ST(1) después de la comparación
-            		codigo.append("FSTP ST(0)\n"); // Sacar el límite superior de la pila de la FPU
+                        // Código en caso de error de rango
+                        codigo.append(etiquetaErrorRango).append(":\n");
+                        codigo.append("invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK\n");
+                        codigo.append("invoke ExitProcess, 0\n");
 
-            		// Si está dentro del rango, continuar con la asignación
-            		codigo.append(etiquetaSinError).append(":\n");
-            		codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); // Mover `op2` a ECX (asignación)
-            		codigo.append("MOV ").append(op1Renombrado).append(", ECX\n");
-
-            		// Manejo de error si está fuera del rango
-            		codigo.append(etiquetaErrorRango).append(":\n");
-            		codigo.append("invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK\n");
-            		codigo.append("invoke ExitProcess, 0\n");
+                         // Código en caso de rango válido
+                         codigo.append(etiquetaSinError).append(":\n");
+                         codigo.append("MOV ").append(op1Renombrado).append(", EAX\n");   // Asignar `op2` a `op1`
             	
             	}else {
             		codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
                     codigo.append("MOV ").append(op1Renombrado).append(", ECX\n");
                     break;
             	}
-                
+                break;
             case "/":   
                 aux = ocuparAuxiliar("longint"); // Registro o espacio auxiliar para el resultado
 
@@ -483,18 +471,21 @@ public class GeneradorCodigo {
         if (esAccesoPar(op2)) {
             op2 = obtenerComponentePar(op2);
         }
+
+        System.out.println("op1 antes de if es: "+ op1);
         //Si es LONGINT, la tengo que convertir a DOUBLE
         if (st.getType(op1).equals("longint")) {
-            aux = ocuparAuxiliar("double");
-            codigo.append("FLD ").append(op1Renombrado).append("\n");
-            codigo.append("FSTP ").append(aux).append("\n");
-            op1 = aux;
+            if (!operador.equals(":=")){ 
+                aux = ocuparAuxiliar("double");
+                codigo.append("FLD ").append(op1Renombrado).append("\n");
+                codigo.append("FSTP ").append(aux).append("\n");
+                op1 = aux; }
         }
         if (st.getType(op2).equals("longint")) {
             aux = ocuparAuxiliar("double");
             codigo.append("FLD ").append(op2Renombrado).append("\n");
             codigo.append("FSTP ").append(aux).append("\n");
-            op1 = aux;
+            op2 = aux;
         }
         
 
@@ -556,74 +547,63 @@ public class GeneradorCodigo {
             case ":=":
                 String op2tipo = st.getType(op2);
                 String op1tipo = st.getType(op1);
-
+                System.out.println("op2: " + op2);
+                System.out.println("op1: " + op1);
                 System.out.println("op2tipo: " + op2tipo);
                 System.out.println("op1tipo: " + op1tipo);
-
-                // Verificar que el tipo es un par definido por el usuario
+            
                 if (st.getUse(op2tipo).equals("Nombre de variable par")) {
-                    // Asignación de las componentes del par de tipo double
-                    // Mover componente 1 de `op2` a `op1`
-                    codigo.append("MOVSD XMM0, ").append(op2Renombrado).append("{1}\n");
-                    codigo.append("MOVSD ").append(op1Renombrado).append("{1}, XMM0\n");
-                
-                    // Mover componente 2 de `op2` a `op1`
-                    codigo.append("MOVSD XMM0, ").append(op2Renombrado).append("{2}\n");
-                    codigo.append("MOVSD ").append(op1Renombrado).append("{2}, XMM0\n");
-                
+                    codigo.append("FLD ").append(op2Renombrado).append("{1}\n");
+                    codigo.append("FSTP ").append(op1Renombrado).append("{1}\n");
+            
+                    codigo.append("FLD ").append(op2Renombrado).append("{2}\n");
+                    codigo.append("FSTP ").append(op1Renombrado).append("{2}\n");
                 }
+                else if (!op1tipo.equals("longint") && !op1tipo.equals("double") && !st.getUse(op1tipo).equals("Nombre de tipo de par")) {
                 
-
-                else if(!op1tipo.equals("longint") && !op1tipo.equals("double")&& !st.getUse(op1tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
-                        System.out.println("NO estas entrando flaco");
-                    // Obtener los límites de rango del tipo definido por el usuario
-                        Double limiteInferior = st.getTipoSubrango(op1tipo+":"+st.getAmbitoByKey(op1tipo)).getLimiteInferior();
-                        Double limiteSuperior = st.getTipoSubrango(op1tipo+":"+st.getAmbitoByKey(op1tipo)).getLimiteSuperior();
-
-                        // Crear etiquetas para control de flujo
-                        String etiquetaSinError = "DENTRO_RANGO_" + generarIdUnico();
-                        String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
-
-                        // Cargar el valor de `op2` en la FPU para verificar los rangos
-                        codigo.append("FLD ").append(op2Renombrado).append("\n"); // Cargar `op2` en ST(0)
-
-                        // Comprobar límite inferior
-                        codigo.append("FLD ").append(limiteInferior).append("\n"); // Cargar límite inferior en ST(1)
-                        codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
-                        codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
-                        codigo.append("SAHF\n"); // Cargar el estado en los indicadores
-                        codigo.append("JB ").append(etiquetaErrorRango).append("\n"); // Si `op2` es menor que el límite inferior, ir a `etiquetaErrorRango`
-
-                        // Limpiar ST(1) después de la comparación
-                        codigo.append("FSTP ST(0)\n"); // Sacar el límite inferior de la pila de la FPU
-
-                        // Comprobar límite superior
-                        codigo.append("FLD ").append(limiteSuperior).append("\n"); // Cargar límite superior en ST(1)
-                        codigo.append("FCOMI ST(0), ST(1)\n"); // Comparar ST(0) con ST(1)
-                        codigo.append("FSTSW AX\n"); // Almacenar el estado en AX
-                        codigo.append("SAHF\n"); // Cargar el estado en los indicadores
-                        codigo.append("JA ").append(etiquetaErrorRango).append("\n"); // Si `op2` es mayor que el límite superior, ir a `etiquetaErrorRango`
-
-                        // Limpiar ST(1) después de la comparación
-                        codigo.append("FSTP ST(0)\n"); // Sacar el límite superior de la pila de la FPU
-
-                        // Si está dentro del rango, continuar con la asignación
-                        codigo.append(etiquetaSinError).append(":\n");
-                        codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); // Mover `op2` a ECX (asignación)
-                        codigo.append("MOV ").append(op1Renombrado).append(", ECX\n");
-
-                        // Manejo de error si está fuera del rango
-                        codigo.append(etiquetaErrorRango).append(":\n");
-                        codigo.append("invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK\n");
-                        codigo.append("invoke ExitProcess, 0\n");
+                    String etiquetaSinError = "DENTRO_RANGO_" + generarIdUnico();
+                    String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
                     
-                    }else {
+                    codigo.append("FLD " + op1Renombrado+"limiteInferior").append("\n");
+
+                    
+                    // Comparación con límite inferior
+                    codigo.append("FLD ").append(op2Renombrado).append("\n");  // Cargar `op2` en ST(0)
+
+                    codigo.append("FCOMPP").append("\n");
+                    codigo.append("FSTSW AX\n");
+                    codigo.append("SAHF\n");
+                    codigo.append("JB ").append(etiquetaErrorRango).append("\n");  // Salto corto a error si ST(0) < ST(1)
+                    
+                    codigo.append("FLD " + op1Renombrado+"limiteSuperior").append("\n");  
+
+                    // Comparación con límite superior
+                    codigo.append("FLD ").append(op2Renombrado).append("\n");  // Cargar `op2` en ST(0)
+                    codigo.append("FCOMPP").append("\n");
+                    codigo.append("FSTSW AX\n");
+                    codigo.append("SAHF\n");
+                    codigo.append("JA ").append(etiquetaErrorRango).append("\n");  // Salto corto a error si ST(0) > ST(1)
+                    codigo.append("JMP ").append(etiquetaSinError).append("\n");
+                    
+                   
+                
+                    // Código en caso de error de rango
+                    codigo.append(etiquetaErrorRango).append(":\n");
+                    codigo.append("invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK\n");
+                    codigo.append("invoke ExitProcess, 0\n");
+
+                     // Código en caso de rango válido
+                     codigo.append(etiquetaSinError).append(":\n");
+                     codigo.append("FSTP ").append(op2Renombrado).append("\n");  // Cargar `op2` en ST(0)
+                    
+                    }
+                 else {
                         codigo.append("FLD ").append(op2Renombrado).append("\n");
                         codigo.append("FSTP ").append(op1Renombrado).append("\n");
                         break;
                     }
                     
-            
+                break;
             case "/":
                 aux = ocuparAuxiliar("double"); // Registro o espacio auxiliar para el resultado en double
 

@@ -748,7 +748,7 @@ final static String yyrule[] = {
 "unaria : '-' T_CTE",
 };
 
-//#line 1047 "gramatica.y"
+//#line 1046 "gramatica.y"
 public static boolean crearEjecutable=true;
 private ReturnChecker returnChecker = new ReturnChecker();
 private int nivel = 0;
@@ -2377,14 +2377,14 @@ case 152:
                 if (!lexer.isLongintRange(valor)) {
                     SymbolTable.aggListaErrores("Error: El valor de la constante " + valor + " esta fuera del rango permitido para longint.");
                 } else {
-                    SymbolTable.aggPolaca(nombreConstante);
+                    SymbolTable.aggPolaca("-"+nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ",SymbolTable.constantValue);
                 }
             } else if (tipo.equals("double")) {
                 if (!lexer.isDoubleRange(valor)) {
                     SymbolTable.aggListaErrores("Error: El valor de la constante " + valor + " esta fuera del rango permitido para double.");
                 } else {
-                    SymbolTable.aggPolaca(nombreConstante);
+                    SymbolTable.aggPolaca("-"+nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ", SymbolTable.constantValue);
                 }
             }else if (tipo.equals("Octal")) {
@@ -2392,7 +2392,7 @@ case 152:
                     SymbolTable.aggListaErrores("Error: El valor de la constante " + valor + " esta fuera del rango permitido para octales.");
                     
                 } else {
-                    SymbolTable.aggPolaca(nombreConstante);
+                    SymbolTable.aggPolaca("-"+nombreConstante);
                     st.addValue(nombreConMenos, tipo,"Constante"," ", SymbolTable.constantValue);
                 }
             }
@@ -2403,7 +2403,7 @@ case 152:
     	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	SymbolTable.aggListaErrores("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
-            SymbolTable.aggPolaca("020000000000");
+            SymbolTable.aggPolaca("-020000000000");
             st.addValue("-020000000000", "Octal","Constante"," ", SymbolTable.constantValue);
         } else if (nombreConstante.contains(".")) {
         	SymbolTable.aggListaErrores("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
@@ -2416,17 +2416,17 @@ case 152:
 
             /* Si está por debajo del máximo permitido, lo mantenemos*/
             if (valorDouble < maxNegativeDouble) {
-                SymbolTable.aggPolaca("1.7976931348623156d+308");
+                SymbolTable.aggPolaca("-1.7976931348623156d+308");
                 st.addValue("-1.7976931348623156d+308", "double","Constante"," ", SymbolTable.constantValue);
             } 
             /* Si está por debajo del mínimo permitido pero mayor al mínimo ajustado*/
             else if (valorDouble > minNegativeDouble) {
                 st.addValue("-2.2250738585072015d-308", "double","Constante"," ", SymbolTable.constantValue);
-                SymbolTable.aggPolaca("2.2250738585072015d-308");
+                SymbolTable.aggPolaca("-2.2250738585072015d-308");
             } 
             /* Si está en el rango permitido*/
             else {
-                SymbolTable.aggPolaca(nombreConstante);
+                SymbolTable.aggPolaca("-"+nombreConstante);
                 st.addValue("-" + nombreConstante, "double","Constante"," ", SymbolTable.constantValue);
             }
             
@@ -2435,17 +2435,16 @@ case 152:
         	SymbolTable.aggListaErrores("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
             nombreConMenos = "-2147483648"; /* Asignar valor mínimo si está fuera de rango*/
             st.addValue(nombreConMenos, "longint","Constante"," ", SymbolTable.constantValue);
-            SymbolTable.aggPolaca("2147483648");
+            SymbolTable.aggPolaca("-2147483648");
 
         }
         
     }
 
-    SymbolTable.aggPolaca("-");
 
 }
 break;
-//#line 2372 "Parser.java"
+//#line 2371 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

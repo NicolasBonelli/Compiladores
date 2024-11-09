@@ -10,19 +10,50 @@ includelib \masm32\lib\user32.lib
 @ERROR_DIVISION_POR_CERO db "ERROR DIVISION 0", 0
 @ERROR_OVERFLOW db "ERROR OVERFLOW", 0
 @ERROR_RANGO db "ERROR RANGO", 0
-@3 equ 3
-@5 equ 5
+@0 equ 0
 _X dd 0
-_X2 dd 0
+_X1 dd 0
+_E1 dd 10
+_E1limiteInferior dd 10
+_E1limiteSuperior dd 20
+@30 equ 30
+@20 equ 20
+@10 equ 10
 .code
 START:
-MOV ECX, @5
-MOV _X2, ECX
-MOV ECX, @3
-ADD ECX, @3
+MOV ECX, @0
+MOV _X1, ECX
+MOV ECX, @0
+MOV _X, ECX
+MOV ECX, _X1
+CMP _X, ECX
+JNE L19
 @aux1 dd 0 
-MOV @aux1, ECX
+MOV ECX, @0
+CMP ECX, 00h
+JNE DIVPOR_CERO1
+invoke MessageBox, NULL, addr @ERROR_DIVISION_POR_CERO, addr @ERROR_DIVISION_POR_CERO, MB_OK
+invoke ExitProcess, 0
+DIVPOR_CERO1:
+MOV EAX, _X
+CDQ
+IDIV ECX
+MOV @aux1, EAX
 MOV ECX, @aux1
 MOV _X, ECX
+JMP L23
+L19:
+MOV EAX, @30
+CMP EAX, _E1limiteInferior
+JL ERROR_RANGO_3
+CMP EAX, _E1limiteSuperior
+JG ERROR_RANGO_3
+JMP DENTRO_RANGO_2
+ERROR_RANGO_3:
+invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK
+invoke ExitProcess, 0
+DENTRO_RANGO_2:
+MOV _E1, EAX
+L23:
 invoke ExitProcess, 0
 end START

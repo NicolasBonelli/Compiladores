@@ -1186,7 +1186,7 @@ case 16:
             }else{
                 st.aggPilaEtiquetas(new TipoEtiqueta(val_peek(0).sval,SymbolTable.polaca.size(),SymbolTable.ambitoGlobal.toString()));
             }
-            SymbolTable.aggPolaca("L"+val_peek(0).sval);
+            SymbolTable.aggPolaca("&L"+val_peek(0).sval);
 
             if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
@@ -1447,7 +1447,7 @@ case 45:
     
         int posicion = SymbolTable.pila.pop();
         SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
-        SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
+        SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
         if (dentroFuncion)
             returnChecker.exitBlock();
 
@@ -1460,7 +1460,7 @@ case 46:
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()+2));
     SymbolTable.pila.push(SymbolTable.polaca.size());
-    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI"); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
+    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI"); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
     if (dentroFuncion)
         returnChecker.exitBlock();
 
@@ -1470,7 +1470,7 @@ case 47:
 //#line 323 "gramatica.y"
 {
     int posicion = SymbolTable.pila.pop();
-    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size())); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
+    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size())); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
     if (dentroFuncion) {
         returnChecker.exitBlock();
         
@@ -1547,7 +1547,7 @@ case 62:
 break;
 case 63:
 //#line 372 "gramatica.y"
-{   SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("L"+SymbolTable.polaca.size());
+{   SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("&L"+SymbolTable.polaca.size());
                       if (dentroFuncion)
                         returnChecker.enterBlock();
                     }
@@ -1559,7 +1559,7 @@ case 64:
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
     SymbolTable.polaca.set(SymbolTable.polaca.size()-2, String.valueOf(SymbolTable.pila.pop()));
-    SymbolTable.aggPolaca("L"+SymbolTable.polaca.size());
+    SymbolTable.aggPolaca("&L"+SymbolTable.polaca.size());
     if (dentroFuncion) {
         returnChecker.exitBlock();
     }

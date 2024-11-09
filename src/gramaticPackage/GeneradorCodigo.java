@@ -44,6 +44,7 @@ public class GeneradorCodigo {
                     case "<=":
                     case "<":
                     case "!=":
+                    case "=":	
                         generarOperador(token);
                         break;
                     case "BI":
@@ -60,8 +61,8 @@ public class GeneradorCodigo {
 	                    generarCodigoRetorno();
 	                    break;
 	                default:
-	                     if (token.endsWith("@")) {   //entramos un label
-	                        codigo.append(token.replace("@", "")).append(":\n");
+	                     if (token.startsWith("&")||token.endsWith("@") ) {   //entramos un label
+	                        codigo.append(token.replace("@", "").replace("&", "")).append(":\n");
 	                    } else if (token.endsWith("$")&& posActualPolaca>0) {   // Encontramos el comienzo de una funcion
 	                        generarCabeceraFuncion(token);
 	                    }else if (token.endsWith("%")&& posActualPolaca<SymbolTable.polaca.size()-1) {   // Encontramos el comienzo de una funcion
@@ -365,18 +366,17 @@ public class GeneradorCodigo {
             	}
                 break;
             case "/":   
-                aux = ocuparAuxiliar("longint"); // Registro o espacio auxiliar para el resultado
+            	 // Registro o espacio auxiliar para el resultado
+                aux = ocuparAuxiliar("longint"); 
 
                 // Verificar si el divisor es un inmediato (constante) o un registro/memoria
-                String divisor = op2;
-                if (esInmediato(op2)) {  // Asumimos que tienes un método `esInmediato`
-                    divisor = ocuparAuxiliar("longint"); // Reserva un registro temporal para el divisor
-                    codigo.append("MOV ").append(divisor).append(", ").append(op2Renombrado).append("\n"); 
-                }
-            
+                String divisor = op2Renombrado;
+
+                
+                codigo.append("MOV ECX, ").append(divisor).append("\n");
                 // Verificación de división por cero directamente con CMP y salto condicional
-                codigo.append("CMP ").append(divisor).append(", 00h\n"); // Compara el divisor con 0
-                String etiquetaSinError = "DIV_POR_CERO_" +  + generarIdUnico(); // Genera una etiqueta única
+                codigo.append("CMP ECX").append(", 00h\n"); // Compara el divisor con 0
+                String etiquetaSinError = "DIVPOR_CERO" + generarIdUnico(); // Genera una etiqueta única
                 codigo.append("JNE ").append(etiquetaSinError).append("\n"); // Si no es cero, salta a etiquetaSinError
 
                 // Código de manejo de error de división por cero
@@ -385,89 +385,69 @@ public class GeneradorCodigo {
 
                 // Etiqueta para continuar si no hay error
                 codigo.append(etiquetaSinError).append(":\n");
-            
+
                 // Preparación para la división
                 codigo.append("MOV EAX, ").append(op1Renombrado).append("\n"); // Mueve el dividendo a EAX
                 codigo.append("CDQ\n"); // Extiende el signo de EAX a EDX para divisiones con números negativos
-            
+                
                 // División
-                codigo.append("DIV ").append(divisor).append("\n"); // Divide EDX:EAX por el divisor, resultado en EAX
-            
+                // Si el divisor es una constante, verificar que esté en el formato correcto
+                if (divisor.matches("@\\d+")) {
+                    // Es una constante en .data, úsala directamente en el código
+                    codigo.append("IDIV ECX").append("\n"); // Divide EDX:EAX por el divisor, resultado en EAX
+                }else {
+                    codigo.append("DIV ECX").append("\n"); // Divide EDX:EAX por el divisor, resultado en EAX
+                }
                 // Almacenar el resultado en el auxiliar
                 codigo.append("MOV ").append(aux).append(", EAX\n"); // Mueve el cociente a aux
                 pila_tokens.push(aux); // Guarda aux en la pila de tokens para su uso posterior
-            break;
+                break;
+           
         
             case ">=":
-                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
-                aux = ocuparAuxiliar("longint");
-                codigo.append("MOV ").append(aux).append(", 0FFh\n"); //REVISAR pongo el aux en todos 1
-                codigo.append("JAE ").append(aux.substring(1)).append("\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
-                codigo.append("MOV ").append(aux).append(", 00h\n"); //REVISAR pongo el aux en todos 0
-                codigo.append(aux.substring(1)).append(":\n"); //creo una label para que salte y se saltee la instruccion de poner aux en cero en caso de que sea verdadera
-                pila_tokens.push(aux);
-                lastComparation = "JB";
+            	// Cargar op2 en ECX para la comparación
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n");  // Mueve el valor de op2 a ECX
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");  // Compara op1 con op2 en ECX
+                lastComparation = "JL";  // Almacena el tipo de comparación
                 break;
             
             case ">":
-                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
-                aux = ocuparAuxiliar("longint");
-                codigo.append("MOV ").append(aux).append(", 0FFh\n"); //REVISAR pongo el aux en todos 1
-                codigo.append("JA ").append(aux.substring(1)).append("\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
-                codigo.append("MOV ").append(aux).append(", 00h\n"); //REVISAR pongo el aux en todos 0
-                codigo.append(aux.substring(1)).append(":\n"); //creo una label para que salte y se saltee la instruccion de poner aux en cero en caso de que sea verdadera
-                pila_tokens.push(aux);
-                lastComparation = "JBE";
+            	 aux = ocuparAuxiliar("longint"); // Variable auxiliar para almacenar el resultado de la comparación
+
+        	    // Cargar op2 en ECX para la comparación
+        	    codigo.append("MOV ECX, ").append(op2Renombrado).append("\n");
+        	    codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");   // Comparar op1 con op2
+        	    lastComparation = "JLE";
                 break;
             
             case "<=":
                 codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
                 codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
-                aux = ocuparAuxiliar("longint");
-                codigo.append("MOV ").append(aux).append(", 0FFh\n"); //REVISAR pongo el aux en todos 1
-                codigo.append("JBE ").append(aux.substring(1)).append("\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
-                codigo.append("MOV ").append(aux).append(", 00h\n"); //REVISAR pongo el aux en todos 0
-                codigo.append(aux.substring(1)).append(":\n"); //creo una label para que salte y se saltee la instruccion de poner aux en cero en caso de que sea verdadera
-                pila_tokens.push(aux);
-                lastComparation = "JA";
+                lastComparation = "JG";
                 break;
             
             case "<":
                 codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
                 codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
-                aux = ocuparAuxiliar("longint");
-                codigo.append("MOV " + aux + ", 0FFh\n"); //REVISAR pongo el aux en todos 1
-                codigo.append("JB " + aux.substring(1) + "\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
-                codigo.append("MOV " + aux + ", 00h\n"); //REVISAR pongo el aux en todos 0
-                codigo.append(aux.substring(1) + ":\n"); //creo una label para que salte y se saltee la instruccion de poner aux en cero en caso de que sea verdadera
-                pila_tokens.push(aux);
-                lastComparation = "JAE";
+                lastComparation = "JGE";
                 break;
-            
-           
+            case "!=":
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
+                lastComparation = "JE";
+                break;
+            case "=":
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
+                lastComparation = "JNE";
+                break;
             default:
                 codigo.append("ERROR, se entro a default en operacion de enteros").append("\n");
                 break;
         }
     }
             
-    private boolean esInmediato(String operando) {
-        // Verifica si es un número decimal o hexadecimal
-        try {
-            if (operando.startsWith("0x") || operando.startsWith("0X")) {
-                // Intenta parsear como hexadecimal
-                Integer.parseInt(operando.substring(2), 16);
-            } else {
-                // Intenta parsear como número decimal
-                Integer.parseInt(operando);
-            }
-            return true; // Si parsea sin errores, es un inmediato
-        } catch (NumberFormatException e) {
-            return false; // Si hay una excepción, no es un inmediato
-        }
-    }
+    
             
             
     private  void generarOperacionFlotantes(String op1, String op2, String operador) { 
@@ -716,7 +696,16 @@ public class GeneradorCodigo {
                 codigo.append(aux.substring(1) + ":\n"); 
                 pila_tokens.push(aux);
                 break;
-            
+            case "!=":
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
+                lastComparation = "JGE";
+                break;
+            case "=":
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
+                lastComparation = "JGE";
+                break;
             default:
                 codigo.append("ERROR se entro a default al generar codigo para una operacion de flotantes\n");
                 break;
@@ -734,7 +723,7 @@ public class GeneradorCodigo {
             codigo.append("JE L").append(direccion).append("\n");
         } else {
         	int direccionInt = Integer.parseInt(direccion);
-            codigo.append(salto).append(" ").append(SymbolTable.polaca.get(direccionInt).replace("@","")).append("\n");
+            codigo.append(salto).append(" ").append(SymbolTable.polaca.get(direccionInt).replace("@","").replace("&","")).append("\n");
         }
 
         lastComparation = "";

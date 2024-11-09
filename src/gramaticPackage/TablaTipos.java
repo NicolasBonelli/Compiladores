@@ -78,8 +78,8 @@ public class TablaTipos {
             case ("<"):
             case (">="):
             case (">"):
-            case ("<>"):
-            case ("=="):
+            case ("!="):
+            case ("="):
                 return tiposComparadores[fil][col];
             default:
                 return ERROR_TYPE;

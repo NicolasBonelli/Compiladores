@@ -94,7 +94,7 @@ sentencia: declaracion
             }else{
                 st.aggPilaEtiquetas(new TipoEtiqueta(val_peek(0).sval,SymbolTable.polaca.size(),SymbolTable.ambitoGlobal.toString()));
             }
-            SymbolTable.aggPolaca("L"+val_peek(0).sval);
+            SymbolTable.aggPolaca("&L"+val_peek(0).sval);
 
             if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
@@ -303,7 +303,7 @@ bloque_THEN: signo_THEN repeat_sentencia {
     
         int posicion = SymbolTable.pila.pop();
         SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
-        SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
+        SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
         if (dentroFuncion)
             returnChecker.exitBlock();
 
@@ -315,14 +315,14 @@ bloque_THEN_CON_ELSE: signo_THEN repeat_sentencia {
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()+2));
     SymbolTable.pila.push(SymbolTable.polaca.size());
-    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI"); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
+    SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI"); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
     if (dentroFuncion)
         returnChecker.exitBlock();
 
 };
 bloque_ELSE: signo_ELSE repeat_sentencia {
     int posicion = SymbolTable.pila.pop();
-    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size())); SymbolTable.aggPolaca("L"+ String.valueOf(SymbolTable.polaca.size()));
+    SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size())); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
     if (dentroFuncion) {
         returnChecker.exitBlock();
         
@@ -369,7 +369,7 @@ if_statement: IF '(' condicion ')' bloque_THEN END_IF ';'
             ;
             
             
-inicio_while: REPEAT {   SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("L"+SymbolTable.polaca.size());
+inicio_while: REPEAT {   SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("&L"+SymbolTable.polaca.size());
                       if (dentroFuncion)
                         returnChecker.enterBlock();
                     };
@@ -379,7 +379,7 @@ repeat_while_statement: inicio_while repeat_sentencia WHILE '(' condicion ')' ';
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
     SymbolTable.polaca.set(SymbolTable.polaca.size()-2, String.valueOf(SymbolTable.pila.pop()));
-    SymbolTable.aggPolaca("L"+SymbolTable.polaca.size());
+    SymbolTable.aggPolaca("&L"+SymbolTable.polaca.size());
     if (dentroFuncion) {
         returnChecker.exitBlock();
     }

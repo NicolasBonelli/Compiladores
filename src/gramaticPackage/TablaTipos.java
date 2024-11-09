@@ -16,7 +16,7 @@ public class TablaTipos {
 	private static final String[][] tiposSumaResta = { { LONGINT_TYPE, DOUBLE_TYPE},  
             										{ DOUBLE_TYPE, DOUBLE_TYPE}};
             										
-	private static final String[][] tiposMultDiv = { { DOUBLE_TYPE, DOUBLE_TYPE },  //PREGUNTAR SI longint a longint da double
+	private static final String[][] tiposMultDiv = { { LONGINT_TYPE, DOUBLE_TYPE },  //PREGUNTAR SI longint a longint da double
 													 { DOUBLE_TYPE, DOUBLE_TYPE }}; //PREGUNTAR SI DOUBLE CON DOUBLE HAY QUE CHEQUEAR
 													  
 	private static final String[][] tiposComparadores = { { LONGINT_TYPE, DOUBLE_TYPE}, 
@@ -32,6 +32,12 @@ public class TablaTipos {
         // mirar en la tabla del operando que tipo queda entre esos 2 tipos
         String tipoOp1 = getTipo(op1);
         String tipoOp2 = getTipo(op2);
+        if(tipoOp1.equals("Octal")) {
+        	tipoOp1="longint";
+        }
+        if(tipoOp2.equals("Octal")) {
+        	tipoOp2="longint";
+        }
         if(!tipoOp1.equals("longint") && !tipoOp1.equals("double")) {
         	tipoOp1= st.getTipoSubrango(tipoOp1+":"+st.getAmbitoByKey(tipoOp1)).getTipoBase();
         }

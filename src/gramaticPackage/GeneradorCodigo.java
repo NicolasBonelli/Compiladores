@@ -182,7 +182,7 @@ public class GeneradorCodigo {
                     // Ejemplo: Definir espacio reservado o etiqueta para función
                     continue;
                 } else if (uso.equals("Constante")) {
-                    if (tipo.equals("longint"))
+                    if (tipo.equals("longint") || tipo.equals("Octal"))
                     
                         cabecera.append(simboloRenombrado).append(" equ ").append(simbolo).append("\n"); // Constante con su valor
 
@@ -298,8 +298,19 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case "*":
-                codigo.append("MOV EAX, ").append(op1Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
-                codigo.append("MUL ").append(op2Renombrado).append("\n");
+            	// Mover op1Renombrado a EAX
+                codigo.append("MOV EAX, ").append(op1Renombrado).append("\n");
+
+                // Verificar si op2Renombrado es una constante etiquetada (empieza con '@')
+                if (op2Renombrado.matches("@\\d+")) {
+                    // Si es una constante definida en .data, usarla directamente en la multiplicación
+                    codigo.append("IMUL EAX, ").append(op2Renombrado).append("\n");
+                } else {
+                    // Si es una variable, realizar la multiplicación directamente
+                    codigo.append("MUL ").append(op2Renombrado).append("\n");
+                }
+
+                // Almacenar el resultado en una variable auxiliar
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", EAX\n");
                 pila_tokens.push(aux);
@@ -472,20 +483,25 @@ public class GeneradorCodigo {
             op2 = obtenerComponentePar(op2);
         }
 
-        System.out.println("op1 antes de if es: "+ op1);
+        System.out.println("op2 antes de if es: "+ op2);
         //Si es LONGINT, la tengo que convertir a DOUBLE
-        if (st.getType(op1).equals("longint")) {
+        if (st.getType(op1).equals("longint")|| st.getType(op1).equals("Octal")) {
             if (!operador.equals(":=")){ 
                 aux = ocuparAuxiliar("double");
-                codigo.append("FLD ").append(op1Renombrado).append("\n");
-                codigo.append("FSTP ").append(aux).append("\n");
-                op1 = aux; }
+                codigo.append("FILD  ").append(op1Renombrado).append("\n");  // Cargar el valor entero en la FPU como double
+                codigo.append("FSTP ").append(aux).append("\n"); 
+                op1 = aux;
+                op1Renombrado = aux;
+            }
         }
-        if (st.getType(op2).equals("longint")) {
+        if (st.getType(op2).equals("longint")|| st.getType(op2).equals("Octal")) {
             aux = ocuparAuxiliar("double");
-            codigo.append("FLD ").append(op2Renombrado).append("\n");
-            codigo.append("FSTP ").append(aux).append("\n");
+            // Convertir el valor de op2Renombrado (entero) a double y almacenarlo en aux
+            codigo.append("FILD  ").append(op2Renombrado).append("\n");  // Cargar el valor entero en la FPU como double
+            codigo.append("FSTP ").append(aux).append("\n");   
             op2 = aux;
+            op2Renombrado = aux;
+
         }
         
 
@@ -537,7 +553,6 @@ public class GeneradorCodigo {
             case "*":
                 codigo.append("FLD ").append(op2Renombrado).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
                 codigo.append("FLD ").append(op1Renombrado).append("\n");
-                
                 codigo.append("FMUL\n");
                 aux = ocuparAuxiliar("double");
                 codigo.append("FSTP ").append(aux).append("\n");
@@ -547,6 +562,12 @@ public class GeneradorCodigo {
             case ":=":
                 String op2tipo = st.getType(op2);
                 String op1tipo = st.getType(op1);
+                if(op1tipo.equals("Octal")) {
+                	op1tipo="longint";
+                }
+                if(op2tipo.equals("Octal")) {
+                	op2tipo="longint";
+                }
                 System.out.println("op2: " + op2);
                 System.out.println("op1: " + op1);
                 System.out.println("op2tipo: " + op2tipo);
@@ -772,6 +793,16 @@ public class GeneradorCodigo {
         ++numeroAuxiliar;
         //agrego a la tabla de simbolos la auxiliar.
         st.addValue(retorno, tipo, "VarAux", null, SymbolTable.identifierValue);
+        if (tipo.equals("longint")) {
+            // Reservamos 4 bytes para un longint (en x86, un longint es típicamente de 4 bytes)
+        	codigo.append(retorno + " dd 0 \n"); // 'dd' es para definir una palabra doble (4 bytes), inicializada en 0
+        } else if (tipo.equals("double")) {
+            // Reservamos 8 bytes para un double (en x86, un double es de 8 bytes)
+            codigo.append(retorno + " dq 0.0 \n"); // 'dq' es para definir una palabra cuádruple (8 bytes), inicializada en 0.0
+        } else {
+            // Si se agrega un tipo no reconocido, puedes mostrar un mensaje de error
+            System.out.println("Error: tipo no reconocido para la auxiliar " + retorno);
+        }
         return retorno;
     }
 

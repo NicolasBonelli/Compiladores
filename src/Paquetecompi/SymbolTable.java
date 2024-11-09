@@ -118,7 +118,6 @@ public class SymbolTable {
 	public String getUse(String variable) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) {
-				System.out.println("Nombre simbolo: "+symbol.getNombre() + " Uso: "+ symbol.getUso());
 	            return symbol.getUso(); 
 	        }
 	    }

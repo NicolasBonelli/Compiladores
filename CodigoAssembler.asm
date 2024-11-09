@@ -10,10 +10,19 @@ includelib \masm32\lib\user32.lib
 @ERROR_DIVISION_POR_CERO db "ERROR DIVISION 0", 0
 @ERROR_OVERFLOW db "ERROR OVERFLOW", 0
 @ERROR_RANGO db "ERROR RANGO", 0
-_W dd 0
+@3 equ 3
+@5 equ 5
 _X dd 0
-@3@4 equ 3.4
+_X2 dd 0
 .code
-F3 PROC
+START:
+MOV ECX, @5
+MOV _X2, ECX
+MOV ECX, @3
+ADD ECX, @3
+@aux1 dd 0 
+MOV @aux1, ECX
+MOV ECX, @aux1
+MOV _X, ECX
 invoke ExitProcess, 0
 end START

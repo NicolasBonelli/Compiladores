@@ -95,14 +95,12 @@ public class GeneradorCodigo {
     }
     private void generarCodigoImprimirPantalla() {
         // Obtenemos la cadena del tope de la pila
-        String cadena = pila_tokens.pop().replace("[","").replace("]","");
-       
-        // Suponiendo que el contenido de `cadena` es el nombre de la etiqueta en la sección de datos:
-        codigo.append("mov eax, 4\n");                // Código del sistema para escribir
-        codigo.append("mov ebx, 1\n");                // File descriptor 1 (salida estándar)
-        codigo.append("mov ecx, ").append(cadena).append("_str \n");  // Dirección de la cadena en `ecx`
-        codigo.append("mov edx, ").append(cadena).append("_len \n"); // Tamaño de la cadena en `edx`
-        codigo.append("int 0x80\n");                  // Llamada a interrupción para ejecutar la salida
+        String cadena = pila_tokens.pop().replace("[","").replace("]","").replace(" ", "_");
+        
+        codigo.append("push offset " + cadena + "_str \n");
+        codigo.append("call printf \n");
+        codigo.append("add esp, 4 \n");
+
     }
     
 
@@ -118,23 +116,28 @@ public class GeneradorCodigo {
 	private  void generarCabecera() {
     //funcoin encargada de la generacion de la cabecera del codigo
         StringBuilder cabecera = new StringBuilder();
-
         cabecera.append(".386\n")
             .append(".model flat, stdcall\n")
             .append("option casemap :none\n")
+            .append("include \\masm32\\include\\masm32rt.inc \n")
+            .append("includelib \\masm32\\lib\\kernel32.lib \n")
+            .append("includelib \\masm32\\lib\\masm32.lib \n")
+
             .append("include \\masm32\\include\\windows.inc\n")
             .append("include \\masm32\\include\\kernel32.inc\n")
             .append("include \\masm32\\include\\user32.inc\n")
-            .append("includelib \\masm32\\lib\\kernel32.lib\n")
             .append("includelib \\masm32\\lib\\user32.lib\n")
+            .append("printf PROTO C : VARARG \n")
             .append(".data\n")
+
             
             //agregamos las constantes de error
             .append("@ERROR_DIVISION_POR_CERO db \"" + "ERROR DIVISION 0" + "\", 0\n")
             .append("@ERROR_OVERFLOW db \"" + "ERROR OVERFLOW" + "\", 0\n")
             .append("@ERROR_RANGO db \"" + "ERROR RANGO" + "\", 0\n")
             .append("@MAX_DOUBLE REAL8 1.7976931348623157e+308  \n")
-        	.append("@aux2bytes dw 0.0 \n");
+        	.append("@aux2bytes dw 0.0 \n")
+            .append("format db \"Valor modificado: %f\", 0 \n");
         generarCodigoDatos(cabecera);
 
         cabecera.append(".code\n").append("START:\n");
@@ -151,7 +154,7 @@ public class GeneradorCodigo {
             String tipo = st.getType(simbolo);
             if(uso!=null) {
             	// Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
-                if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")|| uso.equals("Nombre de variable par")) {
+                if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")|| uso.equals("Nombre de variable par") || uso.equals("VarAux")) {
                     if (tipo.equals("longint")){
                         cabecera.append(simboloRenombrado).append(" dd 0\n"); // Asumimos 32 bits para longint
 
@@ -191,7 +194,7 @@ public class GeneradorCodigo {
                     else cabecera.append(simboloRenombrado).append(" REAL8 ").append(simbolo.replace('d', 'e')).append("\n"); // Constante con su valor
 
                 } else if (uso.equals("Cadena multilinea")){
-                    String etiquetaUnica = simbolo + "_str"; // Agregamos un sufijo para evitar duplicados
+                    String etiquetaUnica = simbolo.replace(" ", "_") + "_str"; // Agregamos un sufijo para evitar duplicados
                 
                     cabecera.append(etiquetaUnica) // Usa la etiqueta única en lugar del símbolo original
                             .append(" db \"")
@@ -489,52 +492,52 @@ public class GeneradorCodigo {
         switch (operador) {
             //nunca  va a llegar una operacion AND o OR entre doubles ya que al finalizar cada condicion guardo un ULONG con el resultado de la condicion.
 	        case "+":
-	        	// Cargar los operandos en la pila del coprocesador de punto flotante (FPU)
-	            codigo.append("FLD ").append(op2Renombrado).append("\n"); // Carga `op2` en la FPU
-	            codigo.append("FLD ").append(op1Renombrado).append("\n"); // Carga `op1` en la FPU
+	        	 // Cargar los operandos en la pila del coprocesador de punto flotante (FPU)
+                 codigo.append("FLD ").append(op2Renombrado).append("\n"); // Carga `op2` en la FPU
+                 codigo.append("FLD ").append(op1Renombrado).append("\n"); // Carga `op1` en la FPU
 
-	            // Realizar la suma en punto flotante
-	            codigo.append("FADD\n");
-
-	            // Cargar el valor máximo de un double en la FPU
-	            codigo.append("FLD @MAX_DOUBLE \n"); // Carga MAX_DOUBLE en ST(0)
-
-	            // Comparar el resultado de la suma (ST(0)) con MAX_DOUBLE
-	            codigo.append("FCOM ST(0) \n"); // Compara ST(0) con ST(1) y actualiza los flags
-
-	            // Mover los flags de la FPU a la memoria
-	            codigo.append("FSTSW @aux2bytes \n"); // Mueve los flags a @aux2bytes
-	            codigo.append("MOV AX, @aux2bytes \n"); // Copia el estado de los flags a AX
-	            codigo.append("SAHF \n"); // Carga los flags de AX a los del procesador
-
-	            // Verificar si el bit de overflow está activado (bit 11 de los flags)
-	            String etiquetaSinOverflow = "LABEL_NO_OVERFLOW_" + generarIdUnico(); // Etiqueta sin overflow
-	            String etiquetaOverflow = "LABEL_OVERFLOW_" + generarIdUnico();       // Etiqueta para overflow
-
-	            // Si el flag de overflow está activado (bit 11), salta a la etiqueta de overflow
-	            codigo.append("JO ").append(etiquetaOverflow).append("\n"); // Salta si overflow
-
-	            // Si no hay overflow, continua con el código normal
-	            codigo.append("JMP ").append(etiquetaSinOverflow).append("\n"); 
-
-	            // Código de manejo de error de overflow
-	            codigo.append(etiquetaOverflow).append(":\n");
-	            codigo.append("invoke MessageBox, NULL, addr @ERROR_OVERFLOW, addr @ERROR_OVERFLOW, MB_OK\n");
-	            codigo.append("invoke ExitProcess, 0\n"); // Termina el proceso en caso de overflow
-
-	            // Etiqueta para continuar si no hay overflow
-	            codigo.append(etiquetaSinOverflow).append(":\n");
-
-	            // Almacenar el resultado de la suma en el auxiliar `aux`
-	            aux = ocuparAuxiliar("double");
-	            codigo.append("FSTP ").append(aux).append("\n"); // Mueve el resultado a `aux`
-
-	            pila_tokens.push(aux); // Guarda `aux` en la pila de tokens para su uso posterior
-	            break;
-
+                 // Realizar la suma en punto flotante
+                 codigo.append("FADD\n");
+                 aux = ocuparAuxiliar("double");
+                 codigo.append("FSTP "+ aux + "\n");
+                 codigo.append("FLD "+ aux + "\n");
+                
+     
+                 // Cargar el valor máximo de un double en la FPU
+                 codigo.append("FLD @MAX_DOUBLE \n"); // Carga MAX_DOUBLE en ST(0)
+     
+                 // Comparar el resultado de la suma (ST(0)) con MAX_DOUBLE
+                 codigo.append("FCOM \n"); // Compara ST(0) con ST(1) y actualiza los flags
+     
+                 // Mover los flags de la FPU a la memoria
+                 codigo.append("FSTSW AX \n"); // Mueve los flags a @aux2bytes
+                 
+                 codigo.append("SAHF \n"); // Carga los flags de AX a los del procesador
+     
+                 // Verificar si el bit de overflow está activado (bit 11 de los flags)
+                 String etiquetaSinOverflow = "LABEL_NO_OVERFLOW_" + generarIdUnico(); // Etiqueta sin overflow
+                 String etiquetaOverflow = "LABEL_OVERFLOW_" + generarIdUnico();       // Etiqueta para overflow
+     
+                 // Si el flag de overflow está activado (bit 11), salta a la etiqueta de overflow
+                 codigo.append("JBE ").append(etiquetaOverflow).append("\n"); // Salta si overflow
+     
+                 // Si no hay overflow, continua con el código normal
+                 codigo.append("JMP ").append(etiquetaSinOverflow).append("\n"); 
+     
+                 // Código de manejo de error de overflow
+                 codigo.append(etiquetaOverflow).append(":\n");
+                 codigo.append("invoke MessageBox, NULL, addr @ERROR_OVERFLOW, addr @ERROR_OVERFLOW, MB_OK\n");
+                 codigo.append("invoke ExitProcess, 0\n"); // Termina el proceso en caso de overflow
+     
+                 // Etiqueta para continuar si no hay overflow
+                 codigo.append(etiquetaSinOverflow).append(":\n");
+     
+     
+                 pila_tokens.push(aux); // Guarda `aux` en la pila de tokens para su uso posterior
+                 break;
             case "-":
-                codigo.append("FLD ").append(op2Renombrado).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
-                codigo.append("FLD ").append(op1Renombrado).append("\n");
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); //apilo primero el op2 ya que quiero que me quede como el segundo que agarro para las operaciones que no son conmutativas
+                codigo.append("FLD ").append(op2Renombrado).append("\n");
 
                 codigo.append("FSUB\n");
                 aux = ocuparAuxiliar("double");
@@ -627,12 +630,12 @@ public class GeneradorCodigo {
                 String etiquetaSinError = "DIV_POR_CERO_" +  generarIdUnico(); // Genera una etiqueta única
                 String _cero = ocuparAuxiliar("double");
                 codigo.append("FILD ").append(_cero).append("\n"); // Carga el valor de cero en el coprocesador de punto flotante
-                codigo.append("FCOM ST(1)\n"); // Compara ST(0) (el divisor) con ST(1) (cero)
+                codigo.append("FCOM \n"); // Compara ST(0) (el divisor) con ST(1) (cero)
                 codigo.append("FSTSW AX\n"); // Mueve los flags de la FPU a AX
                 codigo.append("SAHF\n"); // Carga los flags de AX en los del procesador
 
                 // Si ST(0) es cero, significa que el divisor es cero
-                codigo.append("JZ ").append(etiquetaSinError).append("\n"); // Salta a etiquetaSinError si ST(0) == 0 (divisor es cero)
+                codigo.append("JNZ ").append(etiquetaSinError).append("\n"); // Salta a etiquetaSinError si ST(0) == 0 (divisor es cero)
 
                 // Código de manejo de error de división por cero
                 codigo.append("invoke MessageBox, NULL, addr @ERROR_DIVISION_POR_CERO, addr @ERROR_DIVISION_POR_CERO, MB_OK\n");
@@ -642,8 +645,8 @@ public class GeneradorCodigo {
                 codigo.append(etiquetaSinError).append(":\n");
 
                 // Preparación para la división en punto flotante
-                codigo.append("FLD ").append(op2Renombrado).append("\n"); // Apila `op2` como divisor
-                codigo.append("FLD ").append(op1Renombrado).append("\n"); // Apila `op1` como dividendo
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); // Apila `op2` como divisor
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); // Apila `op1` como dividendo
                 codigo.append("FDIV\n"); // Realiza la división ST(1) = ST(1) / ST y almacena en ST(1)
 
                 // Almacenar el resultado de la división en `aux`
@@ -655,107 +658,68 @@ public class GeneradorCodigo {
            
             
             case ">=":
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); 
                 codigo.append("FLD ").append(op1Renombrado).append("\n"); 
-                codigo.append("FCOM ").append(op2Renombrado).append("\n");
-                codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");// cargo la palabra de estado en la memoria
-                codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); //copia el contenido en el registro AX
+
+                codigo.append("FCOM ").append("\n");
+                codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
                 codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
 
-                aux = ocuparAuxiliar("longint");
-                codigo.append("MOV " + aux + ", 0FFh\n");
-                codigo.append("JAE " + aux.substring(1) + "\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
-                codigo.append("MOV " + aux + ", 00h\n"); 
-                codigo.append(aux.substring(1) + ":\n"); 
-                pila_tokens.push(aux);
+                lastComparation = "JB";                    
                 break;
             
             case ">":
-                // Cargar op1 en ST(0) y op2 en ST(1)
-                codigo.append("FLD ").append(op1Renombrado).append("\n");  // Carga op1 en ST(0)
-                codigo.append("FCOM ").append(op2Renombrado).append("\n");  // Compara ST(0) (op1) con ST(1) (op2)
+                    codigo.append("FLD ").append(op2Renombrado).append("\n"); 
+                    codigo.append("FLD ").append(op1Renombrado).append("\n"); 
 
-                // Guardar los flags de la FPU en memoria (estado de la FPU en los flags de la FPU)
-                codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");  // Guarda el estado de la FPU en la memoria
-                codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); // Copia el estado de la FPU en el registro AX
+                    codigo.append("FCOM ").append("\n");
+                    codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
+                    codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
 
-                // Almacenar los flags de la FPU en AH
-                codigo.append("SAHF\n");  // Transfiere el estado del registro AH a los indicadores del procesador
-
-                // Crear variable auxiliar
-                aux = ocuparAuxiliar("longint");
-
-                // Establecer la variable auxiliar a 0xFF (valor verdadero en algunos saltos)
-                codigo.append("MOV " + aux + ", 0FFh\n");
-
-                // Si ST(0) > ST(1), saltamos a la etiqueta
-                // El salto se realiza si la bandera ZF (Zero Flag) es 0 y PF (Parity Flag) es 0
-                codigo.append("JA " + aux.substring(1) + "\n");  // Si ST(0) es mayor que ST(1), salta a la etiqueta
-
-                // Si no se cumple la condición, poner la variable auxiliar en 0
-                codigo.append("MOV " + aux + ", 00h\n");  // Pone 0 en la variable auxiliar
-
-                // Etiqueta para continuar la ejecución después del salto
-                codigo.append(aux.substring(1) + ":\n");
-
-                // Empujar el valor auxiliar a la pila
-                pila_tokens.push(aux);
-                break;
+                    lastComparation = "JBE";  
+            break;
             
             case "<=":
-                codigo.append("FLD ").append(op1Renombrado).append("\n"); 
-                codigo.append("FCOM ").append(op2Renombrado).append("\n");
-                codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");// cargo la palabra de estado en la memoria
-                codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); //copia el contenido en el registro AX
-                codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+                    codigo.append("FLD ").append(op2Renombrado).append("\n"); 
+                    codigo.append("FLD ").append(op1Renombrado).append("\n"); 
 
-                aux = ocuparAuxiliar("longint");
-                codigo.append("MOV " + aux + ", 0FFh\n");
-                codigo.append("JBE " + aux.substring(1) + "\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
-                codigo.append("MOV " + aux + ", 00h\n"); 
-                codigo.append(aux.substring(1) + ":\n"); 
-                pila_tokens.push(aux);
-                break;
+                    codigo.append("FCOM ").append("\n");
+                    codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
+                    codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+
+                    lastComparation = "JA";  
+            break;
             
             case "<":
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); 
                 codigo.append("FLD ").append(op1Renombrado).append("\n"); 
-                codigo.append("FCOM ").append(op2Renombrado).append("\n");
-                codigo.append("FSTSW ").append(nombreAux2bytes).append("\n");// cargo la palabra de estado en la memoria
-                codigo.append("MOV AX, ").append(nombreAux2bytes).append("\n"); //copia el contenido en el registro AX
+
+                codigo.append("FCOM ").append("\n");
+                codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
                 codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
 
-                aux = ocuparAuxiliar("longint");
-                codigo.append("MOV " + aux + ", 0FFh\n");
-                codigo.append("JB " + aux.substring(1) + "\n"); // si llega a ser verdadero salto y sigo con la ejecucion. En caso contrario tengo que poner el valor de aux en 0
-                codigo.append("MOV " + aux + ", 00h\n"); 
-                codigo.append(aux.substring(1) + ":\n"); 
-                pila_tokens.push(aux);
-                break;
+                lastComparation = "JAE";  
+            break;
             case "!=":
-                // Cargar op2 en la FPU
-                codigo.append("FLD ").append(op2Renombrado).append("\n");
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); 
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); 
 
-                // Comparar op1 con op2
-                codigo.append("FCOM ").append(op1Renombrado).append("\n");
+                codigo.append("FCOM ").append("\n");
+                codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
+                codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
 
-                // Guardar los flags de la FPU y comparar si op1 != op2
-                codigo.append("FSTSW AX\n");
-                codigo.append("SAHF\n");
-
-                lastComparation = "JZ";        // Si son iguales, usamos JZ (Jump if Zero)
-                break;
+                lastComparation = "JE";  
+            break;
 
             case "=":
-                // Cargar op2 en la FPU
-                codigo.append("FLD ").append(op2Renombrado).append("\n");
+                codigo.append("FLD ").append(op2Renombrado).append("\n"); 
+                codigo.append("FLD ").append(op1Renombrado).append("\n"); 
 
-                // Comparar op1 con op2
-                codigo.append("FCOM ").append(op1Renombrado).append("\n");
+                codigo.append("FCOM ").append("\n");
+                codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
+                codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
 
-                // Guardar los flags de la FPU y comparar si op1 == op2
-                codigo.append("FSTSW AX\n");
-                codigo.append("SAHF\n");
-
-                lastComparation = "JNZ";       // Si no son iguales, usamos JNZ (Jump if Not Zero)
+                lastComparation = "JNE";  
                 break;
             default:
                 codigo.append("ERROR se entro a default al generar codigo para una operacion de flotantes\n");
@@ -772,9 +736,13 @@ public class GeneradorCodigo {
             codigo.append("MOV ECX, ").append(valor).append("\n");
             codigo.append("OR ECX, 0\n");
             codigo.append("JE L").append(direccion).append("\n");
-        } else {
+        } else if (!lastComparation.equals("JAE") && !lastComparation.equals("JB") && !lastComparation.equals("JBE")&& !lastComparation.equals("JA")&& !lastComparation.equals("JE")&& !lastComparation.equals("JNE")){
         	int direccionInt = Integer.parseInt(direccion);
             codigo.append(salto).append(" ").append(SymbolTable.polaca.get(direccionInt).replace("@","").replace("&","")).append("\n");
+        } else {
+    
+            // Generar el salto si cumple la condición de >=
+            codigo.append(salto + " L").append(direccion).append("\n"); // Salta a Ldireccion si >= es verdadero
         }
 
         lastComparation = "";
@@ -833,16 +801,7 @@ public class GeneradorCodigo {
         ++numeroAuxiliar;
         //agrego a la tabla de simbolos la auxiliar.
         st.addValue(retorno, tipo, "VarAux", null, SymbolTable.identifierValue);
-        if (tipo.equals("longint")) {
-            // Reservamos 4 bytes para un longint (en x86, un longint es típicamente de 4 bytes)
-        	codigo.append(retorno + " dd 0 \n"); // 'dd' es para definir una palabra doble (4 bytes), inicializada en 0
-        } else if (tipo.equals("double")) {
-            // Reservamos 8 bytes para un double (en x86, un double es de 8 bytes)
-            codigo.append(retorno + " dq 0.0 \n"); // 'dq' es para definir una palabra cuádruple (8 bytes), inicializada en 0.0
-        } else {
-            // Si se agrega un tipo no reconocido, puedes mostrar un mensaje de error
-            System.out.println("Error: tipo no reconocido para la auxiliar " + retorno);
-        }
+        
         return retorno;
     }
 

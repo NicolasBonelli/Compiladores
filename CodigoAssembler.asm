@@ -10,50 +10,46 @@ includelib \masm32\lib\user32.lib
 @ERROR_DIVISION_POR_CERO db "ERROR DIVISION 0", 0
 @ERROR_OVERFLOW db "ERROR OVERFLOW", 0
 @ERROR_RANGO db "ERROR RANGO", 0
-@0 equ 0
+@MAX_DOUBLE REAL8 1.7976931348623157e+308  
+@aux2bytes dw 0.0 
+@0 dd 0
+@1 dd 1
+@0@0 REAL8 0.0
+@3@0 REAL8 3.0
 _X dd 0
-_X1 dd 0
-_E1 dd 10
-_E1limiteInferior dd 10
-_E1limiteSuperior dd 20
-@30 equ 30
-@20 equ 20
-@10 equ 10
+_X2 dd 0
+_F1 dq 0.0
+_F2 dq 0.0
 .code
 START:
-MOV ECX, @0
-MOV _X1, ECX
-MOV ECX, @0
-MOV _X, ECX
-MOV ECX, _X1
-CMP _X, ECX
-JNE L19
+FLD @3@0
+FSTP _F1
+FLD _F1
+FCOM @0@0
+FSTSW @aux2bytes
+MOV AX, @aux2bytes
+SAHF
 @aux1 dd 0 
+MOV @aux1, 0FFh
+JA aux1
+MOV @aux1, 00h
+aux1:
+MOV ECX, @aux1
+OR ECX, 0
+JE L14
+@aux2 dd 0 
 MOV ECX, @0
 CMP ECX, 00h
 JNE DIVPOR_CERO1
 invoke MessageBox, NULL, addr @ERROR_DIVISION_POR_CERO, addr @ERROR_DIVISION_POR_CERO, MB_OK
 invoke ExitProcess, 0
 DIVPOR_CERO1:
-MOV EAX, _X
+MOV EAX, @1
 CDQ
 IDIV ECX
-MOV @aux1, EAX
-MOV ECX, @aux1
+MOV @aux2, EAX
+MOV ECX, @aux2
 MOV _X, ECX
-JMP L23
-L19:
-MOV EAX, @30
-CMP EAX, _E1limiteInferior
-JL ERROR_RANGO_3
-CMP EAX, _E1limiteSuperior
-JG ERROR_RANGO_3
-JMP DENTRO_RANGO_2
-ERROR_RANGO_3:
-invoke MessageBox, NULL, addr @ERROR_RANGO, addr @ERROR_RANGO, MB_OK
-invoke ExitProcess, 0
-DENTRO_RANGO_2:
-MOV _E1, EAX
-L23:
+L14:
 invoke ExitProcess, 0
 end START

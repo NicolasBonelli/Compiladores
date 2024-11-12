@@ -60,6 +60,10 @@ public class TablaTipos {
             CaracteristicaFuncion funcion = st.getCaracteristicaFuncion(op);
             return funcion.getTipoDevuelto();             
         }
+        if (op.contains("{")) {
+            // Remueve desde la primera llave hasta el final
+            op = op.substring(0, op.indexOf("{"));
+        }
         String tipo= st.getType(op);
         return tipo; 
     }

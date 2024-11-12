@@ -937,6 +937,7 @@ expresion:
             yyval.sval = constante;
     }
     |   T_ID {
+            
             SymbolTable.aggPolaca(val_peek(0).sval);
             // Devuelve el identificador como cadena
             st.esUsoValidoAmbito(val_peek(0).sval);

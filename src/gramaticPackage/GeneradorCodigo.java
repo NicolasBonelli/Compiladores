@@ -93,18 +93,100 @@ public class GeneradorCodigo {
               .append("end START");
 
         generarCabecera();
+        reordenarCodigoAssembler(codigo);
         FileASSEMCreator.writeProgram(nombrePrograma, codigo.toString());
     }
-    private void generarCodigoImprimirPantalla() {
-        // Obtenemos la cadena del tope de la pila
-        String cadena = pila_tokens.pop().replace("[","").replace("]","").replace(" ", "_");
-        
-        codigo.append("push offset " + cadena + "_str \n");
-        codigo.append("call printf \n");
-        codigo.append("add esp, 4 \n");
 
-    }
+
+    public void reordenarCodigoAssembler(StringBuilder codigo) {
+        String[] lineas = codigo.toString().split("\n"); // Divide en líneas
+        List<String> startSection = new ArrayList<>();
+        List<String> procFunctions = new ArrayList<>();
+        List<String> otherCode = new ArrayList<>();
     
+        boolean dentroStart = false;
+        boolean dentroProc = false;
+    
+        for (String linea : lineas) {
+            if (linea.contains("PROC")) { // Empieza función
+                dentroProc = true;
+                procFunctions.add(linea);
+            } else if (linea.contains("ENDP")) { // Fin de función
+                procFunctions.add(linea);
+                dentroProc = false;
+            } else if (linea.contains("START:")) { // Inicio de START
+                dentroStart = true;
+                startSection.add(linea);
+            } else if (linea.contains("end START")) { // Fin de START
+                startSection.add(linea);
+                dentroStart = false;
+            } else if (dentroProc) {
+                procFunctions.add(linea); // Guardar líneas de funciones
+            } else if (dentroStart) {
+                startSection.add(linea); // Guardar líneas dentro de START
+            } else {
+                otherCode.add(linea); // Guardar otras líneas
+            }
+        }
+    
+        // Reconstruir el StringBuilder en el orden correcto
+        StringBuilder nuevoCodigo = new StringBuilder();
+        for (String linea : otherCode) nuevoCodigo.append(linea).append("\n");
+        for (String linea : procFunctions) nuevoCodigo.append(linea).append("\n");
+        for (String linea : startSection) nuevoCodigo.append(linea).append("\n");
+    
+        // Reemplaza el contenido de codigo con el nuevo contenido reordenado
+        codigo.setLength(0); // Limpiar el contenido original
+        codigo.append(nuevoCodigo.toString()); // Insertar el nuevo contenido
+    }
+
+
+
+    private void generarCodigoImprimirPantalla() {
+        // Obtenemos la cadena del tope de la pila y limpiamos caracteres no deseados
+        String cadena = pila_tokens.pop().replace("[", "").replace("]", "").replace(" ", "_");
+        if (cadena.endsWith("_str")) {
+            // Si es una cadena literal
+            codigo.append("push offset " + cadena + " \n");
+            codigo.append("call printf \n");
+            codigo.append("add esp, 4 \n");
+        } else {
+
+            String tipo;
+            
+            if (cadena.contains("{")){
+                tipo = st.getType(cadena.substring(0, cadena.indexOf('{')));
+                tipo = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo)).getTipoBase();
+                cadena = obtenerComponentePar(cadena);
+            } else {  tipo = st.getType(cadena);
+                if (st.getUse(cadena).equals("Nombre de variable par")){
+                    errorSemantico = true;
+                    System.err.println("No se puede utilizar variables de tipo par en outf (que no sea acceso par)");
+                }}
+            if (st.getUse(cadena).equals("Nombre de variable")) cadena = renombre(cadena);
+            // Si es una expresión numérica
+            String formato;
+            if (tipo.equals("double")) {
+                // Si es un número flotante
+                formato = "doubleFormat";
+                codigo.append("fld " + cadena + "\n");  // Carga el valor flotante en la FPU
+                codigo.append("sub esp, 8 \n");         // Reservar espacio para el valor flotante
+                codigo.append("fstp qword ptr [esp] \n"); // Almacena el valor en la pila
+            } else {
+                // Si es un entero
+                formato = "intFormat";
+                codigo.append("mov eax, " + cadena + "\n");  // Carga el valor en EAX
+                codigo.append("push eax \n");
+            }
+            
+            // Llamada a printf con el formato adecuado
+            codigo.append("push offset " + formato + " \n");
+            codigo.append("call printf \n");
+            
+            // Restaurar espacio en la pila después de printf
+            codigo.append("add esp, " + (tipo.equals("double") ? 12 : 8) + " \n");
+        }
+    }
 
 	private void generarCabeceraFuncion(String token) {
         codigo.append("_" + token.replace("$","")).append(" PROC\n");
@@ -141,7 +223,10 @@ public class GeneradorCodigo {
             .append("@ERROR_RANGO db \"" + "ERROR RANGO" + "\", 0\n")
             .append("@MAX_DOUBLE REAL8 1.7976931348623157e+308  \n")
         	.append("@aux2bytes dw 0.0 \n")
-            .append("format db \"Valor modificado: %f\", 0 \n");
+            .append("format db \"Valor modificado: %f\", 0 \n")
+            .append("intFormat db \"%d\", 0 \n")
+            .append("doubleFormat db \"%f\", 0 \n");
+
 
         
         
@@ -155,12 +240,22 @@ public class GeneradorCodigo {
     private  void generarCodigoDatos(StringBuilder cabecera) {//TODO
            
 
-        for (String simbolo : st.obtenerConjuntoSimbolos()) { 
+        for (Symbol symbol : st.obtenerConjuntoSimbolos()) { 
+            String simbolo = symbol.getNombre();
             // Obtenemos el tipo de uso y tipo de dato desde la tabla de símbolos
-        	String simboloRenombrado = renombre(simbolo);
+            String  simboloRenombrado;
+            
             String uso = st.getUse(simbolo);
             String tipo = st.getType(simbolo);
             if(uso!=null) {
+                if (!st.getUse(simbolo).equals("Nombre de parametro"))
+        	        simboloRenombrado = renombre(simbolo);
+                else {
+                    String ambito = symbol.getAmbito();
+                    int index = ambito.indexOf(":");
+                    String resultado = (index != -1) ? ambito.substring(index + 1) : ambito; // mete desde el nombre de programa sin incluir para la derecha
+                    simboloRenombrado = "_" + simbolo + "@" + resultado;
+                }
             	// Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
                 if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")|| uso.equals("Nombre de variable par") || uso.equals("VarAux")) {
                     if (tipo.equals("longint")){
@@ -184,11 +279,11 @@ public class GeneradorCodigo {
                     } else if(uso.equals("Nombre de variable par")){ //PAIR
                         TipoSubrango tS = st.getTipoSubrango(tipo+":"+st.getAmbitoByKey(tipo));
                         if (tS.getTipoBase().equals("double")){
-                            cabecera.append(simboloRenombrado).append("_1 dq 0.0\n"); // Componente 1 del par (double)
-                            cabecera.append(simboloRenombrado).append("_2 dq 0.0\n"); // Componente 2 del par (double)
+                            cabecera.append(simbolo).append("$1 dq 0.0\n"); // Componente 1 del par (double)
+                            cabecera.append(simbolo).append("$2 dq 0.0\n"); // Componente 2 del par (double)
                         } else {
-                            cabecera.append(simboloRenombrado).append("_1 dd 0\n"); // Componente 1 del par
-                            cabecera.append(simboloRenombrado).append("_2 dd 0\n"); // Componente 2 del par
+                            cabecera.append(simbolo).append("$1 dd 0\n"); // Componente 1 del par
+                            cabecera.append(simbolo).append("$2 dd 0\n"); // Componente 2 del par
                         }
                     }
                 } else if (uso.equals("Nombre de funcion")) {
@@ -228,8 +323,10 @@ public class GeneradorCodigo {
             op2 = aux;
         }
        
-     
+        System.out.println("op1: " + op1 + " op2: " + op2);
         String tipo = tablaTipos.getTipoAbarcativo(op1, op2, operador);
+
+
         switch (tipo) {
 	        case "longint":
 	            generarOperacionEnteros(op1, op2, operador);
@@ -263,7 +360,7 @@ public class GeneradorCodigo {
 
         // Método para verificar si es un acceso a `pair` (por ejemplo, x{1} o x{2})
     private boolean esAccesoPar(String operando) {
-        return operando.matches(".+\\{[12]\\}");
+        return operando.contains("{");
     }
 
     // Método para obtener la componente específica del `pair`
@@ -273,7 +370,7 @@ public class GeneradorCodigo {
         String componente = accesoPar.substring(accesoPar.indexOf('{') + 1, accesoPar.indexOf('}'));
 
         // Mapea "1" y "2" a las componentes en assembler correspondientes (ajustar según implementación)
-        return componente.equals("1") ? variable + "_1" : variable + "_2";
+        return componente.equals("1") ? variable + "$1" : variable + "$2";
     }
 
 
@@ -282,11 +379,11 @@ public class GeneradorCodigo {
         return idUnico;
     }
     private  void generarOperacionEnteros(String op1, String op2, String operador) {
-        String op1Renombrado = renombre(op1);
-        String op2Renombrado = renombre(op2); 
         
+       
         
         String aux;
+
          // Verifica si op1 o op2 son accesos a un par (patrón "variable{n}")
         if (esAccesoPar(op1)) {
             op1 = obtenerComponentePar(op1); // Traduce el acceso par a su representación assembler
@@ -294,6 +391,9 @@ public class GeneradorCodigo {
         if (esAccesoPar(op2)) {
             op2 = obtenerComponentePar(op2);
         }
+
+        String op1Renombrado = renombre(op1);
+        String op2Renombrado = renombre(op2); 
         switch (operador) {
             case "+":
 
@@ -329,22 +429,29 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case ":=":
-                String op1tipo = st.getType(op1);
 
                 // Verificar que el tipo es un par definido por el usuario
-                if (st.getUse(op1tipo).equals("Nombre de variable par")) {
+                if (st.getUse(op1).equals("Nombre de variable par") && st.getUse(op2).equals("Nombre de variable par")) {
                     // Asignación de las componentes del par
                     // Mover componente 1 de `op2` a `op1`
-                    codigo.append("MOV ECX, ").append(op2Renombrado).append("{1}\n");
-                    codigo.append("MOV ").append(op1Renombrado).append("{1}, ECX\n");
+                    codigo.append("MOV ECX, ").append(op2).append("$1\n");
+                    codigo.append("MOV ").append(op1).append("$1, ECX\n");
             
                     // Mover componente 2 de `op2` a `op1`
-                    codigo.append("MOV ECX, ").append(op2Renombrado).append("{2}\n");
-                    codigo.append("MOV ").append(op1Renombrado).append("{2}, ECX\n");
-            
+                    codigo.append("MOV ECX, ").append(op2).append("$2\n");
+                    codigo.append("MOV ").append(op1).append("$2, ECX\n");
+                    break;
                 } 
+                if (op1.endsWith("$1") || op1.endsWith("$2")){
+                    op1 = op1.substring(0, op1.indexOf('$'));
+                }
 
-            	else if(!op1tipo.equals("longint") && !op1tipo.equals("double")&& !st.getUse(op1tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
+                String op1tipo = st.getType(op1);
+                System.out.println("op1tipo: " + op1tipo + " que es op1: "+op1);
+
+
+
+            	if(!op1tipo.equals("longint") && !op1tipo.equals("double")&& !st.getUse(op1tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
 
 
 
@@ -463,8 +570,7 @@ public class GeneradorCodigo {
             
             
     private  void generarOperacionFlotantes(String op1, String op2, String operador) { 
-    	String op1Renombrado = renombre(op1);
-    	String op2Renombrado = renombre(op2);
+    	
 
         String aux;
          // Verifica si op1 o op2 son accesos a un par (patrón "variable{n}")
@@ -474,8 +580,18 @@ public class GeneradorCodigo {
         if (esAccesoPar(op2)) {
             op2 = obtenerComponentePar(op2);
         }
-
+        String op1Renombrado = renombre(op1);
+    	String op2Renombrado = renombre(op2);
         System.out.println("op2 antes de if es: "+ op2);
+
+        if (op1.endsWith("$1") || op1.endsWith("$2")){
+            op1 = op1.substring(0, op1.indexOf('$'));
+        }
+
+        if (op2.endsWith("$1") || op2.endsWith("$2")){
+            op2 = op2.substring(0, op2.indexOf('$'));
+        }
+
         //Si es LONGINT, la tengo que convertir a DOUBLE
         if (st.getType(op1).equals("longint")|| st.getType(op1).equals("Octal")) {
             if (!operador.equals(":=")){ 
@@ -582,22 +698,24 @@ public class GeneradorCodigo {
                 if(op2tipo.equals("Octal")) {
                 	op2tipo="longint";
                 }
-                System.out.println("op2: " + op2);
-                System.out.println("op1: " + op1);
-                System.out.println("op2tipo: " + op2tipo);
-                System.out.println("op1tipo: " + op1tipo);
+        
             
-                if (st.getUse(op2tipo).equals("Nombre de variable par")) {
-                    codigo.append("FLD ").append(op2Renombrado).append("{1}\n");
-                    codigo.append("FSTP ").append(op1Renombrado).append("{1}\n");
+                if (st.getUse(op1).equals("Nombre de variable par") && st.getUse(op2).equals("Nombre de variable par")) {
+                    codigo.append("FLD ").append(op2).append("$1\n");
+                    codigo.append("FSTP ").append(op1).append("$1\n");
                     codigo.append("FSTP ST(0) ").append("\n"); 
 
-                    codigo.append("FLD ").append(op2Renombrado).append("{2}\n");
-                    codigo.append("FSTP ").append(op1Renombrado).append("{2}\n");
+                    codigo.append("FLD ").append(op2).append("$2\n");
+                    codigo.append("FSTP ").append(op1).append("$2\n");
                     codigo.append("FSTP ST(0) ").append("\n"); 
-
+                    break;
                 }
-                else if (!op1tipo.equals("longint") && !op1tipo.equals("double") && !st.getUse(op1tipo).equals("Nombre de tipo de par")) {
+                if (op1.endsWith("$1") || op1.endsWith("$2")){
+                    op1 = op1.substring(0, op1.indexOf('$'));
+                }
+
+                op1tipo = st.getType(op1);
+                if (!op1tipo.equals("longint") && !op1tipo.equals("double") && !st.getUse(op1tipo).equals("Nombre de tipo de par")) {
                 
                     String etiquetaSinError = "DENTRO_RANGO_" + generarIdUnico();
                     String etiquetaErrorRango = "ERROR_RANGO_" + generarIdUnico();
@@ -787,6 +905,7 @@ public class GeneradorCodigo {
         CaracteristicaFuncion cF = st.getCaracteristicaFuncion(nombreFuncion+":"+st.getAmbitoByKey(nombreFuncion));
         String parametroFormal = cF.getNombreParametro();
         pila_tokens.push(parametroFormal);
+        //pilaNombreFunciones.push("nombreFuncion");
         generarOperador(":=");
         codigo.append("CALL ").append(funcion).append("\n");
 
@@ -794,15 +913,24 @@ public class GeneradorCodigo {
     
 
     private String renombre(String token) {
-
         // Si es una constante, le cambio de nombre al cual fue declarada
         if(st.getUse(token)!=null) {
         	if (st.getUse(token).equals("Constante")) {
                 return "@" + token.replace('.', '@').replace('-', '$').replace('+', '@').replace('d', 'e');
-            } else if (st.getUse(token).equals("Nombre de variable") || st.getUse(token).equals("Nombre de funcion") || st.getUse(token).equals("Nombre de variable par")|| st.getUse(token).equals("Nombre de parametro")) {
+            } else if (st.getUse(token).equals("Nombre de variable") || st.getUse(token).equals("Nombre de funcion") || st.getUse(token).equals("Nombre de variable par")) {
                 return "_" + token;
+            } else if (st.getUse(token).equals("Nombre de parametro")){
+                String nombreFuncion = "";
+                for (String funcion : pilaNombreFunciones) {
+                    if (!nombreFuncion.isEmpty()) {
+                        nombreFuncion += ":";  // Agregar ":" entre los nombres
+                    }
+                    nombreFuncion += funcion;
+                }
+                return "_" + token + "@" + nombreFuncion;
             } else {
                 return token;
+
             }
         }
         return "";

@@ -153,27 +153,25 @@ public class SymbolTable {
 	}
 
 	public boolean esUsoValidoAmbito(String var1) {
-		// Verifica si var1  declarada en el ámbito actual o en ámbitos superiores
-		String ambitoVar1 = getAmbitoByKey(var1);
-		if (!var1.endsWith("@")){ 
-			if (ambitoVar1 == null) {
-				// Si alguna variable no está declarada, devolvemos false
-				SymbolTable.aggListaErrores("Error: "+var1 +" no está declarada en ningún ámbito");
-				return false;
-			}
-			
-			// Verificamos si var1 puede usar var2, o viceversa, de acuerdo a sus ámbitos
-			if (esAmbitoCompatible(ambitoVar1)) {
-				return true; // Ambas variables están en ámbitos compatibles
-			} else {
-				
-				SymbolTable.aggListaErrores("Error: "+ var1 +" nunca ha sido declarada");
-				return false;
+		// Variable para verificar si la variable se encuentra en algún ámbito válido
+		boolean declaradaEnAmbito = false;
+	
+		for (Symbol simbolo : symbolMap.keySet()) { // Recorre todos los símbolos en la tabla
+			// Verifica que el nombre coincide y que el ámbito es compatible
+			if (simbolo.getNombre().equalsIgnoreCase(var1) && esAmbitoCompatible(simbolo.getAmbito())) {
+				declaradaEnAmbito = true;
+				break;
 			}
 		}
+	
+		if (!declaradaEnAmbito) { // Si no se encontró en ningún ámbito compatible, genera error
+			SymbolTable.aggListaErrores("Error: " + var1 + " no está declarada en ningún ámbito compatible");
+			return false;
+		}
+	
 		return true;
-
 	}
+	
 
 
 	public void imprimirTablaTipos() {
@@ -369,11 +367,11 @@ public class SymbolTable {
 	}
 
 
-	public  ArrayList<String> obtenerConjuntoSimbolos() {
-		ArrayList<String> simbolos = new ArrayList<>();
+	public  ArrayList<Symbol> obtenerConjuntoSimbolos() {
+		ArrayList<Symbol> simbolos = new ArrayList<>();
 
 		for (Symbol symbol : symbolMap.keySet()){ 
-			simbolos.add(symbol.getNombre());
+			simbolos.add(symbol);
 		}
 		return simbolos;
 	}

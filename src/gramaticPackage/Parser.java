@@ -1293,7 +1293,7 @@ case 26:
 break;
 case 27:
 //#line 181 "gramatica.y"
-{ dentroFuncion = true; returnChecker.enterFunction();}
+{ dentroFuncion = true; returnChecker.enterFunction(); yyval.sval = val_peek(1).sval;}
 break;
 case 28:
 //#line 182 "gramatica.y"
@@ -1319,7 +1319,7 @@ case 28:
                 st.addValue(val_peek(4).sval,"String","Nombre de funcion",SymbolTable.ambitoGlobal.toString(), 278);
             }
             /* Insertar en la tabla de funciones*/
-            st.insertTF(val_peek(4).sval+":"+this.borrarUltimoAmbito(), new CaracteristicaFuncion(val_peek(6).sval, tipoParametro, nombreParametro)); 
+            st.insertTF(val_peek(4).sval+":"+this.borrarUltimoAmbito(), new CaracteristicaFuncion(val_peek(5).sval, tipoParametro, nombreParametro)); 
         }
         
         /* Encuentra el índice donde empieza "Gato"*/

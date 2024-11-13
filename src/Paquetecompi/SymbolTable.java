@@ -223,6 +223,15 @@ public class SymbolTable {
 	    }
 	    return null; 
 	}
+	public String getTypeByAmbito(String key,String ambito) {
+	    // Recorremos el HashMap buscando el símbolo con el nombre coincidente
+	    for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(key)&& symbol.getAmbito().equals(ambito)) {
+	            return symbol.getTipo(); // Si el nombre y el ambito coincide, devolvemos el tipo
+	        }
+	    }
+	    return null; 
+	}
 	public boolean hasKey(String key) {
 		for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(key)) {

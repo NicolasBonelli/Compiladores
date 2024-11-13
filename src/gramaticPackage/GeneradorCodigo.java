@@ -24,6 +24,7 @@ public class GeneradorCodigo {
     private int idUnico = 0;
     private String lastComparation = "";
     private String nombrePrograma="CodigoAssembler.asm";
+    private String llamadoFuncion="";
        public GeneradorCodigo (SymbolTable st) {
            this.st=st;
            this.numeroAuxiliar = 1;
@@ -251,10 +252,12 @@ public class GeneradorCodigo {
                 if (!st.getUse(simbolo).equals("Nombre de parametro"))
         	        simboloRenombrado = renombre(simbolo);
                 else {
+                	
                     String ambito = symbol.getAmbito();
                     int index = ambito.indexOf(":");
                     String resultado = (index != -1) ? ambito.substring(index + 1) : ambito; // mete desde el nombre de programa sin incluir para la derecha
                     simboloRenombrado = "_" + simbolo + "@" + resultado;
+                    tipo= st.getTypeByAmbito(simbolo, ambito);
                 }
             	// Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
                 if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")|| uso.equals("Nombre de variable par") || uso.equals("VarAux")) {
@@ -429,7 +432,7 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case ":=":
-
+            	
                 // Verificar que el tipo es un par definido por el usuario
                 if (st.getUse(op1).equals("Nombre de variable par") && st.getUse(op2).equals("Nombre de variable par")) {
                     // Asignación de las componentes del par
@@ -444,6 +447,23 @@ public class GeneradorCodigo {
                 } 
                 if (op1.endsWith("$1") || op1.endsWith("$2")){
                     op1 = op1.substring(0, op1.indexOf('$'));
+                }
+                if(this.llamadoFuncion!="") {//Si se hizo un llamado a funcion , se tiene que renombrar el operador por su nombre de funcion
+                	// Extraer el ámbito completo
+                    String ambitoFun = st.getAmbitoByKey(llamadoFuncion);  // suponiendo que tienes un método getAmbito() para obtener el ámbito
+                    int indiceDosPuntos = ambitoFun.indexOf(":");
+                    String ambitoFuncion;
+                    if (indiceDosPuntos != -1) {
+                        // Extrae la parte después del primer ":"
+                       ambitoFuncion = ambitoFun.substring(indiceDosPuntos + 1);
+                        
+                    } else {
+                    	ambitoFuncion="";
+                    }
+
+                    // Renombrar el operador con el ámbito extraído y el nombre de la función
+                    op1Renombrado = op1Renombrado + ambitoFuncion + this.llamadoFuncion;
+                    this.llamadoFuncion="";
                 }
 
                 String op1tipo = st.getType(op1);
@@ -713,7 +733,23 @@ public class GeneradorCodigo {
                 if (op1.endsWith("$1") || op1.endsWith("$2")){
                     op1 = op1.substring(0, op1.indexOf('$'));
                 }
+                if(this.llamadoFuncion!="") {//Si se hizo un llamado a funcion , se tiene que renombrar el operador por su nombre de funcion
+                	// Extraer el ámbito completo
+                    String ambitoFun = st.getAmbitoByKey(llamadoFuncion);  // suponiendo que tienes un método getAmbito() para obtener el ámbito
+                    int indiceDosPuntos = ambitoFun.indexOf(":");
+                    String ambitoFuncion;
+                    if (indiceDosPuntos != -1) {
+                        // Extrae la parte después del primer ":"
+                       ambitoFuncion = ambitoFun.substring(indiceDosPuntos + 1);
+                        
+                    } else {
+                    	ambitoFuncion="";
+                    }
 
+                    // Renombrar el operador con el ámbito extraído y el nombre de la función
+                    op1Renombrado = op1Renombrado + ambitoFuncion + this.llamadoFuncion;
+                    this.llamadoFuncion="";
+                }
                 op1tipo = st.getType(op1);
                 if (!op1tipo.equals("longint") && !op1tipo.equals("double") && !st.getUse(op1tipo).equals("Nombre de tipo de par")) {
                 
@@ -905,9 +941,10 @@ public class GeneradorCodigo {
         CaracteristicaFuncion cF = st.getCaracteristicaFuncion(nombreFuncion+":"+st.getAmbitoByKey(nombreFuncion));
         String parametroFormal = cF.getNombreParametro();
         pila_tokens.push(parametroFormal);
-        //pilaNombreFunciones.push("nombreFuncion");
+        this.llamadoFuncion=nombreFuncion;
         generarOperador(":=");
         codigo.append("CALL ").append(funcion).append("\n");
+        pila_tokens.push("@ret"+nombreFuncion);
 
     }
     
@@ -947,32 +984,51 @@ public class GeneradorCodigo {
         
         return retorno;
     }
+    private  String ocuparRetorno(String tipo,String nombreFuncion) {
+        String retorno = "@ret" + nombreFuncion;
+        ++numeroAuxiliar;
+        //agrego a la tabla de simbolos la auxiliar.
+        st.addValue(retorno, tipo, "VarAux", null, SymbolTable.identifierValue);
+        
+        return retorno;
+    }
 
     private void generarCodigoRetorno() {
-
-        CaracteristicaFuncion cF = st.getCaracteristicaFuncion(pilaNombreFunciones.peek()+":" + st.getAmbitoByKey(pilaNombreFunciones.peek()));
+    	String nombreFuncion= pilaNombreFunciones.peek();
+        CaracteristicaFuncion cF = st.getCaracteristicaFuncion(nombreFuncion+":"+st.getAmbitoByKey(nombreFuncion));
         // Asumimos que el tipo de parametro y retorno están disponibles
         String tipoRetorno = cF.getTipoDevuelto();
         
         String topePila = pila_tokens.pop();
         String renombrado= renombre(topePila);
-        if(st.getType(topePila).equals(tipoRetorno)){ 
+        System.out.println("Tope de pila "+topePila);
+        String ambitoRetorno=st.getAmbitoByKey(nombreFuncion)+":"+nombreFuncion.toUpperCase();
+        System.out.println("AmbitoRetorno "+ambitoRetorno);
+        if(st.getTypeByAmbito(topePila,ambitoRetorno).equals(tipoRetorno)){ 
                     
       
             // Guardar el retorno según el tipo de retorno
             if (tipoRetorno.equals("double")) {
                 codigo.append("FLD "+ renombrado + " \n");      // Retorno double en xmm0
-
-                codigo.append("FSTP @retDouble \n");      // Retorno double en xmm0
+                String aux=ocuparRetorno("double",nombreFuncion);
+                
+                codigo.append("FSTP "+ aux+" \n");      // Retorno double en xmm0
                 codigo.append("FSTP ST(0) \n");      // Retorno double en xmm0
-
-                pila_tokens.push("@retDouble"); // Pusheo el valor de retorno
+                
+                //codigo.append("FILD @retDouble \n");        // Cargar el valor @retDouble para convertirlo
+                //codigo.append("FSTP ST(0) \n");   
+ 
 
             } else if (tipoRetorno.equals("longint")) {
                 codigo.append("MOV EAX, "+ renombrado + " \n");      // Retorno double en xmm0
-
-                codigo.append("MOV @retInt, EAX\n");         // Retorno longint en EAX
-                pila_tokens.push("@retInt"); // Pusheo el valor de retorno
+                String aux=ocuparRetorno("longint",nombreFuncion);
+                
+                //codigo.append("FSTP "+ aux+" \n");      // Retorno double en xmm0
+                codigo.append("MOV "+aux+", EAX\n");         // Retorno longint en EAX
+                /*codigo.append("FILD @retInt \n");
+                codigo.append("FLD @retDouble \n");
+                codigo.append("FSTP ST(0) \n");   */
+                
 
             }
             // Instrucción de retorno

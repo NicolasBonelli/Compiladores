@@ -166,7 +166,7 @@ public class SymbolTable {
 			}
 		}
 	
-		if (!declaradaEnAmbito) { // Si no se encontró en ningún ámbito compatible, genera error
+		if (!declaradaEnAmbito && !var1.contains("@")) { // Si no se encontró en ningún ámbito compatible, genera error
 			SymbolTable.aggListaErrores("Error: " + var1 + " no está declarada en ningún ámbito compatible");
 			return false;
 		}
@@ -174,8 +174,6 @@ public class SymbolTable {
 		return true;
 	}
 	
-
-
 	public void imprimirTablaTipos() {
 
         System.out.println(this.tablaTipos);
@@ -276,10 +274,10 @@ public class SymbolTable {
 	  public TipoSubrango getTipoSubrango(String nombreTipo){
 		return this.tablaTipos.get(nombreTipo);
 	  }
-	public boolean isTypePair(String tipo) {
+	public boolean isTypePair(String tipo, String ambito) {
 		// Recorremos la tabla de símbolos buscando un símbolo con el nombre coincidente y uso "Nombre de tipo de par"
 		for (Symbol symbol : symbolMap.keySet()) {
-			if (symbol.getNombre().equals(tipo) && "Nombre de tipo de par".equals(symbol.getUso())) {
+			if (symbol.getNombre().equals(tipo) && "Nombre de tipo de par".equals(symbol.getUso()) && symbol.getAmbito().equals(ambito)) {
 				return true; // Si encontramos un símbolo con el nombre y el uso correcto, devolvemos true
 			}
 		}

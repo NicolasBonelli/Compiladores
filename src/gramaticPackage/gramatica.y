@@ -46,6 +46,8 @@ class Subrango{
 
 
 programa: nombre bloque_sentencias {
+    if (st.containsUnsignedGoto()) 
+        SymbolTable.aggListaErrores("ERROR: Hay Gotos sin etiquetas declaradas");
     SymbolTable.aggPolaca(val_peek(1).sval+"%");
     if (SymbolTable.errores.isEmpty() && !st.containsUnsignedGoto()){
         System.out.println("Programa compilado correctamente");
@@ -124,7 +126,7 @@ declaracion: tipo lista_var ';' {
 	        System.out.println("Aclaracion, se declaro la variable: " + variable);
             
             //updatear uso de variable a variable
-            if(st.isTypePair(val_peek(2).sval)){//si el tipo
+            if(st.isTypePair(val_peek(2).sval, " ")){//si el tipo
                 st.updateUse(variable, "Nombre de variable par");
             }else{
 	            st.updateUse(variable, "Nombre de variable");

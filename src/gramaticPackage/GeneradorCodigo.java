@@ -166,7 +166,7 @@ public class GeneradorCodigo {
                     errorSemantico = true;
                     System.err.println("No se puede utilizar variables de tipo par en outf (que no sea acceso par)");
                 }}
-            if (st.getUse(cadena).equals("Nombre de variable")) cadena = renombre(cadena);
+            if (st.getUse(cadena).equals("Nombre de variable") || st.getUse(cadena).equals("Nombre de parametro")) cadena = renombre(cadena);
             // Si es una expresión numérica
             String formato;
             if (tipo.equals("double")) {

@@ -1,9 +1,7 @@
 package gramaticPackage;
-
+import Paquetecompi.*;
 import java.util.ArrayList;
 import java.util.List;
-
-
 import java.util.Stack;
 
 class Node {
@@ -34,6 +32,19 @@ class Node {
         }
         return children.isEmpty(); // Retorna false si es una hoja sin return
     }
+
+    // Verificar si existe al menos un return en toda la estructura de nodos
+    public boolean hasAnyReturn() {
+        if (hasReturn) {
+            return true;
+        }
+        for (Node child : children) {
+            if (child.hasAnyReturn()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 class ReturnChecker {
@@ -50,8 +61,12 @@ class ReturnChecker {
     public void exitFunction() {
         insideFunction = false;
         Node functionNode = stack.pop();
-        if (!functionNode.validateReturns()) {
-            System.out.println("Error: falta un return en alguna rama de la función.");
+        
+        // Validar que haya al menos un return en alguna parte de la función
+        if (!functionNode.hasAnyReturn()) {
+            SymbolTable.aggListaErrores("Error: falta un return en la función.");
+        } else if (!functionNode.validateReturns()) {
+            SymbolTable.aggListaErrores("Error: falta un return en alguna rama de la función.");
         }
     }
 

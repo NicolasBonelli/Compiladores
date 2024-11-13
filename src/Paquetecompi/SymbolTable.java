@@ -131,6 +131,8 @@ public class SymbolTable {
 	}
 	
 	public void addValue(String clave,String tipo,String uso,String ambito, Integer valor) {
+		if(ambito == null) ambito = "";
+
 		Symbol sym= new Symbol(clave,tipo,uso,ambito);
 		if(!symbolMap.containsKey(sym)) {
 			this.symbolMap.put(sym,valor);
@@ -224,13 +226,22 @@ public class SymbolTable {
 	    return null; 
 	}
 	public String getTypeByAmbito(String key,String ambito) {
-	    // Recorremos el HashMap buscando el símbolo con el nombre coincidente
-	    for (Symbol symbol : symbolMap.keySet()) {
-	        if (symbol.getNombre().equals(key)&& symbol.getAmbito().equals(ambito)) {
-	            return symbol.getTipo(); // Si el nombre y el ambito coincide, devolvemos el tipo
-	        }
-	    }
-	    return null; 
+		if(!this.getUse(key).equals("Constante")) { 
+	    	// Recorremos el HashMap buscando el símbolo con el nombre coincidente
+			for (Symbol symbol : symbolMap.keySet()) {
+				if (symbol.getNombre().equals(key)&& symbol.getAmbito().equals(ambito)) {
+					return symbol.getTipo(); // Si el nombre y el ambito coincide, devolvemos el tipo
+				}
+			}
+		} else {
+			String tipo = this.getType(key);
+			if (tipo.equals("Octal")){
+				return "longint";
+			}
+			return tipo;
+		}
+		return null; 
+
 	}
 	public boolean hasKey(String key) {
 		for (Symbol symbol : symbolMap.keySet()) {

@@ -33,9 +33,7 @@ public class GeneradorCodigo {
         
         
         public  void generarCodigo() {
-                //funcion utilizada para generar el codigo necesario para todos los datos del programa, presentes en la tabla de simbolos
-            st.addValue("@retInt", "longint", "VarAux", null, SymbolTable.identifierValue);
-            st.addValue("@retDouble", "double", "VarAux", null, SymbolTable.identifierValue);
+                
             //funcion principal que genera el codigo del programa, utilizando los tokes de la pocala y simbolos de la respectiva tabla
             for (String token : SymbolTable.polaca) {
                 switch (token) {
@@ -144,10 +142,14 @@ public class GeneradorCodigo {
 
 
     private void generarCodigoImprimirPantalla() {
+
+
         // Obtenemos la cadena del tope de la pila y limpiamos caracteres no deseados
-        String cadena = pila_tokens.pop().replace("[", "").replace("]", "").replace(" ", "_");
-        if (cadena.endsWith("_str")) {
+        String cadena = pila_tokens.pop().replace(" ", "_");
+        System.out.println("Cadena: "+cadena);
+        if (cadena.contains("[")) {
             // Si es una cadena literal
+            cadena = cadena.replace("[", "").replace("]", "") + "_str";
             codigo.append("push offset " + cadena + " \n");
             codigo.append("call printf \n");
             codigo.append("add esp, 4 \n");

@@ -144,8 +144,6 @@ public class GeneradorCodigo {
         List<String> funcionesCode = new ArrayList<>();  // Para almacenar la sección .code con las funciones
         Stack<StringBuilder> pilaFunciones = new Stack<>();  // Pila para las funciones anidadas
 
-        boolean dentroStart = false;
-        boolean dentroCode = false;
 
         // Limpiamos el contenido de código para reconstruirlo ordenadamente
         codigo.setLength(0);
@@ -153,7 +151,6 @@ public class GeneradorCodigo {
         for (String linea : lineas) {
             if (linea.contains(".code")) {
                 // Marcamos el inicio de la sección .code
-                dentroCode = true;
                 funcionesCode.add(linea);  // Guardamos .code para agregarlo al inicio de las funciones
             } else if (linea.contains("PROC")) {
                 // Inicia una nueva función
@@ -165,52 +162,36 @@ public class GeneradorCodigo {
                 if (!pilaFunciones.isEmpty()) {
                     StringBuilder funcionActual = pilaFunciones.pop();
                     funcionActual.append(linea).append("\n");
-                    if (!pilaFunciones.isEmpty()) {
-                        // Si aún hay funciones en la pila, sigue escribiendo en el tope de la pila
-                        pilaFunciones.peek().append(funcionActual);
-                    } else {
-                        // Si la pila está vacía después de desapilar, añadimos al bloque de funciones
-                        funcionesCode.add(funcionActual.toString());
-                    }
+                    funcionesCode.add(funcionActual.toString());
                 }
-            } else if (linea.contains("START:")) {
-                dentroStart = true;
+            } else if (pilaFunciones.isEmpty()) {
                 startSection.add(linea);
-            } else if (linea.contains("end START")) {
-                dentroStart = false;
-                startSection.add(linea);
-            } else if (dentroStart) {
-                startSection.add(linea);
-            } else {
+            }else {
                 if (!pilaFunciones.isEmpty()) {
                     // Si estamos dentro de una función, escribir en el tope de la pila
                     pilaFunciones.peek().append(linea).append("\n");
-                } else if (dentroCode) {
-                    // Si estamos en la sección .code pero fuera de funciones, lo agregamos a funcionesCode
-                    funcionesCode.add(linea);
-                } else {
-                    // Si no estamos en ninguna función ni en .code ni en START, agregar a otherCode
+                } else 
                     otherCode.add(linea);
-                }
+
             }
         }
 
         // Reconstruir el código final en el orden adecuado
-
-        // Primero agregar el código fuera de las funciones
-        for (String linea : otherCode) {
-            codigo.append(linea).append("\n");
-        }
-
+        // Luego, agregar la sección .code y todas las funciones declaradas en .code
         // Después, agregar la sección START
         for (String linea : startSection) {
+            if (linea.contains("START:")){
+                for (String linea2 : funcionesCode) {
+                    codigo.append(linea2).append("\n");
+                }
+            }
             codigo.append(linea).append("\n");
         }
+        // Primero agregar el código fuera de las funciones
+    
 
-        // Luego, agregar la sección .code y todas las funciones declaradas en .code
-        for (String linea : funcionesCode) {
-            codigo.append(linea).append("\n");
-        }
+      
+
     }
 
 

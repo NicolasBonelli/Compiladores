@@ -125,12 +125,7 @@ declaracion: tipo lista_var ';' {
 	    if (st.hasKey(variable)) {
 	        System.out.println("Aclaracion, se declaro la variable: " + variable);
             
-            //updatear uso de variable a variable
-            if(st.isTypePair(val_peek(2).sval, " ")){//si el tipo
-                st.updateUse(variable, "Nombre de variable par");
-            }else{
-	            st.updateUse(variable, "Nombre de variable");
-            }
+
 
 
             if(st.contieneSymbolAmbito(variable,SymbolTable.ambitoGlobal)){
@@ -142,6 +137,14 @@ declaracion: tipo lista_var ';' {
                     st.addValue(variable,val_peek(2).sval,"Nombre de variable",SymbolTable.ambitoGlobal.toString(), 278);
                 }
             }
+
+            //updatear uso de variable a variable
+            if(st.isTypePair(val_peek(2).sval, " ")){//si el tipo
+                st.updateUseByAmbito(variable, "Nombre de variable par", SymbolTable.ambitoGlobal.toString());
+            }else{
+                st.updateUseByAmbito(variable, "Nombre de variable", SymbolTable.ambitoGlobal.toString());
+            }
+
             //updatear tipo de variable
             st.updateType(variable,SymbolTable.ambitoGlobal.toString(), val_peek(2).sval);
             
@@ -184,28 +187,28 @@ encabezado_funcion: tipo FUN { dentroFuncion = true; returnChecker.enterFunction
 declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentencias {
         
         System.out.println("Entre a la 2da llave");
-        //updatear uso nombre funcion
-        st.updateUse(val_peek(4).sval, "Nombre de funcion");
         
 
         // Separar el tipo y el nombre del parámetro
         String[] tipoYNombre = val_peek(2).sval.split(":");
         String tipoParametro = tipoYNombre[0];
         String nombreParametro = tipoYNombre[1];
+        StringBuilder ambitoOrig = new StringBuilder(borrarUltimoAmbito());
 
-        if(st.contieneSymbolAmbito(val_peek(4).sval,SymbolTable.ambitoGlobal)){
+        if(st.contieneSymbolAmbito(val_peek(4).sval, ambitoOrig)){
             SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar funciones en el mismo ambito. Error con el nombre de la funcion:"+val_peek(4).sval);
         }else{
             if(st.getAmbitoByKey(val_peek(4).sval).equals(" ")){
-                StringBuilder ambitoOrig= new StringBuilder(borrarUltimoAmbito());
                 st.updateAmbito(val_peek(4).sval,ambitoOrig);
             }else{
-                st.addValue(val_peek(4).sval,"String","Nombre de funcion",SymbolTable.ambitoGlobal.toString(), 278);
+                st.addValue(val_peek(4).sval,"String","Nombre de funcion",ambitoOrig.toString(), 278);
             }
             // Insertar en la tabla de funciones
             st.insertTF(val_peek(4).sval+":"+this.borrarUltimoAmbito(), new CaracteristicaFuncion(val_peek(5).sval, tipoParametro, nombreParametro)); 
         }
-        
+        //updatear uso nombre funcion
+        st.updateUseByAmbito(val_peek(4).sval, "Nombre de funcion",ambitoOrig.toString());
+
         // Encuentra el índice donde empieza "Gato"
         int inicio = st.ambitoGlobal.indexOf(":" + val_peek(4).sval);
 
@@ -216,7 +219,7 @@ declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentenc
         SymbolTable.aggPolaca(val_peek(4).sval+"%");
         returnChecker.exitFunction();
         dentroFuncion = false;
-
+        
     }
     | encabezado_funcion nombre '(' parametros_error ')' bloque_sentencias {
         SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Error en la cantidad de parametros de la funcion.");
@@ -241,12 +244,7 @@ declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentenc
 parametro:
     tipo T_ID {
         
-        //updatear uso de variable a variable
-        if(st.isTypePair(val_peek(1).sval)){//si el tipo
-            st.updateUse(val_peek(0).sval, "Nombre de variable par");
-        }else{
-            st.updateUse(val_peek(0).sval, "Nombre de parametro");
-        }
+
         if(st.contieneSymbolAmbito(val_peek(0).sval,SymbolTable.ambitoGlobal)){
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
         }else{
@@ -255,6 +253,12 @@ parametro:
             }else{
                 st.addValue(val_peek(0).sval,val_peek(1).sval,"Nombre de parametro",SymbolTable.ambitoGlobal.toString(), 278);
             }
+        }
+        //updatear uso de variable a variable
+        if(st.isTypePair(val_peek(1).sval, " ")){//si el tipo
+            st.updateUseByAmbito(val_peek(0).sval, "Nombre de variable par", SymbolTable.ambitoGlobal.toString());
+        }else{
+            st.updateUseByAmbito(val_peek(0).sval, "Nombre de parametro", SymbolTable.ambitoGlobal.toString());
         }
         st.updateType(val_peek(0).sval,SymbolTable.ambitoGlobal.toString(),val_peek(1).sval);//CAMBIAR TIPO
         yyval.sval = val_peek(1).sval + ":" + val_peek(0).sval;
@@ -465,18 +469,20 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
             }else{
     
-                //FALTA CHEQUEAR MISMO TIPO
-                st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("longint", -2147483647, 2147483647));
-
-            
-                //updatear uso
-                st.updateUse(nombreTipo, "Nombre de tipo de par");
     
                 if(st.getAmbitoByKey(nombreTipo).equals(" ")){
                     st.updateAmbito(nombreTipo,SymbolTable.ambitoGlobal);
                 }else{
                     st.addValue(nombreTipo,"String","Nombre de tipo de par",SymbolTable.ambitoGlobal.toString(), 278);
                 }
+
+                //FALTA CHEQUEAR MISMO TIPO
+                st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("longint", -2147483647, 2147483647));
+
+
+                //updatear uso
+                st.updateUseByAmbito(nombreTipo, "Nombre de tipo de par", SymbolTable.ambitoGlobal.toString());
+    
             }
 
         }
@@ -489,18 +495,20 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(5).sval);
             }else{
     
-                //FALTA CHEQUEAR MISMO TIPO
-                st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("double", -1.7976931348623157E+308, 1.7976931348623157E+308));	
                 
-            
-                //updatear uso
-                st.updateUse(nombreTipo, "Nombre de tipo de par");
-    
                 if(st.getAmbitoByKey(nombreTipo).equals(" ")){
                     st.updateAmbito(nombreTipo,SymbolTable.ambitoGlobal);
                 }else{
                     st.addValue(nombreTipo,"String","Nombre de tipo de par",SymbolTable.ambitoGlobal.toString(), 278);
                 }
+
+                //FALTA CHEQUEAR MISMO TIPO
+                st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("double", -1.7976931348623157E+308, 1.7976931348623157E+308));	
+                
+            
+                //updatear uso
+                st.updateUseByAmbito(nombreTipo, "Nombre de tipo de par",SymbolTable.ambitoGlobal.toString());
+    
             }
         }
         | TYPEDEF PAIR '<'  '>' T_ID ';' {
@@ -816,8 +824,8 @@ goto_statement: GOTO T_ETIQUETA';' {
 invocacion_funcion: T_ID '(' parametro_real ')' {
         // Verifica que el parámetro no sea nulo antes de intentar convertirlo a cadena
         if (val_peek(1).sval != null) {
-            if (st.getUse(val_peek(3).sval) == null) {
-                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion:"+val_peek(3).sval+"  no declarada");
+            if (st.getUseByAmbito(val_peek(3).sval, SymbolTable.ambitoGlobal.toString()).equals(" ")) {
+                SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion: "+val_peek(3).sval+"  no declarada");
             }
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "(" + val_peek(1).sval + ")";

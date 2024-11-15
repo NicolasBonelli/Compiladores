@@ -115,6 +115,18 @@ public class SymbolTable {
 	    }
 	    return false;  // No se encontro el símbolo
 	}
+
+	public boolean updateUseByAmbito(String variable, String newUse, String ambito) {
+		System.out.println("variable: " + variable  + " newUse: " + newUse + " ambito: " + ambito);
+	    for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(variable) && symbol.getAmbito().equals(ambito)) {
+	            symbol.setUso(newUse); // Actualiza el tipo del símbolo
+	            return true; 
+	        }
+	    }
+	    return false;  // No se encontro el símbolo
+	}
+
 	public String getUse(String variable) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) {
@@ -123,6 +135,16 @@ public class SymbolTable {
 	    }
 	    return " ";  // No se encontro el símbolo
 	}
+
+	public String getUseByAmbito(String variable, String ambito) {
+	    for (Symbol symbol : symbolMap.keySet()) {
+	        if (symbol.getNombre().equals(variable)&& symbol.getAmbito().equals(ambito)) {
+	            return symbol.getUso(); 
+	        }
+	    }
+	    return " ";  // No se encontro el símbolo
+	}
+
 	public SymbolTable(){
 		this.symbolMap=new HashMap<Symbol, Integer>();
 		this.tablaTipos= new HashMap<String,TipoSubrango>();
@@ -197,8 +219,7 @@ public class SymbolTable {
 	    }
 	    return null;
 	}
-
-
+	
 	public boolean contieneSymbolAmbito(String nombre, StringBuilder nuevoAmbito) {
 		Symbol simb= new Symbol(nombre,null,null,nuevoAmbito.toString());
 		return this.symbolMap.containsKey(simb);
@@ -277,9 +298,12 @@ public class SymbolTable {
 	public boolean isTypePair(String tipo, String ambito) {
 		// Recorremos la tabla de símbolos buscando un símbolo con el nombre coincidente y uso "Nombre de tipo de par"
 		for (Symbol symbol : symbolMap.keySet()) {
-			if (symbol.getNombre().equals(tipo) && "Nombre de tipo de par".equals(symbol.getUso()) && symbol.getAmbito().equals(ambito)) {
-				return true; // Si encontramos un símbolo con el nombre y el uso correcto, devolvemos true
-			}
+			if (!ambito.equals(" ")){ 
+				if (symbol.getNombre().equals(tipo) && "Nombre de tipo de par".equals(symbol.getUso()) && symbol.getAmbito().equals(ambito)) {
+					return true; // Si encontramos un símbolo con el nombre y el uso correcto, devolvemos true
+				} }else
+				if(symbol.getNombre().equals(tipo) && "Nombre de tipo de par".equals(symbol.getUso()))
+					return true;
 		}
 		return false; // Si no encontramos ningún símbolo que cumpla, devolvemos false
 	}

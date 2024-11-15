@@ -46,6 +46,7 @@ class Subrango{
 
 
 programa: nombre bloque_sentencias {
+
     if (st.containsUnsignedGoto()) 
         SymbolTable.aggListaErrores("ERROR: Hay Gotos sin etiquetas declaradas");
     SymbolTable.aggPolaca(val_peek(1).sval+"%");
@@ -68,20 +69,32 @@ programa: nombre bloque_sentencias {
 } 
 | bloque_sentencias {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el nombre del programa");}
 
+| {System.err.println("Programa Vacio");}
 
+;
 
-bloque_sentencias: BEGIN sentencias END 
+bloque_sentencias: BEGIN sentencias END  {
+                            if (!list_funs.isEmpty())
+                                $$ = getArbol("S", $2, null);}
                 | BEGIN END {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
                 ;
                 
-sentencias:  sentencia
-          | sentencias sentencia
+sentencias:  sentencia {
+            if(!list_funs.isEmpty())
+                $$ = getArbol("S", $1, null);}
+          | sentencias sentencia {
+            if(!list_funs.isEmpty())
+                $$ = getArbol("S", $1, $2);}    
           ;
 
 sentencia: declaracion 
-         | asignacion
-         | if_statement
-         | repeat_while_statement
+         | asignacion {
+            if(!list_funs.isEmpty())
+                $$ = getArbol("asignacion", null, null);}
+         | if_statement {
+            if (!list_funs.isEmpty())
+                $$ = $1;}
+         | repeat_while_statement {}
          | salida
          | declaracion_funcion
          | goto_statement
@@ -109,8 +122,11 @@ sentencia: declaracion
             }
          }
          | RET '(' expresion ')' ';' {
-            if (!dentroFuncion) SymbolTable.aggListaErrores("Error en linea: "+ Lexer.nmrLinea + " - No se puede usar ret fuera de función");
-            else {SymbolTable.aggPolaca("!RET"); returnChecker.registerReturn();}
+            SymbolTable.aggPolaca("!RET"); 
+            System.out.println("Entre a ret");
+            $$ = getArbol("retorno", null, null); 
+            isRetInMain();
+
             }
          | RET '(' expresion ')' {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan ; al final del ret ");}
          | RET '('  ')' ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta retornar algo en el RET ");}
@@ -174,20 +190,23 @@ lista_var: lista_var ',' T_ID {
 
 
 nombre: T_ID { yyval.sval = val_peek(0).sval;
-
+    if (!list_funs.isEmpty())
+        $$ = $1;
     System.out.println("Entre a Funcion antes (o despues?) de la derecha");
     SymbolTable.aggPolaca(val_peek(0).sval+"$");
     if (SymbolTable.ambitoGlobal.length() == 0) {
         SymbolTable.ambitoGlobal = new StringBuilder(val_peek(0).sval);
     } else SymbolTable.ambitoGlobal.append(":" + val_peek(0).sval);
+        if (!firstTime)
+            addArbolFun($1.sval);
+        else firstTime = false;
         };
 
 
-encabezado_funcion: tipo FUN { dentroFuncion = true; returnChecker.enterFunction(); yyval.sval = val_peek(1).sval;};
+encabezado_funcion: tipo FUN { yyval.sval = val_peek(1).sval;};
 declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentencias {
         
         System.out.println("Entre a la 2da llave");
-        
 
         // Separar el tipo y el nombre del parámetro
         String[] tipoYNombre = val_peek(2).sval.split(":");
@@ -217,8 +236,7 @@ declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentenc
             st.ambitoGlobal.delete(inicio, inicio + val_peek(4).sval.length()+1);
         }
         SymbolTable.aggPolaca(val_peek(4).sval+"%");
-        returnChecker.exitFunction();
-        dentroFuncion = false;
+        verificarRets();
         
     }
     | encabezado_funcion nombre '(' parametros_error ')' bloque_sentencias {
@@ -276,8 +294,12 @@ parametros_error:
         SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - La funcion debe tener un parametro.");
     };
 
-repeat_sentencia: bloque_sentencias 
-            | sentencia
+repeat_sentencia: bloque_sentencias  {
+        if (!list_funs.isEmpty())
+            $$ = getArbol("S", $1, null);}
+                | sentencia {
+                if(!list_funs.isEmpty())
+                    $$ = getArbol("S", $1, null);}
             ;
 
 
@@ -296,13 +318,11 @@ tipo: DOUBLE { yyval.sval = "double"; }
     };
 
 signo_THEN: THEN {
-    if (dentroFuncion)
-            returnChecker.enterBlock();
+
 }
 
 signo_ELSE: ELSE {
-    if (dentroFuncion)
-            returnChecker.enterBlock();
+
 }
 
 bloque_THEN: signo_THEN repeat_sentencia {
@@ -310,8 +330,8 @@ bloque_THEN: signo_THEN repeat_sentencia {
         int posicion = SymbolTable.pila.pop();
         SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
         SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
-        if (dentroFuncion)
-            returnChecker.exitBlock();
+        if(!list_funs.isEmpty())
+            $$ = getArbol("THEN", $2, null);
 
 };
 
@@ -322,23 +342,27 @@ bloque_THEN_CON_ELSE: signo_THEN repeat_sentencia {
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()+2));
     SymbolTable.pila.push(SymbolTable.polaca.size());
     SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI"); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
-    if (dentroFuncion)
-        returnChecker.exitBlock();
+    if(!list_funs.isEmpty())
+        $$ = getArbol("THEN", $2, null);
 
 };
 bloque_ELSE: signo_ELSE repeat_sentencia {
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size())); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
-    if (dentroFuncion) {
-        returnChecker.exitBlock();
-        
-    }
+    if(!list_funs.isEmpty())
+        $$ = getArbol("ELSE", $2, null);
 };
 
 
 
-if_statement: IF '(' condicion ')' bloque_THEN END_IF ';' 
-            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';' 
+if_statement: IF '(' condicion ')' bloque_THEN END_IF ';' {
+    
+    if(!list_funs.isEmpty())
+        $$ = getArbol("IF", $5, null);}
+            | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';'  {
+                if(!list_funs.isEmpty())
+
+                    $$ = getArbol("IF", $5, $6);}
             | IF '(' condicion ')' bloque_THEN_CON_ELSE repeat_sentencia END_IF ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ELSE en el IF");}
             | IF '(' condicion ')' bloque_THEN END_IF {
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
@@ -376,8 +400,7 @@ if_statement: IF '(' condicion ')' bloque_THEN END_IF ';'
             
             
 inicio_while: REPEAT {   SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("&L"+SymbolTable.polaca.size());
-                      if (dentroFuncion)
-                        returnChecker.enterBlock();
+                      
                     };
 
 repeat_while_statement: inicio_while repeat_sentencia WHILE '(' condicion ')' ';' {
@@ -386,10 +409,8 @@ repeat_while_statement: inicio_while repeat_sentencia WHILE '(' condicion ')' ';
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
     SymbolTable.polaca.set(SymbolTable.polaca.size()-2, String.valueOf(SymbolTable.pila.pop()));
     SymbolTable.aggPolaca("&L"+SymbolTable.polaca.size());
-    if (dentroFuncion) {
-        returnChecker.exitBlock();
     }
-    }
+    
     | inicio_while repeat_sentencia WHILE '(' condicion ')' {
         SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia WHILE.");
     }
@@ -587,7 +608,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
 
     }
     |'{' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
-        yyerror("Error: el subrango esta mal declarado, fueron invertidos los rangos");
+        System.err.println("Error: el subrango esta mal declarado, fueron invertidos los rangos");
         String limiteInferiorStr = val_peek(1).sval; // T_CTE (limites inferiores)
         String limiteSuperiorStr = val_peek(4).sval; // T_CTE (limites superiores)
          try {
@@ -786,7 +807,7 @@ acceso_par:
     T_ID '{' T_CTE '}' {
 
         if (!(val_peek(1).sval.equals("1") || val_peek(1).sval.equals("2"))) {
-            yyerror("Error: Solo se permite 1 o 2 dentro de las llaves.");
+            SymbolTable.aggListaErrores("Error: Solo se permite 1 o 2 dentro de las llaves.");
         } else {
             st.esUsoValidoAmbito(val_peek(3).sval);
             yyval.sval = val_peek(3).sval + "{" + val_peek(1).sval + "}";
@@ -1055,9 +1076,10 @@ unaria: '-' T_CTE {
 
 %%
 public static boolean crearEjecutable=true;
-private ReturnChecker returnChecker = new ReturnChecker();
-private int nivel = 0;
-private boolean dentroFuncion = false;
+private ArrayList<Arbol> list_funs = new ArrayList<>();
+private ParserVal last_node;
+private boolean firstTime = true;
+
 
 public void yyerror(String s) {
     SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " String: " +s);
@@ -1108,7 +1130,10 @@ public static void main(String[] args) {
     }
 }
 
-
+private void isRetInMain(){
+    if(list_funs.isEmpty())
+        SymbolTable.aggListaErrores("No se permite sentencias de retorno fuera de funciones");
+}
 
 
  // Funcion para verificar si el valor esta dentro del rango
@@ -1124,9 +1149,22 @@ public static void main(String[] args) {
 boolean verificarRangoLongInt(double valor) {
     return valor >= -Math.pow(2, 31) && valor <= Math.pow(2, 31) - 1;
 }
-
-
-
+private void addArbolFun(String name){
+    list_funs.add(new Arbol(name, null, null));
+}
+private void verificarRets() {
+    if (!list_funs.isEmpty()) {
+        Arbol node = list_funs.get(list_funs.size()-1);
+        System.out.println(node);
+        node.setLeft((Arbol) last_node.obj);
+        verificarRetornoEnFuncion(node);
+        list_funs.remove(list_funs.size() - 1);
+    }
+}
+private void verificarRetornoEnFuncion(Arbol node) {
+    if (!verificarRetorno(node))
+        SymbolTable.aggListaErrores("La función '" + node.getValue() + "' no tiene un retorno garantizado.");
+}
 boolean verificarRangoDouble(double valor) {
     return valor >= -1.7976931348623157e308 && valor <= 1.7976931348623157e308;
 }
@@ -1179,6 +1217,42 @@ public String borrarUltimoAmbito(){
     }
     return nuevoStringBuilder.toString();
 }
+
+private ParserVal getArbol(String name, ParserVal left, ParserVal right) {
+
+    if (!list_funs.isEmpty()) {
+        Arbol leftNode = (left != null) ? (Arbol) left.obj : null;
+        Arbol rightNode = (right != null) ? (Arbol) right.obj : null;
+        last_node = new ParserVal(new Arbol(name, leftNode, rightNode));
+        System.out.println("Last Node: " + last_node.obj);
+        return last_node;
+    }
+
+    return yyval;
+}
+
+
+private boolean verificarRetorno(Arbol node) {
+    if (node == null) { 
+        System.out.println("node era null");
+        return false;
+    }
+
+    if ("retorno".equals(node.value))
+        return true;
+
+
+    if ("IF".equals(node.value)) {
+        boolean tieneRetornoThen = verificarRetorno(node.left);
+        boolean tieneRetornoElse = verificarRetorno(node.right);
+
+        return tieneRetornoThen && tieneRetornoElse;
+    }
+
+    return verificarRetorno(node.left) || verificarRetorno(node.right);
+}
+
+
 public int getTypeOfConst(String constValue){
     // Verificar si es Octal: empieza con 0 y no contiene 8 ni 9
     if (constValue.startsWith("0") && constValue.matches("[0-7]+")) {

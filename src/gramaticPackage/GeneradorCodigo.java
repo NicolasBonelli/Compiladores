@@ -73,7 +73,7 @@ public class GeneradorCodigo {
 	                    } else if (token.endsWith("$")&& posActualPolaca>0) {   // Encontramos el comienzo de una funcion
 	                        generarCabeceraFuncion(token);
 	                    }else if (token.endsWith("%")&& posActualPolaca<SymbolTable.polaca.size()-1) {   // Encontramos el comienzo de una funcion
-	                        generarFinalFuncion(token);
+	                        generarFinalFuncion(token.replace("%",""));
 	                    }else if (st.getUse(token).equals("Nombre de funcion")){
 	                        generarLlamadoFuncion(token);
 	                    } else if(posActualPolaca>0)
@@ -135,47 +135,84 @@ public class GeneradorCodigo {
         return null;
     }
     
+    
+
     public void reordenarCodigoAssembler(StringBuilder codigo) {
-        String[] lineas = codigo.toString().split("\n"); // Divide en líneas
-        List<String> startSection = new ArrayList<>();
-        List<String> procFunctions = new ArrayList<>();
-        List<String> otherCode = new ArrayList<>();
-    
+        String[] lineas = codigo.toString().split("\\n");
+        List<String> otherCode = new ArrayList<>();  // Para el código que no está en funciones ni en START
+        List<String> startSection = new ArrayList<>();  // Para la sección START
+        List<String> funcionesCode = new ArrayList<>();  // Para almacenar la sección .code con las funciones
+        Stack<StringBuilder> pilaFunciones = new Stack<>();  // Pila para las funciones anidadas
+
         boolean dentroStart = false;
-        boolean dentroProc = false;
-    
+        boolean dentroCode = false;
+
+        // Limpiamos el contenido de código para reconstruirlo ordenadamente
+        codigo.setLength(0);
+
         for (String linea : lineas) {
-            if (linea.contains("PROC")) { // Empieza función
-                dentroProc = true;
-                procFunctions.add(linea);
-            } else if (linea.contains("ENDP")) { // Fin de función
-                procFunctions.add(linea);
-                dentroProc = false;
-            } else if (linea.contains("START:")) { // Inicio de START
+            if (linea.contains(".code")) {
+                // Marcamos el inicio de la sección .code
+                dentroCode = true;
+                funcionesCode.add(linea);  // Guardamos .code para agregarlo al inicio de las funciones
+            } else if (linea.contains("PROC")) {
+                // Inicia una nueva función
+                StringBuilder funcionActual = new StringBuilder();
+                funcionActual.append(linea).append("\n");
+                pilaFunciones.push(funcionActual);
+            } else if (linea.contains("ENDP")) {
+                // Termina la función actual
+                if (!pilaFunciones.isEmpty()) {
+                    StringBuilder funcionActual = pilaFunciones.pop();
+                    funcionActual.append(linea).append("\n");
+                    if (!pilaFunciones.isEmpty()) {
+                        // Si aún hay funciones en la pila, sigue escribiendo en el tope de la pila
+                        pilaFunciones.peek().append(funcionActual);
+                    } else {
+                        // Si la pila está vacía después de desapilar, añadimos al bloque de funciones
+                        funcionesCode.add(funcionActual.toString());
+                    }
+                }
+            } else if (linea.contains("START:")) {
                 dentroStart = true;
                 startSection.add(linea);
-            } else if (linea.contains("end START")) { // Fin de START
-                startSection.add(linea);
+            } else if (linea.contains("end START")) {
                 dentroStart = false;
-            } else if (dentroProc) {
-                procFunctions.add(linea); // Guardar líneas de funciones
+                startSection.add(linea);
             } else if (dentroStart) {
-                startSection.add(linea); // Guardar líneas dentro de START
+                startSection.add(linea);
             } else {
-                otherCode.add(linea); // Guardar otras líneas
+                if (!pilaFunciones.isEmpty()) {
+                    // Si estamos dentro de una función, escribir en el tope de la pila
+                    pilaFunciones.peek().append(linea).append("\n");
+                } else if (dentroCode) {
+                    // Si estamos en la sección .code pero fuera de funciones, lo agregamos a funcionesCode
+                    funcionesCode.add(linea);
+                } else {
+                    // Si no estamos en ninguna función ni en .code ni en START, agregar a otherCode
+                    otherCode.add(linea);
+                }
             }
         }
-    
-        // Reconstruir el StringBuilder en el orden correcto
-        StringBuilder nuevoCodigo = new StringBuilder();
-        for (String linea : otherCode) nuevoCodigo.append(linea).append("\n");
-        for (String linea : procFunctions) nuevoCodigo.append(linea).append("\n");
-        for (String linea : startSection) nuevoCodigo.append(linea).append("\n");
-    
-        // Reemplaza el contenido de codigo con el nuevo contenido reordenado
-        codigo.setLength(0); // Limpiar el contenido original
-        codigo.append(nuevoCodigo.toString()); // Insertar el nuevo contenido
+
+        // Reconstruir el código final en el orden adecuado
+
+        // Primero agregar el código fuera de las funciones
+        for (String linea : otherCode) {
+            codigo.append(linea).append("\n");
+        }
+
+        // Después, agregar la sección START
+        for (String linea : startSection) {
+            codigo.append(linea).append("\n");
+        }
+
+        // Luego, agregar la sección .code y todas las funciones declaradas en .code
+        for (String linea : funcionesCode) {
+            codigo.append(linea).append("\n");
+        }
     }
+
 
 
 
@@ -236,17 +273,26 @@ public class GeneradorCodigo {
     }
 
 	private void generarCabeceraFuncion(String token) {
-        String ambitoFuncion = pilaNombreFunciones.isEmpty() ? nombreCodigo : pilaNombreFunciones.peek();
-        codigo.append("_" + token.replace("$","")).append("@" + ambitoFuncion).append(" PROC\n");
+        String ambitoFuncion = pilaNombreFunciones.isEmpty() ? "" : pilaNombreFunciones.peek();
+        codigo.append("_" + token.replace("$","")).append("@" +nombreCodigo);
+        if(!ambitoFuncion.equals("")) {
+        	codigo.append("@"+ambitoFuncion);
+        }
+        codigo.append(" PROC\n");
+        
+        
         pilaNombreFunciones.push(token.replace("$",""));
+        
     }    
     private void generarFinalFuncion(String token) {
         pilaNombreFunciones.pop();
-
-        String ambitoFuncion = pilaNombreFunciones.isEmpty() ? nombreCodigo : pilaNombreFunciones.peek();
-
-    	codigo.append("_"+token.replace("%","")).append("@" + ambitoFuncion).append(" ENDP\n");
-	}
+        String ambitoFuncion = pilaNombreFunciones.isEmpty() ? "" : pilaNombreFunciones.peek();
+        codigo.append("_" + token.replace("$","")).append("@" +nombreCodigo);
+        if(!ambitoFuncion.equals("")) {
+        	codigo.append("@"+ambitoFuncion);
+        }
+        codigo.append(" ENDP\n");
+    }
 
 
 	private  void generarCabecera() {
@@ -294,18 +340,15 @@ public class GeneradorCodigo {
             String simbolo = symbol.getNombre();
             // Obtenemos el tipo de uso y tipo de dato desde la tabla de símbolos
             String  simboloRenombrado;
-            
+            String ambito=symbol.getAmbito();
             String uso = symbol.getUso();
             String tipo = symbol.getTipo();
             if(uso != null) {
                 if (!uso.equals("Nombre de parametro"))
-        	        simboloRenombrado = renombre(simbolo);
+        	        simboloRenombrado = renombre(simbolo,ambito);
                 else {
-                	
-                    String ambito = symbol.getAmbito();
-                    int index = ambito.indexOf(":");
-                    String resultado = (index != -1) ? ambito.substring(index + 1) : ambito; // mete desde el nombre de programa sin incluir para la derecha
-                    simboloRenombrado = "_" + simbolo + "@" + resultado.replace(":", "@");
+                    simboloRenombrado = "_" + simbolo + "@" + ambito.replace(":", "@");
+                    System.out.println("Simbolo renombrado:"+simboloRenombrado);
                     tipo= st.getTypeByAmbito(simbolo, ambito);
                 }
             	// Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
@@ -481,7 +524,13 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case ":=":
-            	
+            	if(!this.llamadoFuncion.equals("")) {//Si se hizo un llamado a funcion , se tiene que renombrar el operador por su nombre de funcion
+                	// Extraer el ámbito completo
+                    
+                    // Renombrar el operador con el ámbito extraído y el nombre de la función
+                    op1Renombrado = "_" + op1 + llamadoFuncion.replace(":", "@");
+                    this.llamadoFuncion="";
+                }
                 // Verificar que el tipo es un par definido por el usuario
                 if (st.getUse(op1).equals("Nombre de variable par") && st.getUse(op2).equals("Nombre de variable par")) {
                     // Asignación de las componentes del par
@@ -497,18 +546,9 @@ public class GeneradorCodigo {
                 if (op1.endsWith("$1") || op1.endsWith("$2")){
                     op1 = op1.substring(0, op1.indexOf('$'));
                 }
-                if(!this.llamadoFuncion.equals("")) {//Si se hizo un llamado a funcion , se tiene que renombrar el operador por su nombre de funcion
-                	// Extraer el ámbito completo
-                    
-                    // Renombrar el operador con el ámbito extraído y el nombre de la función
-                    op1Renombrado = "_" + op1 + llamadoFuncion.replace(":", "@");
-                    this.llamadoFuncion="";
-                }
-
+                
                 String op1tipo = st.getType(op1);
                 System.out.println("op1tipo: " + op1tipo + " que es op1: "+op1);
-
-
 
             	if(!op1tipo.equals("longint") && !op1tipo.equals("double")&& !st.getUse(op1tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
 
@@ -751,13 +791,19 @@ public class GeneradorCodigo {
             case ":=":
                 String op2tipo = st.getType(op2);
                 String op1tipo = st.getType(op1);
+                
                 if(op1tipo.equals("Octal")) {
                 	op1tipo="longint";
                 }
                 if(op2tipo.equals("Octal")) {
                 	op2tipo="longint";
                 }
-        
+                if(!this.llamadoFuncion.equals("")) {//Si se hizo un llamado a funcion , se tiene que renombrar el operador por su nombre de funcion
+                    
+                    // Renombrar el operador con el ámbito extraído y el nombre de la función
+                    op1Renombrado = "_" + op1 + llamadoFuncion.replace(":", "@");
+                    this.llamadoFuncion="";
+                }
             
                 if (st.getUse(op1).equals("Nombre de variable par") && st.getUse(op2).equals("Nombre de variable par")) {
                     codigo.append("FLD ").append(op2).append("$1\n");
@@ -772,12 +818,7 @@ public class GeneradorCodigo {
                 if (op1.endsWith("$1") || op1.endsWith("$2")){
                     op1 = op1.substring(0, op1.indexOf('$'));
                 }
-                if(!this.llamadoFuncion.equals("")) {//Si se hizo un llamado a funcion , se tiene que renombrar el operador por su nombre de funcion
-                    
-                    // Renombrar el operador con el ámbito extraído y el nombre de la función
-                    op1Renombrado = "_" + op1 + llamadoFuncion.replace(":", "@");
-                    this.llamadoFuncion="";
-                }
+                
                 op1tipo = st.getType(op1);
                 if (!op1tipo.equals("longint") && !op1tipo.equals("double") && !st.getUse(op1tipo).equals("Nombre de tipo de par")) {
                 
@@ -971,7 +1012,7 @@ public class GeneradorCodigo {
         String parametroFormal = cF.getNombreParametro();
         pila_tokens.push(parametroFormal);
         System.out.println("AMBITO: " + ambito);
-        this.llamadoFuncion = "@" + ambito.replace(nombreCodigo, "") + nombreFuncion;
+        this.llamadoFuncion =  "@"+ambito.replace(":", "@") + "@"+nombreFuncion;
         System.out.println("llamado a funcion: " + this.llamadoFuncion);
 
         generarOperador(":=");
@@ -980,16 +1021,14 @@ public class GeneradorCodigo {
 
     }
     
-
-    private String renombre(String token) {
-        System.out.println("Ambito Actual: " + this.getAmbitoActual());
-        String uso = st.getUseByAmbito(token, this.getAmbitoActual());
+    private String renombre(String token,String ambito) {
+        String uso = st.getUseByAmbito(token, ambito);
         // Si es una constante, le cambio de nombre al cual fue declarada
         if(st.getUse(token)!=null) {
         	if (st.getUse(token).equals("Constante")) {
                 return "@" + token.replace('.', '@').replace('-', '$').replace('+', '@').replace('d', 'e');
             } else if (uso.equals("Nombre de variable") || uso.equals("Nombre de funcion") || uso.equals("Nombre de variable par")) {
-                return "_" + token;
+                return "_" + token+"@"+ambito.replace(":", "@");
             } else if (uso.equals("Nombre de parametro")){
                 String nombreFuncion = "";
                 for (String funcion : pilaNombreFunciones) {
@@ -998,7 +1037,44 @@ public class GeneradorCodigo {
                     }
                     nombreFuncion += funcion;
                 }
-                return "_" + token + "@" + nombreFuncion;
+                return "_" + token+"@"+nombreCodigo + "@" + nombreFuncion;
+            } else {
+                return token;
+
+            }
+        }
+        return "";
+    	
+    }
+    private String renombre(String token) {
+    	String ambito="@"+this.getAmbitoActual();
+        System.out.println("Ambito Actual: " + ambito);
+        String uso = st.getUseByAmbito(token, this.getAmbitoActual());
+        if(uso.equals(" ")&& st.getUse(token).equals("Nombre de variable")) {//Si no se encontro el uso dentro de ese ambito
+        	Symbol s= st.getSimboloCompatible(token,ambito.replace("@", ""));
+        	if(s!=null) {
+        		ambito="@"+s.getAmbito();
+            	uso=s.getUso();
+        	}else {
+        		System.out.println("Error: No existe el simbolo en renombre");
+        	}
+        	
+        }
+        // Si es una constante, le cambio de nombre al cual fue declarada
+        if(st.getUse(token)!=null) {
+        	if (st.getUse(token).equals("Constante")) {
+                return "@" + token.replace('.', '@').replace('-', '$').replace('+', '@').replace('d', 'e');
+            } else if (uso.equals("Nombre de variable") || uso.equals("Nombre de funcion") || uso.equals("Nombre de variable par")) {
+                return "_" + token+ambito.replace(":", "@");
+            } else if (uso.equals("Nombre de parametro")){
+                String nombreFuncion = "";
+                for (String funcion : pilaNombreFunciones) {
+                    if (!nombreFuncion.isEmpty()) {
+                        nombreFuncion += "@";  // Agregar ":" entre los nombres
+                    }
+                    nombreFuncion += funcion;
+                }
+                return "_" + token+"@"+nombreCodigo + "@" + nombreFuncion;
             } else {
                 return token;
 

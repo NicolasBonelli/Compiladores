@@ -26,7 +26,12 @@ public class SymbolTable {
     public static ArrayList<String> errores = new ArrayList<>();
     private static int posActualPolaca;
     
-
+    public SymbolTable(){
+		this.symbolMap=new HashMap<Symbol, Integer>();
+		this.tablaTipos= new HashMap<String,TipoSubrango>();
+		this.tablaFuncion = new HashMap<String, CaracteristicaFuncion>();
+		ambitoGlobal.setLength(0);
+	}
     public void aggPilaGotos(TipoEtiqueta valor){
     	SymbolTable.pilaGotos.push(valor);
     }
@@ -69,7 +74,22 @@ public class SymbolTable {
 
         return posicion; // Retorna la posición del elemento eliminado, o -1 si no lo encontró
     }
-
+    public Symbol getSimboloCompatible(String token, String ambito) {
+        for (Symbol symbol : symbolMap.keySet()) {
+            // Compara el nombre del token y verifica si el ámbito es compatible
+            if (symbol.getNombre().equals(token) && isAmbitoCompatible(symbol.getAmbito(), ambito)) {
+                return symbol; // Devuelve el primer símbolo encontrado con ámbito compatible
+            }
+        }
+        
+        return null; // Devuelve null si no se encontró un símbolo compatible
+    }
+	private boolean isAmbitoCompatible(String ambito, String ambito2) {
+		System.out.println("Ambito:"+ambito);
+		System.out.println("Ambito2:"+ambito2);
+		System.out.println(ambito2.startsWith(ambito));
+		return ambito2.startsWith(ambito);
+	}
 	public static void imprimirErrores(){
 		for (String error : SymbolTable.errores) {
 			System.out.println(error);
@@ -144,13 +164,9 @@ public class SymbolTable {
 	    }
 	    return " ";  // No se encontro el símbolo
 	}
+	
 
-	public SymbolTable(){
-		this.symbolMap=new HashMap<Symbol, Integer>();
-		this.tablaTipos= new HashMap<String,TipoSubrango>();
-		this.tablaFuncion = new HashMap<String, CaracteristicaFuncion>();
-		ambitoGlobal.setLength(0);
-	}
+	
 	
 	public void addValue(String clave,String tipo,String uso,String ambito, Integer valor) {
 		if(ambito == null) ambito = "";
@@ -189,7 +205,7 @@ public class SymbolTable {
 		}
 	
 		if (!declaradaEnAmbito && !var1.contains("@")) { // Si no se encontró en ningún ámbito compatible, genera error
-			SymbolTable.aggListaErrores("Error: " + var1 + " no está declarada en ningún ámbito compatible");
+			SymbolTable.aggListaErrores("Error: " + var1 + " no esta declarada en ningun ambito compatible");
 			return false;
 		}
 	

@@ -1204,9 +1204,8 @@ break;
 case 17:
 //#line 111 "gramatica.y"
 {
-            if (!dentroFuncion) SymbolTable.aggListaErrores("Error en linea: "+ Lexer.nmrLinea + " - No se puede usar ret fuera de función");
-            else {SymbolTable.aggPolaca("!RET"); returnChecker.registerReturn();}
-            }
+            SymbolTable.aggPolaca("!RET"); }
+            
 break;
 case 18:
 //#line 115 "gramatica.y"
@@ -1335,7 +1334,7 @@ case 28:
             st.ambitoGlobal.delete(inicio, inicio + val_peek(4).sval.length()+1);
         }
         SymbolTable.aggPolaca(val_peek(4).sval+"%");
-        returnChecker.exitFunction();
+        //returnChecker.exitFunction();
         dentroFuncion = false;
         
     }

@@ -202,8 +202,18 @@ public class GeneradorCodigo {
         // Obtenemos la cadena del tope de la pila y limpiamos caracteres no deseados
         String cadena = pila_tokens.pop().replace(" ", "_");
         if (cadena.contains("[")) {
-            // Si es una cadena literal
-            cadena = cadena.replace("[", "").replace("]", "").replaceAll("[+\\-*/:,.;]", "") + "_str";    
+            cadena = cadena
+            .replace("\r\n", "")
+            .replace("\n", "")
+            .replace(":", "_")
+            .replace("\r", "")
+            .replaceAll("[+\\-*/,.;]", "")
+            .replaceAll("\\s+", " ")  // Reemplaza múltiples espacios consecutivos por uno solo
+            .replace(" ", "_")
+            .replaceAll("_{2,}", "_")   // Reemplaza múltiples guiones bajos consecutivos por uno solo
+            .replace("[", "")
+            .replace("]", "") + "_str";
+
 
             codigo.append("push offset " + cadena + " \n");
             codigo.append("call printf \n");
@@ -371,8 +381,16 @@ public class GeneradorCodigo {
                     else cabecera.append(simboloRenombrado).append(" REAL8 ").append(simbolo.replace('d', 'e')).append("\n"); // Constante con su valor
 
                 } else if (uso.equals("Cadena multilinea")){
-                    String etiquetaUnica = simbolo.replaceAll("[+\\-*/:,.;]", "").replace(" ", "_") + "_str";
-                
+                    String etiquetaUnica = simbolo
+                    .replaceAll("[+\\-*/:,.;]", "") // Elimina caracteres no deseados
+                    .replaceAll("\\s+", " ")        // Reduce múltiples espacios consecutivos a uno solo
+                    .replace(" ", "_")              // Reemplaza espacios por guiones bajos
+                    .replaceAll("_{2,}", "_")       // Reduce múltiples guiones bajos consecutivos a uno solo
+                    .replace("\r\n", "")
+                    .replace("\n", "")
+                    .replace("\r", "")
+                    .replace("[", "")
+                    .replace("]", "") + "_str";                
                     cabecera.append(etiquetaUnica) // Usa la etiqueta única en lugar del símbolo original
                             .append(" db \"")
                             .append(simbolo) // Aquí se usa el símbolo como el contenido

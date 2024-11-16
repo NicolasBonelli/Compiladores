@@ -1,0 +1,22 @@
+programa begin
+    double FUN FUN1 (double w)
+    begin
+        longint w; ##Redeclaracion de variable
+        a:=30;##Variable que nunca fue declarada
+        w:=1.0;
+        ret(w);
+        longint FUN FUN2 (longint a)
+        begin
+
+            a:=2;
+            ret(a);
+        end
+        longint FUN FUN2 (longint x) ##Redeclaracion de funciones
+        begin
+            goto etiqueta1@;##Etiqueta sin declarar
+            x:=2;
+            ret(x);
+        end
+        OUTF(fun2(4));
+    end
+end

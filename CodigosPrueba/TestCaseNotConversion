@@ -1,0 +1,8 @@
+
+programa begin
+    longint l;
+    l:=2.3; ##Error tipo incompatible
+    double x;
+    x:=2;
+    l:=x; ##Error tipo incompatible.
+end

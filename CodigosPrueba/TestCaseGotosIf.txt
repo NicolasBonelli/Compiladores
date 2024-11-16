@@ -1,0 +1,25 @@
+programa begin
+    longint FUN FUN1 (longint w)
+    begin
+        IF(w<0)THEN begin##Si w es menor a 0 se va a etiqueta
+            goto saliFuncion@;
+        end
+        ELSE
+        begin
+            w:=1000;
+        end
+        END_IF;
+
+        ret(w);
+    end
+    double x;
+    x:=FUN1(-50);
+    OUTF([ Valor de X: ]);
+    OUTF(x);
+    goto noSaliFuncion@;
+    saliFuncion@ ##Como el parametro que se paso fue menor a 0 se va a imprimir 500
+    x:=500;
+    OUTF([ Valor de X: ]);
+    OUTF(x);
+    noSaliFuncion@##Como el parametro fue mayor a 0 , voy a imprimir el resultado de la funcion que es 1000
+end

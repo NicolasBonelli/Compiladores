@@ -18,57 +18,69 @@ printf PROTO C : VARARG
 format db "Valor modificado: %f", 0 
 intFormat db "%d", 0 
 doubleFormat db "%f", 0 
-_A@PROGRAMA@FUN1@FUN2 dq 0.0
-@retFUN1@PROGRAMA@FUN1 dq 0.0
-_W@PROGRAMA@FUN1 dq 0.0
-@20@0 REAL8 20.0
-@retFUN2@PROGRAMA@FUN1@FUN2 dq 0.0
-_X1@PROGRAMA dd 0
-_X2@PROGRAMA dq 0.0
-@aux1 dq 0.0
-@10 dd 10
+@1000 dd 1000
+@$50 dd -50
+@0 dd 0
+@100 dd 100
+_Valor_de_X__str db " Valor de X: ", 0
+@retFUN1@PROGRAMA@FUN1 dd 0
+_W@PROGRAMA@FUN1 dd 0
+_X@PROGRAMA dq 0.0
+@50 dd 50
+@aux3 dq 0.0
+@aux2 dq 0.0
+.code
+_FUN1@PROGRAMA PROC
+MOV ECX, @0
+CMP _W@PROGRAMA@FUN1, ECX
+JGE L11
+JMP LsaliFuncion
+JMP L15
+L11:
+MOV ECX, @1000
+MOV _W@PROGRAMA@FUN1, ECX
+L15:
+MOV EAX, _W@PROGRAMA@FUN1 
+MOV @retFUN1@PROGRAMA@FUN1, EAX
+RET
+_FUN1@PROGRAMA ENDP
+
 START:
-MOV ECX, @10
-MOV _X1@PROGRAMA, ECX
-FILD _X1@PROGRAMA
-FSTP @aux1
-FSTP ST(0) 
-FLD @aux1
-FSTP _A@PROGRAMA@FUN1@FUN2
-FSTP ST(0) 
-FLD _A@PROGRAMA@FUN1@FUN2 
-FSTP @retFUN2@PROGRAMA@FUN1@FUN2 
-FSTP ST(0) 
-RET
-FLD _W@PROGRAMA@FUN1
-FSTP _A@PROGRAMA@FUN1@FUN2
-FSTP ST(0) 
-CALL _FUN2@PROGRAMA@FUN1
-FLD @retFUN2@PROGRAMA@FUN1@FUN2
-FSTP _W@PROGRAMA@FUN1
-FSTP ST(0) 
-FLD _W@PROGRAMA@FUN1 
-FSTP @retFUN1@PROGRAMA@FUN1 
-FSTP ST(0) 
-RET
-FLD @20@0
-FSTP _W@PROGRAMA@FUN1
-FSTP ST(0) 
+MOV ECX, @$50
+MOV _W@PROGRAMA@FUN1, ECX
 CALL _FUN1@PROGRAMA
-FLD @retFUN1@PROGRAMA@FUN1
-FSTP _X2@PROGRAMA
+FILD @retFUN1@PROGRAMA@FUN1
+FSTP @aux2
 FSTP ST(0) 
-fld _X2@PROGRAMA
+FLD @aux2
+FSTP _X@PROGRAMA
+FSTP ST(0) 
+push offset _Valor_de_X__str 
+call printf 
+add esp, 4 
+fld _X@PROGRAMA
 sub esp, 8 
 fstp qword ptr [esp] 
 push offset doubleFormat 
 call printf 
 add esp, 12 
+JMP LnoSaliFuncion
+LsaliFuncion:
+FILD @100
+FSTP @aux3
+FSTP ST(0) 
+FLD @aux3
+FSTP _X@PROGRAMA
+FSTP ST(0) 
+push offset _Valor_de_X__str 
+call printf 
+add esp, 4 
+fld _X@PROGRAMA
+sub esp, 8 
+fstp qword ptr [esp] 
+push offset doubleFormat 
+call printf 
+add esp, 12 
+LnoSaliFuncion:
 invoke ExitProcess, 0
 end START
-.code
-_FUN1@PROGRAMA PROC
-_FUN2@PROGRAMA@FUN1 PROC
-_FUN2@PROGRAMA@FUN1 ENDP
-_FUN1@PROGRAMA ENDP
-

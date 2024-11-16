@@ -1,0 +1,24 @@
+programa begin
+    longint FUN FUN1 (longint w)
+    begin
+        IF(w<0)THEN begin ##Si w es menor a 0 
+            w:=w*1;
+            REPEAT BEGIN
+                w:=w*5;
+            END WHILE (w<500);
+        end
+        ELSE
+        begin
+            w:=1000;
+        end
+        END_IF;
+        ret(w);
+    end
+    
+    longint ret,pasaje;
+    pasaje:=7;
+    ret:=FUN1(pasaje);
+
+    OUTF([ Valor de retorno:]);
+    OUTF(ret);
+end

@@ -85,14 +85,12 @@ public class SymbolTable {
         return null; // Devuelve null si no se encontró un símbolo compatible
     }
 	private boolean isAmbitoCompatible(String ambito, String ambito2) {
-		System.out.println("Ambito:"+ambito);
-		System.out.println("Ambito2:"+ambito2);
-		System.out.println(ambito2.startsWith(ambito));
+
 		return ambito2.startsWith(ambito);
 	}
 	public static void imprimirErrores(){
 		for (String error : SymbolTable.errores) {
-			System.out.println(error);
+			System.out.println("\u001B[31m" + error+ "\u001B[0m");
 		}
 	}
 
@@ -137,7 +135,6 @@ public class SymbolTable {
 	}
 
 	public boolean updateUseByAmbito(String variable, String newUse, String ambito) {
-		System.out.println("variable: " + variable  + " newUse: " + newUse + " ambito: " + ambito);
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable) && symbol.getAmbito().equals(ambito)) {
 	            symbol.setUso(newUse); // Actualiza el tipo del símbolo
@@ -213,9 +210,10 @@ public class SymbolTable {
 	}
 	
 	public void imprimirTablaTipos() {
+		System.out.println("Tabla Tipos");
 
         System.out.println(this.tablaTipos);
-        System.out.println(polaca); System.out.println(posicionesPolaca);
+		
 
       }
 	public boolean updateAmbito(String variable, StringBuilder nuevoAmbito) {
@@ -326,7 +324,13 @@ public class SymbolTable {
 
 	 // Método para imprimir la tabla de funciones
 	 public void imprimirTablaFunciones() {
-        System.out.println(this.tablaFuncion);
+		System.out.println("Tabla Funciones");
+        System.out.println(this.tablaFuncion+"\u001B[0m");
+
+		System.out.println("\u001B[35m" +"POLACA");
+        System.out.println(polaca ); 
+
+		System.out.println(posicionesPolaca + "\u001B[0m");
     }
 
     // Método para verificar si existe una clave en la tabla de funciones

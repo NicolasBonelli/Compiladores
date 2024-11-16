@@ -32,7 +32,6 @@ public class TablaTipos {
         // mirar en la tabla del operando que tipo queda entre esos 2 tipos
         String tipoOp1 = getTipo(op1);
         String tipoOp2 = getTipo(op2);
-        System.out.println("tipoOp1: "+ tipoOp1 + " tipoOp2: "+ tipoOp2);
         if(tipoOp1.equals("Octal")) {
         	tipoOp1="longint";
         }
@@ -54,7 +53,6 @@ public class TablaTipos {
     }
 
     public String getTipo(String op) {
-        System.out.println("op: " + op);
         if (st.getUse(op).equals("Nombre de funcion") ) { //el operador es un llamado a funcion entonces tengo que saber su tipo
             CaracteristicaFuncion funcion = st.getCaracteristicaFuncion(op);
             return funcion.getTipoDevuelto();             

@@ -123,7 +123,6 @@ sentencia: declaracion
          }
          | RET '(' expresion ')' ';' {
             SymbolTable.aggPolaca("!RET"); 
-            System.out.println("Entre a ret");
             $$ = getArbol("retorno", null, null); 
             isRetInMain();
 
@@ -135,15 +134,11 @@ sentencia: declaracion
 
 declaracion: tipo lista_var ';' { 
     List<String> variables = (List<String>) val_peek(1).obj;  // Obtener la lista de variables de lista_var
-    System.out.println("vars:"+variables);
 	for (String variable : variables) {
 	    /* Verificar si la variable ya existe en la tabla de símbolos */
 	    if (st.hasKey(variable)) {
 	        System.out.println("Aclaracion, se declaro la variable: " + variable);
             
-
-
-
             if(st.contieneSymbolAmbito(variable,SymbolTable.ambitoGlobal)){
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar variables. Error con la variable:"+val_peek(0).sval);
             }else{
@@ -192,7 +187,6 @@ lista_var: lista_var ',' T_ID {
 nombre: T_ID { yyval.sval = val_peek(0).sval;
     if (!list_funs.isEmpty())
         $$ = $1;
-    System.out.println("Entre a Funcion antes (o despues?) de la derecha");
     SymbolTable.aggPolaca(val_peek(0).sval+"$");
     if (SymbolTable.ambitoGlobal.length() == 0) {
         SymbolTable.ambitoGlobal = new StringBuilder(val_peek(0).sval);
@@ -206,7 +200,6 @@ nombre: T_ID { yyval.sval = val_peek(0).sval;
 encabezado_funcion: tipo FUN { yyval.sval = val_peek(1).sval;};
 declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentencias {
         
-        System.out.println("Entre a la 2da llave");
 
         // Separar el tipo y el nombre del parámetro
         String[] tipoYNombre = val_peek(2).sval.split(":");
@@ -444,7 +437,6 @@ salida: OUTF '(' T_CADENA ')' ';' {         SymbolTable.aggPolaca(val_peek(2).sv
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' { 
 
-        System.out.println("2do");
         // Obtener el nombre del tipo desde T_ID
         String nombreTipo = val_peek(4).sval; /* T_ID*/
 
@@ -568,8 +560,6 @@ subrango: '{' T_CTE ',' T_CTE '}'{
            
             double limiteInferior = Double.parseDouble(limiteInferiorStr);
             double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
-            System.out.println("limiteInferior: " + limiteInferior);
-            System.out.println("limiteSuperior: " + limiteSuperior);
 
             if (limiteInferior <= limiteSuperior)
                 yyval.obj = new Subrango(limiteInferior, limiteSuperior);
@@ -591,8 +581,6 @@ subrango: '{' T_CTE ',' T_CTE '}'{
            
             double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
             double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
-            System.out.println("limiteInferior: " + limiteInferior);
-            System.out.println("limiteSuperior: " + limiteSuperior);
 
             if (limiteInferior <= limiteSuperior)
                 yyval.obj = new Subrango(limiteInferior, limiteSuperior);
@@ -615,10 +603,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
             
              double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
              double limiteSuperior = Double.parseDouble(limiteSuperiorStr);
-             System.out.println("limiteInferior: " + limiteInferior);
-             System.out.println("limiteSuperior: " + limiteSuperior);
- 
-             
+    
              yyval.obj = new Subrango(limiteInferior, limiteSuperior);
              
              
@@ -632,10 +617,7 @@ subrango: '{' T_CTE ',' T_CTE '}'{
             
              double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
              double limiteSuperior = Double.parseDouble(limiteSuperiorStr)*-1;
-             System.out.println("limiteInferior: " + limiteInferior);
-             System.out.println("limiteSuperior: " + limiteSuperior);
- 
-             
+        
              if (limiteInferior <= limiteSuperior)
                 yyval.obj = new Subrango(limiteInferior, limiteSuperior);
             else {
@@ -650,7 +632,6 @@ subrango: '{' T_CTE ',' T_CTE '}'{
          }}
     |'{' '}'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " -Falta el rango en el subrango");}
     |error {
-        System.out.println("Error??");
         SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Subrango mal definido o faltan delimitadores.");
     };
 
@@ -697,7 +678,6 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
                             SymbolTable.aggPolaca(" ");
                             SymbolTable.aggPolaca(" ");
 
-                            System.out.println(listaVariables.get(i).toString() + " := 0;");
                         }
 
                         for (int j = 0; j < SymbolTable.polaca.size(); j++) {
@@ -740,7 +720,6 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
                     for (int i = 0; i < listaVariables.size(); i++) {
                         String variable= listaVariables.get(i).toString();
                         String expresion= listaExpresiones.get(i).toString();
-                        System.out.println("expresion: " + expresion);
                         
                         // Buscar el primer espacio vacío y reemplazarlo con la variable
                         for (int j = 0; j < SymbolTable.polaca.size(); j++) {
@@ -1167,7 +1146,6 @@ private void addArbolFun(String name){
 private void verificarRets() {
     if (!list_funs.isEmpty()) {
         Arbol node = list_funs.get(list_funs.size()-1);
-        System.out.println(node);
         node.setLeft((Arbol) last_node.obj);
         verificarRetornoEnFuncion(node);
         list_funs.remove(list_funs.size() - 1);
@@ -1202,8 +1180,6 @@ public void chequeoPares(String variable, String expresion){
     ||(!st.getUse(variable).equals("Nombre de variable par") &&st.getUse(expresion).equals("Nombre de variable par"))){
         System.out.println("Warning: No se pueden utilizar los tipos pares en operaciones que conlleven tipos distintos ");        
         SymbolTable.aggListaErrores("Error en asignacion: "+variable + " := " + expresion + ";");
-    }else{
-        System.out.println(variable + " := " + expresion + ";");
     }
 }
 public boolean isPair(String variable){
@@ -1236,7 +1212,6 @@ private ParserVal getArbol(String name, ParserVal left, ParserVal right) {
         Arbol leftNode = (left != null) ? (Arbol) left.obj : null;
         Arbol rightNode = (right != null) ? (Arbol) right.obj : null;
         last_node = new ParserVal(new Arbol(name, leftNode, rightNode));
-        System.out.println("Last Node: " + last_node.obj);
         return last_node;
     }
 
@@ -1246,7 +1221,6 @@ private ParserVal getArbol(String name, ParserVal left, ParserVal right) {
 
 private boolean verificarRetorno(Arbol node) {
     if (node == null) { 
-        System.out.println("node era null");
         return false;
     }
 
@@ -1373,7 +1347,7 @@ String obtenerTipo(String variable) {
 	    }
     }
     public void imprimirSymbolTable() {
-	System.out.println(this.st);
+	System.out.println("\u001B[33m" + this.st);
     st.imprimirTablaTipos();
     st.imprimirTablaFunciones();
     }

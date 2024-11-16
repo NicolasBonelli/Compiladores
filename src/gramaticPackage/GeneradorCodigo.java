@@ -84,7 +84,6 @@ public class GeneradorCodigo {
 
 			++posActualPolaca;
             //Impresion por pantalla para debuggear el codigo
-            //System.out.println("Se leyo el token: " + token + ", la pila actual es: " + pila_tokens);
 			if(errorSemantico){//ocurrio un error semantico
 				FileASSEMCreator.eraseProgram(nombrePrograma);
 				break;
@@ -202,7 +201,6 @@ public class GeneradorCodigo {
 
         // Obtenemos la cadena del tope de la pila y limpiamos caracteres no deseados
         String cadena = pila_tokens.pop().replace(" ", "_");
-        System.out.println("Cadena: "+cadena);
         if (cadena.contains("[")) {
             // Si es una cadena literal
             cadena = cadena.replace("[", "").replace("]", "").replaceAll("[+\\-*/:,.;]", "") + "_str";    
@@ -330,7 +328,6 @@ public class GeneradorCodigo {
         	        simboloRenombrado = renombre(simbolo,ambito);
                 else {
                     simboloRenombrado = "_" + simbolo + "@" + ambito.replace(":", "@");
-                    System.out.println("Simbolo renombrado:"+simboloRenombrado);
                     tipo= st.getTypeByAmbito(simbolo, ambito);
                 }
             	// Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
@@ -400,7 +397,6 @@ public class GeneradorCodigo {
             op2 = aux;
         }
        
-        System.out.println("op1: " + op1 + " op2: " + op2);
         String tipo = tablaTipos.getTipoAbarcativo(op1, op2, operador);
 
 
@@ -413,7 +409,7 @@ public class GeneradorCodigo {
 	            break;
 	
 	        default:
-	            System.out.println("Error de tipos");
+	            System.err.println("Error de tipos");
     	}
         
         
@@ -530,7 +526,6 @@ public class GeneradorCodigo {
                 }
                 
                 String op1tipo = st.getType(op1);
-                System.out.println("op1tipo: " + op1tipo + " que es op1: "+op1);
 
             	if(!op1tipo.equals("longint") && !op1tipo.equals("double")&& !st.getUse(op1tipo).equals("Nombre de tipo de par")){//corroborar que este dentro del rango
 
@@ -670,7 +665,6 @@ public class GeneradorCodigo {
         }
         String op1Renombrado = renombre(op1);
     	String op2Renombrado = renombre(op2);
-        System.out.println("op2 antes de if es: "+ op2);
 
         if (op1.endsWith("$1") || op1.endsWith("$2")){
             op1 = op1.substring(0, op1.indexOf('$'));
@@ -1015,9 +1009,7 @@ public class GeneradorCodigo {
         CaracteristicaFuncion cF = st.getCaracteristicaFuncion(nombreFuncion+":"+ ambito);
         String parametroFormal = cF.getNombreParametro();
         pila_tokens.push(parametroFormal);
-        System.out.println("AMBITO: " + ambito);
         this.llamadoFuncion =  "@"+ambito.replace(":", "@") + "@"+nombreFuncion;
-        System.out.println("llamado a funcion: " + this.llamadoFuncion);
 
         generarOperador(":=");
         codigo.append("CALL ").append(funcion).append("\n");
@@ -1052,7 +1044,6 @@ public class GeneradorCodigo {
     }
     private String renombre(String token) {
     	String ambito="@"+this.getAmbitoActual();
-        System.out.println("Ambito Actual: " + ambito);
         String uso = st.getUseByAmbito(token, this.getAmbitoActual());
         if(uso.equals(" ")&& st.getUse(token).equals("Nombre de variable")) {//Si no se encontro el uso dentro de ese ambito
         	Symbol s= st.getSimboloCompatible(token,ambito.replace("@", ""));
@@ -1060,7 +1051,7 @@ public class GeneradorCodigo {
         		ambito="@"+s.getAmbito();
             	uso=s.getUso();
         	}else {
-        		System.out.println("Error: No existe el simbolo en renombre");
+        		System.err.println("Error: No existe el simbolo en renombre");
         	}
         	
         }
@@ -1116,10 +1107,7 @@ public class GeneradorCodigo {
         
         String topePila = pila_tokens.pop();
         String renombrado= renombre(topePila);
-        System.out.println("Tope de pila "+topePila);
         String ambitoRetorno=this.getAmbitoActual();
-        System.out.println("AmbitoRetorno "+ambitoRetorno);
-        System.out.println("variable retornada: " + st.getTypeByAmbito(topePila, ambitoRetorno) + " retorno funcion: " + tipoRetorno + " de la funcion: " + nombreFuncion);
         if(st.getTypeByAmbito(topePila,ambitoRetorno).equals(tipoRetorno)){ 
                     
       

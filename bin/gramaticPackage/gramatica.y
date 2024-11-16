@@ -51,12 +51,12 @@ programa: nombre bloque_sentencias {
         SymbolTable.aggListaErrores("ERROR: Hay Gotos sin etiquetas declaradas");
     SymbolTable.aggPolaca(val_peek(1).sval+"%");
     if (SymbolTable.errores.isEmpty() && !st.containsUnsignedGoto()){
-        System.out.println("Programa compilado correctamente");
+        System.out.println("\u001B[32mPrograma compilado correctamente\u001B[0m");
         gc.generarCodigo();
 
     }
     else {
-        System.err.println("No se puede crear el ejecutable");
+        System.err.println("\u001B[31mNo se puede crear el ejecutable\u001B[0m");
         SymbolTable.imprimirErrores();
         Parser.crearEjecutable=false;
     }

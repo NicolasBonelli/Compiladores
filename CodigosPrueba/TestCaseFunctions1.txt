@@ -1,0 +1,19 @@
+programa begin
+    longint x1;
+    x1:=10;
+    double FUN FUN1 (double w)
+    begin
+
+        double FUN FUN1 (double w)
+        begin
+            w:=x1;
+
+            ret(w);
+        end
+        w:=fun1(w);
+        ret(w);
+    end
+    double w;
+    w:=fun1(20.0);         ##Debe imprimir 10
+    outf(w);
+end

@@ -1,0 +1,42 @@
+programa begin
+    TYPEDEF enterito := longint {0, 100};
+    TYPEDEF flotantito := double {-222.222, 111.111};
+    enterito e1;
+    flotantito f1;
+
+    longint w;
+    w := 0; ##elegir error 
+    double d1, d2;
+
+    IF(w = 0)THEN ##DIVISION POR CERO
+    begin
+
+        d1 := 10.0 / 0; ##comentar esto para ver division por 0 en enteros
+        
+        w := w / w; ##division por 0 en longint
+
+    end
+    
+    END_IF;
+
+    IF(w=1)THEN 
+    begin
+
+        d2 := 1.7976931348623156d+308; ##uno de los valores mas altos permitidos en double
+        d2 := d2 + 0.0000000000000001d+308; ##esto esta fuera de rango, pero si se reemplaza el 1 por 09 d2 quedará con el maximo valor posible
+        
+    end
+    
+    END_IF;
+    
+    IF(w=2) THEN 
+    begin
+        e1 := 99;
+        e1 := 99 + 2; ##fuera de rango pues e1 es hasta 100
+
+        ##f1 := -222;
+        ##f1 := f1 - 1;
+    end
+    
+    END_IF;
+end

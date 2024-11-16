@@ -1,0 +1,21 @@
+programa begin
+    OUTF([Comienza el Test]);
+    typedef flotantito := double{-1.0d+3, 1.0d3};
+    longint l1;
+    flotantito f1, f2;
+    
+    f2 := 201;
+    l1 := 444;
+
+    double fun cuadrado (double x) 
+    begin 
+        ret(x*x);
+    end
+
+    f2 := 20;
+    f1 := l1 + cuadrado(f2) ;
+
+    outf([ RESULTADO F1: ]);
+    outf(f1);
+
+end

@@ -1,0 +1,26 @@
+programa begin
+    typedef pair <longint> Lair;
+    typedef pair <double> Dair;
+
+    Lair l1;
+    Dair d1;
+
+    l1{1}, l1{2} := 10, 20;
+
+    d1 := l1;
+    outf([ Valores d1: ]);
+
+    outf(d1{1}); outf([ ]); outf( d1{2} );
+
+    l1{1}, l1{2} := 50;
+
+    outf([ Valores l1: ]);
+
+    outf(l1{1}); outf([ ]); outf( l1{2} );
+
+    l1{1} := 100*200, 200;
+
+    outf([ Valores l1: ]);
+
+    outf(l1{1}); outf([ ]); outf( l1{2} );
+end

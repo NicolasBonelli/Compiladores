@@ -55,7 +55,6 @@ public class TablaTipos {
 
     public String getTipo(String op) {
         System.out.println("op: " + op);
-        System.out.println(st);
         if (st.getUse(op).equals("Nombre de funcion") ) { //el operador es un llamado a funcion entonces tengo que saber su tipo
             CaracteristicaFuncion funcion = st.getCaracteristicaFuncion(op);
             return funcion.getTipoDevuelto();             

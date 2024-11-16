@@ -205,7 +205,8 @@ public class GeneradorCodigo {
         System.out.println("Cadena: "+cadena);
         if (cadena.contains("[")) {
             // Si es una cadena literal
-            cadena = cadena.replace("[", "").replace("]", "") + "_str";
+            cadena = cadena.replace("[", "").replace("]", "").replaceAll("[+\\-*/:,.;]", "") + "_str";    
+
             codigo.append("push offset " + cadena + " \n");
             codigo.append("call printf \n");
             codigo.append("add esp, 4 \n");
@@ -373,7 +374,7 @@ public class GeneradorCodigo {
                     else cabecera.append(simboloRenombrado).append(" REAL8 ").append(simbolo.replace('d', 'e')).append("\n"); // Constante con su valor
 
                 } else if (uso.equals("Cadena multilinea")){
-                    String etiquetaUnica = simbolo.replace(" ", "_") + "_str"; // Agregamos un sufijo para evitar duplicados
+                    String etiquetaUnica = simbolo.replaceAll("[+\\-*/:,.;]", "").replace(" ", "_") + "_str";
                 
                     cabecera.append(etiquetaUnica) // Usa la etiqueta única en lugar del símbolo original
                             .append(" db \"")
@@ -647,7 +648,14 @@ public class GeneradorCodigo {
     }
             
     
-            
+    private String ocuparAuxiliarPar(String tipo){
+        String retorno = "@aux" + numeroAuxiliar;
+        ++numeroAuxiliar;
+        //agrego a la tabla de simbolos la auxiliar.
+        st.addValue(retorno, tipo, "Nombre de variable par", null, SymbolTable.identifierValue);
+
+        return retorno;
+    }
             
     private  void generarOperacionFlotantes(String op1, String op2, String operador) { 
     	
@@ -671,6 +679,7 @@ public class GeneradorCodigo {
         if (op2.endsWith("$1") || op2.endsWith("$2")){
             op2 = op2.substring(0, op2.indexOf('$'));
         }
+        String tipoPriori = st.getType(op2);
 
         //Si es LONGINT, la tengo que convertir a DOUBLE
         if (st.getType(op1).equals("longint")|| st.getType(op1).equals("Octal")) {
@@ -691,6 +700,20 @@ public class GeneradorCodigo {
             codigo.append("FSTP ").append(aux).append("\n");   
             codigo.append("FSTP ST(0) ").append("\n"); 
 
+            op2 = aux;
+            op2Renombrado = aux;
+
+        } else if (st.getUse(op2).equals("Nombre de variable par") && st.getTipoSubrango(tipoPriori+":"+st.getAmbitoByKey(tipoPriori)).getTipoBase().equals("longint")) {
+            aux = ocuparAuxiliarPar(st.getType(op1));
+            // Convertir el valor de op2Renombrado (entero) a double y almacenarlo en aux
+
+            codigo.append("FILD ").append(op2).append("$1\n");
+            codigo.append("FSTP ").append(aux).append("$1\n");
+            codigo.append("FSTP ST(0) ").append("\n"); 
+
+            codigo.append("FILD ").append(op2).append("$2\n");
+            codigo.append("FSTP ").append(aux).append("$2\n");
+            codigo.append("FSTP ST(0) ").append("\n"); 
             op2 = aux;
             op2Renombrado = aux;
 

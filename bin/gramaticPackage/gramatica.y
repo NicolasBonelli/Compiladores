@@ -562,8 +562,8 @@ subrango: '{' T_CTE ',' T_CTE '}'{
         
         //CODIGO PARA PARTE SEMANTICA
 
-       String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
-       String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
+       String limiteInferiorStr = val_peek(3).sval.replace("d", "e"); // T_CTE (limites inferiores)
+       String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites superiores)
         try {
            
             double limiteInferior = Double.parseDouble(limiteInferiorStr);
@@ -585,8 +585,8 @@ subrango: '{' T_CTE ',' T_CTE '}'{
     } 
     |'{' '-' T_CTE ',' T_CTE '}' {
        //CODIGO PARA PARTE SEMANTICA
-       String limiteInferiorStr = val_peek(3).sval; // T_CTE (limites inferiores)
-       String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
+       String limiteInferiorStr = val_peek(3).sval.replace("d", "e"); // T_CTE (limites inferiores)
+       String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites superiores)
         try {
            
             double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
@@ -609,8 +609,8 @@ subrango: '{' T_CTE ',' T_CTE '}'{
     }
     |'{' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
         System.err.println("Error: el subrango esta mal declarado, fueron invertidos los rangos");
-        String limiteInferiorStr = val_peek(1).sval; // T_CTE (limites inferiores)
-        String limiteSuperiorStr = val_peek(4).sval; // T_CTE (limites superiores)
+        String limiteInferiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites inferiores)
+        String limiteSuperiorStr = val_peek(4).sval.replace("d", "e"); // T_CTE (limites superiores)
          try {
             
              double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
@@ -626,8 +626,8 @@ subrango: '{' T_CTE ',' T_CTE '}'{
              SymbolTable.aggListaErrores("Error al convertir los limites del subrango a double: " + e.getMessage());
          }}
     |'{' '-' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
-        String limiteInferiorStr = val_peek(4).sval; // T_CTE (limites inferiores)
-        String limiteSuperiorStr = val_peek(1).sval; // T_CTE (limites superiores)
+        String limiteInferiorStr = val_peek(4).sval.replace("d", "e"); // T_CTE (limites inferiores)
+        String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites superiores)
          try {
             
              double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
@@ -679,7 +679,6 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
             // Obtener las listas de variables y expresiones
             List<String> listaVariables = (List<String>) val_peek(3).obj;
             List<String> listaExpresiones = (List<String>) val_peek(1).obj;
-            st.imprimirTablaTipos();
             if (listaVariables != null){ 
                 // Verificar si hay más variables que expresiones
                 if (listaVariables.size() > listaExpresiones.size()) {
@@ -691,8 +690,13 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
                             
                             chequeoPares(variable,expresion);                       
                         } else {
-                            SymbolTable.aggPolaca("0");
                             
+                            st.addValue("0","Octal","Constante"," ", 279);
+
+                            SymbolTable.aggPolaca("0");
+                            SymbolTable.aggPolaca(" ");
+                            SymbolTable.aggPolaca(" ");
+
                             System.out.println(listaVariables.get(i).toString() + " := 0;");
                         }
 
@@ -723,6 +727,14 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
                         chequeoPares(variable,expresion);
                         
                     }
+                    int i = SymbolTable.polaca.size() - 1;
+
+                    while(!SymbolTable.polaca.get(i).equals(":=")){
+                        SymbolTable.polaca.remove(i); SymbolTable.posicionesPolaca.remove(i);
+                        i--;
+                    }
+                 
+
                 } else {
                     // Generar el código para cada asignación correspondiente
                     for (int i = 0; i < listaVariables.size(); i++) {

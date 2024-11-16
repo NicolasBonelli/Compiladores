@@ -261,7 +261,7 @@ public class SymbolTable {
 	    return null; 
 	}
 	public String getTypeByAmbito(String key,String ambito) {
-		if(!this.getUse(key).equals("Constante")) { 
+		if(!this.getUse(key).equals("Constante") && !this.getUse(key).equals("VarAux")) { 
 	    	// Recorremos el HashMap buscando el símbolo con el nombre coincidente
 			for (Symbol symbol : symbolMap.keySet()) {
 				if (symbol.getNombre().equals(key)&& symbol.getAmbito().equals(ambito)) {

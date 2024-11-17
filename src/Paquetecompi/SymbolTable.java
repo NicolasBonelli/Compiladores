@@ -72,7 +72,7 @@ public class SymbolTable {
             pilaGotos.push(pilaAuxiliar.pop());
         }
 
-        return posicion; // Retorna la posición del elemento eliminado, o -1 si no lo encontró
+        return posicion; // Retorna la posición del elemento eliminado
     }
     public Symbol getSimboloCompatible(String token, String ambito) {
         for (Symbol symbol : symbolMap.keySet()) {
@@ -116,7 +116,7 @@ public class SymbolTable {
             pilaEtiquetas.push(pilaAuxiliar.pop());
         }
 
-        return posicion; // Retorna la posición del elemento eliminado, o -1 si no lo encontró
+        return posicion; 
     }
     
     public static void aggPolaca(String valor){
@@ -127,7 +127,7 @@ public class SymbolTable {
 	public boolean updateUse(String variable, String newUse) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable)) {
-	            symbol.setUso(newUse); // Actualiza el tipo del símbolo
+	            symbol.setUso(newUse); // Actualiza el uso del símbolo
 	            return true; 
 	        }
 	    }
@@ -137,7 +137,7 @@ public class SymbolTable {
 	public boolean updateUseByAmbito(String variable, String newUse, String ambito) {
 	    for (Symbol symbol : symbolMap.keySet()) {
 	        if (symbol.getNombre().equals(variable) && symbol.getAmbito().equals(ambito)) {
-	            symbol.setUso(newUse); // Actualiza el tipo del símbolo
+	            symbol.setUso(newUse); // Actualiza el uso del símbolo
 	            return true; 
 	        }
 	    }
@@ -201,7 +201,7 @@ public class SymbolTable {
 			}
 		}
 	
-		if (!declaradaEnAmbito && !var1.contains("@")) { // Si no se encontró en ningún ámbito compatible, genera error
+		if (!declaradaEnAmbito && !var1.contains("@")) { 
 			SymbolTable.aggListaErrores("Error: " + var1 + " no esta declarada en ningun ambito compatible");
 			return false;
 		}

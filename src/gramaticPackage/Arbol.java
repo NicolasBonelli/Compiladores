@@ -32,10 +32,10 @@ public class Arbol {
 
     @Override
     public String toString() {
-        return toStringHelper(this, 0);
+        return toStringArbol(this, 0);
     }
 
-    private String toStringHelper(Arbol node, int depth) {
+    private String toStringArbol(Arbol node, int depth) {
         if (node == null) {
             return "";
         }
@@ -48,8 +48,8 @@ public class Arbol {
 
         // Llamada recursiva para el hijo izquierdo y derecho, incrementando la profundidad
         if (node.left != null || node.right != null) {
-            sb.append(toStringHelper(node.left, depth + 1));
-            sb.append(toStringHelper(node.right, depth + 1));
+            sb.append(toStringArbol(node.left, depth + 1));
+            sb.append(toStringArbol(node.right, depth + 1));
         }
 
         return sb.toString();

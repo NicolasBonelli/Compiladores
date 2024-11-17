@@ -19,6 +19,6 @@ programa begin
     pasaje:=7;
     reti:=FUN1(pasaje);
 
-    OUTF([ Valor de retorno:]);
+    OUTF([ Valor de retorno: ]);
     OUTF(reti);
 end

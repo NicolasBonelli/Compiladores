@@ -19,7 +19,7 @@ programa begin
     
     END_IF;
 
-    IF(w=1)THEN 
+    IF(w=1)THEN  ##OVERFLOW EN SUMA FLOTANE
     begin
 
         d2 := 1.7976931348623156d+308; ##uno de los valores mas altos permitidos en double
@@ -29,7 +29,7 @@ programa begin
     
     END_IF;
     
-    IF(w=2) THEN 
+    IF(w=2) THEN  ##FUERA DE RANGOS EN VARIABLES DE TIPO DEFINIDOS POR EL USUARIO
     begin
         e1 := 99;
         e1 := 99 + 2; ##fuera de rango pues e1 es hasta 100

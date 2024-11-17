@@ -68,11 +68,11 @@ public class GeneradorCodigo {
 	                    break;
 	                default:
                          if (posActualPolaca == 0) nombreCodigo = token.replace("$", "");
-	                     else if (token.startsWith("&")||token.endsWith("@") ) {   //entramos un label
+	                     else if (token.startsWith("&")||token.endsWith("@") ) {   
 	                        codigo.append(token.replace("@", "").replace("&", "")).append(":\n");
 	                    } else if (token.endsWith("$")&& posActualPolaca>0) {   // Encontramos el comienzo de una funcion
 	                        generarCabeceraFuncion(token);
-	                    }else if (token.endsWith("%")&& posActualPolaca<SymbolTable.polaca.size()-1) {   // Encontramos el comienzo de una funcion
+	                    }else if (token.endsWith("%")&& posActualPolaca<SymbolTable.polaca.size()-1) {   // Encontramos el fin de una funcion
 	                        generarFinalFuncion(token.replace("%",""));
 	                    }else if (st.getUse(token).equals("Nombre de funcion")){
 	                        generarLlamadoFuncion(token);
@@ -83,7 +83,6 @@ public class GeneradorCodigo {
             }
 
 			++posActualPolaca;
-            //Impresion por pantalla para debuggear el codigo
 			if(errorSemantico){//ocurrio un error semantico
 				FileASSEMCreator.eraseProgram(nombrePrograma);
 				break;
@@ -121,7 +120,6 @@ public class GeneradorCodigo {
             // Si no es válido, eliminamos la función más interna
             int lastColonIndex = ambitoActual.lastIndexOf(":");
             
-            // Si no hay más ":", el ámbito se reduce al nombre del programa solamente
             if (lastColonIndex == -1) {
                 break;
             }
@@ -177,7 +175,7 @@ public class GeneradorCodigo {
 
         // Reconstruir el código final en el orden adecuado
         // Luego, agregar la sección .code y todas las funciones declaradas en .code
-        // Después, agregar la sección START
+
         for (String linea : startSection) {
             if (linea.contains("START:")){
                 for (String linea2 : funcionesCode) {
@@ -186,7 +184,6 @@ public class GeneradorCodigo {
             }
             codigo.append(linea).append("\n");
         }
-        // Primero agregar el código fuera de las funciones
     
 
       
@@ -286,7 +283,7 @@ public class GeneradorCodigo {
 
 
 	private  void generarCabecera() {
-    //funcoin encargada de la generacion de la cabecera del codigo
+    //funcion encargada de la generacion de la cabecera del codigo
         StringBuilder cabecera = new StringBuilder();
         cabecera.append(".386\n")
             .append(".model flat, stdcall\n")
@@ -328,7 +325,6 @@ public class GeneradorCodigo {
 
         for (Symbol symbol : st.obtenerConjuntoSimbolos()) { 
             String simbolo = symbol.getNombre();
-            // Obtenemos el tipo de uso y tipo de dato desde la tabla de símbolos
             String  simboloRenombrado;
             String ambito=symbol.getAmbito();
             String uso = symbol.getUso();
@@ -340,7 +336,6 @@ public class GeneradorCodigo {
                     simboloRenombrado = "_" + simbolo + "@" + ambito.replace(":", "@");
                     tipo= st.getTypeByAmbito(simbolo, ambito);
                 }
-            	// Dependiendo del tipo de uso, se genera el código correspondiente en la cabecera
                 if (uso.equals("Nombre de variable") || uso.equals("Nombre de parametro")|| uso.equals("Nombre de variable par") || uso.equals("VarAux")) {
                     if (tipo.equals("longint")){
                         cabecera.append(simboloRenombrado).append(" dd 0\n"); // Asumimos 32 bits para longint
@@ -371,7 +366,6 @@ public class GeneradorCodigo {
                         }
                     }
                 } else if (uso.equals("Nombre de funcion")) {
-                    // Ejemplo: Definir espacio reservado o etiqueta para función
                     continue;
                 } else if (uso.equals("Constante")) {
                     if (tipo.equals("longint") || tipo.equals("Octal"))
@@ -400,7 +394,6 @@ public class GeneradorCodigo {
             }
             
             else continue;
-            // Añadir otros tipos de uso según sea necesario
         }
     }
 
@@ -432,35 +425,20 @@ public class GeneradorCodigo {
         
         
     }
- /*
-    public static void generarOperacionFuncion(String op1, String op2) {
-        int punt_op2 = SymbolTable.obtenerSimbolo(op2);
-        String uso = SymbolTable.obtenerAtributo(punt_op2, "uso");
-        
-        op1 = renombre(op1);
+ 
 
-        //si el uso es una variable, renombramos el operando
-        if (uso.equals("variable"))
-            op2 = renombre(op2);
-
-        codigo.append("MOV EAX, ").append(op2).append("\n");
-        codigo.append("MOV ").append(op1).append(", EAX\n");
-    }
-
-*/
-
-        // Método para verificar si es un acceso a `pair` (por ejemplo, x{1} o x{2})
+    // Método para verificar si es un acceso a `pair` (por ejemplo, x{1} o x{2})
     private boolean esAccesoPar(String operando) {
         return operando.contains("{");
     }
 
     // Método para obtener la componente específica del `pair`
     private String obtenerComponentePar(String accesoPar) {
-        // Divide el acceso en variable y componente (e.g., "x{1}" -> "x", "1")
+        // Divide el acceso en variable y componente
         String variable = accesoPar.substring(0, accesoPar.indexOf('{'));
         String componente = accesoPar.substring(accesoPar.indexOf('{') + 1, accesoPar.indexOf('}'));
 
-        // Mapea "1" y "2" a las componentes en assembler correspondientes (ajustar según implementación)
+        // Mapea "1" y "2" a las componentes en assembler correspondientes
         return componente.equals("1") ? variable + "$1" : variable + "$2";
     }
 
@@ -488,14 +466,14 @@ public class GeneradorCodigo {
         switch (operador) {
             case "+":
 
-                codigo.append("MOV ECX, ").append(op1Renombrado).append("\n"); //muevo siempre al registro ECX ya que al usar auxiliares nunca voy a gastar mas de 1 registro, ademas este registro no es usado por las divisiones
+                codigo.append("MOV ECX, ").append(op1Renombrado).append("\n");
                 codigo.append("ADD ECX, ").append(op2Renombrado).append("\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", ECX\n");
                 pila_tokens.push(aux);
                 break;
             case "-":
-                codigo.append("MOV ECX, ").append(op1Renombrado).append("\n"); //muevo siempre al registro ECX ya que al usar auxiliares nunca voy a gastar mas de 1 registro, ademas este registro no es usado por las divisiones
+                codigo.append("MOV ECX, ").append(op1Renombrado).append("\n"); 
                 codigo.append("SUB ECX, ").append(op2Renombrado).append("\n");
                 aux = ocuparAuxiliar("longint");
                 codigo.append("MOV ").append(aux).append(", ECX\n");
@@ -520,8 +498,7 @@ public class GeneradorCodigo {
                 pila_tokens.push(aux);
                 break;
             case ":=":
-            	if(!this.llamadoFuncion.equals("")) {//Si se hizo un llamado a funcion , se tiene que renombrar el operador por su nombre de funcion
-                	// Extraer el ámbito completo
+            	if(!this.llamadoFuncion.equals("")) {
                     
                     // Renombrar el operador con el ámbito extraído y el nombre de la función
                     op1Renombrado = "_" + op1 + llamadoFuncion.replace(":", "@");
@@ -634,23 +611,23 @@ public class GeneradorCodigo {
                 break;
             
             case "<=":
-                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina
                 codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 lastComparation = "JG";
                 break;
             
             case "<":
-                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina
                 codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 lastComparation = "JGE";
                 break;
             case "!=":
-                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina
                 codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 lastComparation = "JE";
                 break;
             case "=":
-                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina, que siempre en las MULT tengo que usar este registro
+                codigo.append("MOV ECX, ").append(op2Renombrado).append("\n"); //muevo al registro EAX ya que esto es lo que dice la filmina
                 codigo.append("CMP ").append(op1Renombrado).append(", ECX\n");
                 lastComparation = "JNE";
                 break;
@@ -733,7 +710,6 @@ public class GeneradorCodigo {
         
 
         switch (operador) {
-            //nunca  va a llegar una operacion AND o OR entre doubles ya que al finalizar cada condicion guardo un ULONG con el resultado de la condicion.
 	        case "+":
 	        	 // Cargar los operandos en la pila del coprocesador de punto flotante (FPU)
                  codigo.append("FLD ").append(op2Renombrado).append("\n"); // Carga `op2` en la FPU
@@ -900,8 +876,7 @@ public class GeneradorCodigo {
                 codigo.append("FSTSW AX\n"); // Mueve los flags de la FPU a AX
                 codigo.append("SAHF\n"); // Carga los flags de AX en los del procesador
 
-                // Si ST(0) es cero, significa que el divisor es cero
-                codigo.append("JNZ ").append(etiquetaSinError).append("\n"); // Salta a etiquetaSinError si ST(0) == 0 (divisor es cero)
+                codigo.append("JNZ ").append(etiquetaSinError).append("\n"); // Salta a etiquetaSinError si ST(0) != 0 (divisor no es cero)
 
                 // Código de manejo de error de división por cero
                 codigo.append("invoke MessageBox, NULL, addr @ERROR_DIVISION_POR_CERO, addr @ERROR_DIVISION_POR_CERO, MB_OK\n");
@@ -920,7 +895,7 @@ public class GeneradorCodigo {
                 codigo.append("FSTP ST(0) ").append("\n"); 
 
                 pila_tokens.push(aux); // Guarda el resultado en la pila de tokens para su uso posterior
-                break; // Guarda `aux` en la pila de tokens para su uso posterior
+                break; 
             
             
            
@@ -931,10 +906,10 @@ public class GeneradorCodigo {
 
                 codigo.append("FCOM ").append("\n");
                 codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
-                codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+                codigo.append("SAHF").append("\n"); 
                 // Liberar los registros de la pila de la FPU después de la comparación
                 codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op1
-                codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op2   lastComparation = "JB";                    
+                codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op2                       
                 break;
             
             case ">":
@@ -943,7 +918,7 @@ public class GeneradorCodigo {
 
                     codigo.append("FCOM ").append("\n");
                     codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
-                    codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+                    codigo.append("SAHF").append("\n"); 
                     // Liberar los registros de la pila de la FPU después de la comparación
                     codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op1
                     codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op2
@@ -956,7 +931,7 @@ public class GeneradorCodigo {
 
                     codigo.append("FCOM ").append("\n");
                     codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
-                    codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+                    codigo.append("SAHF").append("\n");
                     // Liberar los registros de la pila de la FPU después de la comparación
                     codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op1
                     codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op2
@@ -969,7 +944,7 @@ public class GeneradorCodigo {
 
                 codigo.append("FCOM ").append("\n");
                 codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
-                codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+                codigo.append("SAHF").append("\n"); 
                 // Liberar los registros de la pila de la FPU después de la comparación
                 codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op1
                 codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op2
@@ -982,7 +957,7 @@ public class GeneradorCodigo {
 
                 codigo.append("FCOM ").append("\n");
                 codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
-                codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+                codigo.append("SAHF").append("\n"); 
                 // Liberar los registros de la pila de la FPU después de la comparación
                 codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op1
                 codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op2
@@ -995,7 +970,7 @@ public class GeneradorCodigo {
 
                 codigo.append("FCOM ").append("\n");
                 codigo.append("FSTSW AX").append("\n");// cargo la palabra de estado en la memoria
-                codigo.append("SAHF").append("\n"); //Almacena en los 8 bits menos significativos del regisro de indicadores el valor del registro AH
+                codigo.append("SAHF").append("\n"); 
                 // Liberar los registros de la pila de la FPU después de la comparación
                 codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op1
                 codigo.append("FSTP ST(0)").append("\n"); // Liberar el valor de op2
@@ -1037,7 +1012,6 @@ public class GeneradorCodigo {
     
     private String renombre(String token,String ambito) {
         String uso = st.getUseByAmbito(token, ambito);
-        // Si es una constante, le cambio de nombre al cual fue declarada
         if(st.getUse(token)!=null) {
         	if (st.getUse(token).equals("Constante")) {
                 return "@" + token.replace('.', '@').replace('-', '$').replace('+', '@').replace('d', 'e');
@@ -1047,7 +1021,7 @@ public class GeneradorCodigo {
                 String nombreFuncion = "";
                 for (String funcion : pilaNombreFunciones) {
                     if (!nombreFuncion.isEmpty()) {
-                        nombreFuncion += "@";  // Agregar ":" entre los nombres
+                        nombreFuncion += "@";  
                     }
                     nombreFuncion += funcion;
                 }
@@ -1063,7 +1037,7 @@ public class GeneradorCodigo {
     private String renombre(String token) {
     	String ambito="@"+this.getAmbitoActual();
         String uso = st.getUseByAmbito(token, this.getAmbitoActual());
-        if(uso.equals(" ")&& st.getUse(token).equals("Nombre de variable")) {//Si no se encontro el uso dentro de ese ambito
+        if(uso.equals(" ")&& st.getUse(token).equals("Nombre de variable")) {
         	Symbol s= st.getSimboloCompatible(token,ambito.replace("@", ""));
         	if(s!=null) {
         		ambito="@"+s.getAmbito();
@@ -1073,7 +1047,6 @@ public class GeneradorCodigo {
         	}
         	
         }
-        // Si es una constante, le cambio de nombre al cual fue declarada
         if(st.getUse(token)!=null) {
         	if (st.getUse(token).equals("Constante")) {
                 return "@" + token.replace('.', '@').replace('-', '$').replace('+', '@').replace('d', 'e');
@@ -1083,7 +1056,7 @@ public class GeneradorCodigo {
                 String nombreFuncion = "";
                 for (String funcion : pilaNombreFunciones) {
                     if (!nombreFuncion.isEmpty()) {
-                        nombreFuncion += "@";  // Agregar ":" entre los nombres
+                        nombreFuncion += "@"; 
                     }
                     nombreFuncion += funcion;
                 }
@@ -1120,7 +1093,6 @@ public class GeneradorCodigo {
     	String nombreFuncion= pilaNombreFunciones.peek();
         String ambitoActual = getAmbitoActual();
         CaracteristicaFuncion cF = st.getCaracteristicaFuncion(nombreFuncion+":"+ ambitoActual.substring(0, ambitoActual.lastIndexOf(":")));
-        // Asumimos que el tipo de parametro y retorno están disponibles
         String tipoRetorno = cF.getTipoDevuelto();
         
         String topePila = pila_tokens.pop();
@@ -1137,19 +1109,15 @@ public class GeneradorCodigo {
                 codigo.append("FSTP "+ aux+" \n");      // Retorno double en xmm0
                 codigo.append("FSTP ST(0) \n");      // Retorno double en xmm0
                 
-                //codigo.append("FILD @retDouble \n");        // Cargar el valor @retDouble para convertirlo
-                //codigo.append("FSTP ST(0) \n");   
+               
  
 
             } else if (tipoRetorno.equals("longint")) {
                 codigo.append("MOV EAX, "+ renombrado + " \n");      // Retorno double en xmm0
                 String aux=ocuparRetorno("longint",nombreFuncion, ambitoActual);
                 
-                //codigo.append("FSTP "+ aux+" \n");      // Retorno double en xmm0
                 codigo.append("MOV "+aux+", EAX\n");         // Retorno longint en EAX
-                /*codigo.append("FILD @retInt \n");
-                codigo.append("FLD @retDouble \n");
-                codigo.append("FSTP ST(0) \n");   */
+
                 
 
             }

@@ -75,22 +75,22 @@ programa: nombre bloque_sentencias {
 
 bloque_sentencias: BEGIN sentencias END  {
                             if (!list_funs.isEmpty())
-                                $$ = getArbol("S", $2, null);}
+                                $$ = createArbol("S", $2, null);}
                 | BEGIN END {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Faltan bloques de sentencias dentro del codigo");}
                 ;
                 
 sentencias:  sentencia {
             if(!list_funs.isEmpty())
-                $$ = getArbol("S", $1, null);}
+                $$ = createArbol("S", $1, null);}
           | sentencias sentencia {
             if(!list_funs.isEmpty())
-                $$ = getArbol("S", $1, $2);}    
+                $$ = createArbol("S", $1, $2);}    
           ;
 
 sentencia: declaracion 
          | asignacion {
             if(!list_funs.isEmpty())
-                $$ = getArbol("asignacion", null, null);}
+                $$ = createArbol("asignacion", null, null);}
          | if_statement {
             if (!list_funs.isEmpty())
                 $$ = $1;}
@@ -123,7 +123,7 @@ sentencia: declaracion
          }
          | RET '(' expresion ')' ';' {
             SymbolTable.aggPolaca("!RET"); 
-            $$ = getArbol("retorno", null, null); 
+            $$ = createArbol("retorno", null, null); 
             isRetInMain();
 
             }
@@ -133,9 +133,8 @@ sentencia: declaracion
 
 
 declaracion: tipo lista_var ';' { 
-    List<String> variables = (List<String>) val_peek(1).obj;  // Obtener la lista de variables de lista_var
+    List<String> variables = (List<String>) val_peek(1).obj;  
 	for (String variable : variables) {
-	    /* Verificar si la variable ya existe en la tabla de símbolos */
 	    if (st.hasKey(variable)) {
 	        System.out.println("Aclaracion, se declaro la variable: " + variable);
             
@@ -149,8 +148,8 @@ declaracion: tipo lista_var ';' {
                 }
             }
 
-            //updatear uso de variable a variable
-            if(st.isTypePair(val_peek(2).sval, " ")){//si el tipo
+            
+            if(st.isTypePair(val_peek(2).sval, " ")){//si el tipo es par
                 st.updateUseByAmbito(variable, "Nombre de variable par", SymbolTable.ambitoGlobal.toString());
             }else{
                 st.updateUseByAmbito(variable, "Nombre de variable", SymbolTable.ambitoGlobal.toString());
@@ -172,12 +171,12 @@ lista_var: lista_var ',' T_ID {
     
     @SuppressWarnings("unchecked")
     List<String> variables = (List<String>) val_peek(2).obj;
-    variables.add(val_peek(0).sval);  /* Agregar nueva variable*/
-    yyval.obj = variables;  /* Pasar la lista actualizada hacia arriba */
+    variables.add(val_peek(0).sval);  
+    yyval.obj = variables;  
 } 
   | T_ID {
     List<String> variables = new ArrayList<String>();
-    variables.add(val_peek(0).sval);  /* Agregar la primera variable*/
+    variables.add(val_peek(0).sval);  
     yyval.obj = variables; 
 } 
   |lista_var T_ID { SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Forma incorrecta de declarar variables. Faltan las comas ','");}
@@ -201,7 +200,6 @@ encabezado_funcion: tipo FUN { yyval.sval = val_peek(1).sval;};
 declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentencias {
         
 
-        // Separar el tipo y el nombre del parámetro
         String[] tipoYNombre = val_peek(2).sval.split(":");
         String tipoParametro = tipoYNombre[0];
         String nombreParametro = tipoYNombre[1];
@@ -215,13 +213,10 @@ declaracion_funcion: encabezado_funcion nombre  '(' parametro ')' bloque_sentenc
             }else{
                 st.addValue(val_peek(4).sval,"String","Nombre de funcion",ambitoOrig.toString(), 278);
             }
-            // Insertar en la tabla de funciones
             st.insertTF(val_peek(4).sval+":"+this.borrarUltimoAmbito(), new CaracteristicaFuncion(val_peek(5).sval, tipoParametro, nombreParametro)); 
         }
-        //updatear uso nombre funcion
         st.updateUseByAmbito(val_peek(4).sval, "Nombre de funcion",ambitoOrig.toString());
 
-        // Encuentra el índice donde empieza "Gato"
         int inicio = st.ambitoGlobal.indexOf(":" + val_peek(4).sval);
 
         // Si la palabra a borrar existe en el StringBuilder, elimínala
@@ -265,7 +260,6 @@ parametro:
                 st.addValue(val_peek(0).sval,val_peek(1).sval,"Nombre de parametro",SymbolTable.ambitoGlobal.toString(), 278);
             }
         }
-        //updatear uso de variable a variable
         if(st.isTypePair(val_peek(1).sval, " ")){//si el tipo
             st.updateUseByAmbito(val_peek(0).sval, "Nombre de variable par", SymbolTable.ambitoGlobal.toString());
         }else{
@@ -289,10 +283,10 @@ parametros_error:
 
 repeat_sentencia: bloque_sentencias  {
         if (!list_funs.isEmpty())
-            $$ = getArbol("S", $1, null);}
+            $$ = createArbol("S", $1, null);}
                 | sentencia {
                 if(!list_funs.isEmpty())
-                    $$ = getArbol("S", $1, null);}
+                    $$ = createArbol("S", $1, null);}
             ;
 
 
@@ -324,7 +318,7 @@ bloque_THEN: signo_THEN repeat_sentencia {
         SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size()));
         SymbolTable.pila.push(SymbolTable.polaca.size()); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
         if(!list_funs.isEmpty())
-            $$ = getArbol("THEN", $2, null);
+            $$ = createArbol("THEN", $2, null);
 
 };
 
@@ -336,14 +330,14 @@ bloque_THEN_CON_ELSE: signo_THEN repeat_sentencia {
     SymbolTable.pila.push(SymbolTable.polaca.size());
     SymbolTable.aggPolaca(""); SymbolTable.aggPolaca("BI"); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
     if(!list_funs.isEmpty())
-        $$ = getArbol("THEN", $2, null);
+        $$ = createArbol("THEN", $2, null);
 
 };
 bloque_ELSE: signo_ELSE repeat_sentencia {
     int posicion = SymbolTable.pila.pop();
     SymbolTable.polaca.set(posicion, String.valueOf(SymbolTable.polaca.size())); SymbolTable.aggPolaca("&L"+ String.valueOf(SymbolTable.polaca.size()));
     if(!list_funs.isEmpty())
-        $$ = getArbol("ELSE", $2, null);
+        $$ = createArbol("ELSE", $2, null);
 };
 
 
@@ -351,11 +345,11 @@ bloque_ELSE: signo_ELSE repeat_sentencia {
 if_statement: IF '(' condicion ')' bloque_THEN END_IF ';' {
     
     if(!list_funs.isEmpty())
-        $$ = getArbol("IF", $5, null);}
+        $$ = createArbol("IF", $5, null);}
             | IF '(' condicion ')' bloque_THEN_CON_ELSE bloque_ELSE END_IF ';'  {
                 if(!list_funs.isEmpty())
 
-                    $$ = getArbol("IF", $5, $6);}
+                    $$ = createArbol("IF", $5, $6);}
             | IF '(' condicion ')' bloque_THEN_CON_ELSE repeat_sentencia END_IF ';'{SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ELSE en el IF");}
             | IF '(' condicion ')' bloque_THEN END_IF {
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Falta el ; al final de la sentencia IF.");
@@ -437,32 +431,28 @@ salida: OUTF '(' T_CADENA ')' ';' {         SymbolTable.aggPolaca(val_peek(2).sv
 
 sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' { 
 
-        // Obtener el nombre del tipo desde T_ID
-        String nombreTipo = val_peek(4).sval; /* T_ID*/
+        String nombreTipo = val_peek(4).sval; 
 
         String tipoBase = val_peek(2).sval;
         
         Subrango subrango = (Subrango) val_peek(1).obj;
         double limiteInferior, limiteSuperior;
         if (subrango != null){ 
-            limiteInferior = subrango.getLimiteInferior(); /* Limite inferior */
-            limiteSuperior = subrango.getLimiteSuperior(); /* Limite superior */
-        } else {limiteInferior = 0; /* Limite inferior */
+            limiteInferior = subrango.getLimiteInferior(); 
+            limiteSuperior = subrango.getLimiteSuperior(); 
+        } else {limiteInferior = 0; 
             limiteSuperior = 0;}
-        // Almacenar en la tabla de tipos
 
         if(st.contieneSymbolAmbito(nombreTipo,SymbolTable.ambitoGlobal)){
             SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - No se pueden redeclarar tipos. Error con el tipo: "+val_peek(4).sval);
         }else{
 
-                //FALTA CHEQUEAR MISMO TIPO
             if (tipoBase.toLowerCase().equals("longint")){
-                long limiteInferiorLong = (long) limiteInferior; // Convertir a longint
-                long limiteSuperiorLong = (long) limiteSuperior; // Convertir a longint
+                long limiteInferiorLong = (long) limiteInferior; 
+                long limiteSuperiorLong = (long) limiteSuperior; 
                 this.st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango(tipoBase, limiteInferiorLong, limiteSuperiorLong));
 
             } else this.st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango(tipoBase, limiteInferior, limiteSuperior));
-            //updatear uso
             st.updateUse(nombreTipo, "Nombre de tipo");
 
             if(st.getAmbitoByKey(nombreTipo).equals(" ")){
@@ -474,7 +464,7 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
 
         }
         | TYPEDEF PAIR '<' LONGINT '>' T_ID ';' {
-            String nombreTipo = val_peek(1).sval; /* T_ID*/
+            String nombreTipo = val_peek(1).sval; 
 
 
 
@@ -489,18 +479,16 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
                     st.addValue(nombreTipo,"String","Nombre de tipo de par",SymbolTable.ambitoGlobal.toString(), 278);
                 }
 
-                //FALTA CHEQUEAR MISMO TIPO
                 st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("longint", -2147483647, 2147483647));
 
 
-                //updatear uso
                 st.updateUseByAmbito(nombreTipo, "Nombre de tipo de par", SymbolTable.ambitoGlobal.toString());
     
             }
 
         }
         | TYPEDEF PAIR '<' DOUBLE '>' T_ID ';' {
-            String nombreTipo = val_peek(1).sval; /* T_ID*/
+            String nombreTipo = val_peek(1).sval; 
             
             
 
@@ -515,11 +503,9 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
                     st.addValue(nombreTipo,"String","Nombre de tipo de par",SymbolTable.ambitoGlobal.toString(), 278);
                 }
 
-                //FALTA CHEQUEAR MISMO TIPO
                 st.insertTT(nombreTipo+":"+SymbolTable.ambitoGlobal.toString(), new TipoSubrango("double", -1.7976931348623157E+308, 1.7976931348623157E+308));	
                 
             
-                //updatear uso
                 st.updateUseByAmbito(nombreTipo, "Nombre de tipo de par",SymbolTable.ambitoGlobal.toString());
     
             }
@@ -552,10 +538,9 @@ sentencia_declarativa_tipos: TYPEDEF T_ID T_ASIGNACION tipo subrango ';' {
         ;
 subrango: '{' T_CTE ',' T_CTE '}'{
         
-        //CODIGO PARA PARTE SEMANTICA
 
-       String limiteInferiorStr = val_peek(3).sval.replace("d", "e"); // T_CTE (limites inferiores)
-       String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites superiores)
+       String limiteInferiorStr = val_peek(3).sval.replace("d", "e"); 
+       String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); 
         try {
            
             double limiteInferior = Double.parseDouble(limiteInferiorStr);
@@ -574,9 +559,8 @@ subrango: '{' T_CTE ',' T_CTE '}'{
         }
     } 
     |'{' '-' T_CTE ',' T_CTE '}' {
-       //CODIGO PARA PARTE SEMANTICA
-       String limiteInferiorStr = val_peek(3).sval.replace("d", "e"); // T_CTE (limites inferiores)
-       String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites superiores)
+       String limiteInferiorStr = val_peek(3).sval.replace("d", "e"); 
+       String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); 
         try {
            
             double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
@@ -595,10 +579,10 @@ subrango: '{' T_CTE ',' T_CTE '}'{
         }
 
     }
-    |'{' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
+    |'{' T_CTE ',' '-' T_CTE '}' {
         System.err.println("Error: el subrango esta mal declarado, fueron invertidos los rangos");
-        String limiteInferiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites inferiores)
-        String limiteSuperiorStr = val_peek(4).sval.replace("d", "e"); // T_CTE (limites superiores)
+        String limiteInferiorStr = val_peek(1).sval.replace("d", "e"); 
+        String limiteSuperiorStr = val_peek(4).sval.replace("d", "e"); 
          try {
             
              double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
@@ -610,9 +594,9 @@ subrango: '{' T_CTE ',' T_CTE '}'{
          } catch (NumberFormatException e) {
              SymbolTable.aggListaErrores("Error al convertir los limites del subrango a double: " + e.getMessage());
          }}
-    |'{' '-' T_CTE ',' '-' T_CTE '}' {//CODIGO PARA PARTE SEMANTICA
-        String limiteInferiorStr = val_peek(4).sval.replace("d", "e"); // T_CTE (limites inferiores)
-        String limiteSuperiorStr = val_peek(1).sval.replace("d", "e"); // T_CTE (limites superiores)
+    |'{' '-' T_CTE ',' '-' T_CTE '}' {
+        String limiteInferiorStr = val_peek(4).sval.replace("d", "e"); 
+        String limiteSuperiorStr = val_peek(1).sval.replace("d", "e");
          try {
             
              double limiteInferior = Double.parseDouble(limiteInferiorStr)*-1;
@@ -657,11 +641,9 @@ comparador:MENOR_IGUAL  {yyval.sval = "<=" ;}
 asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " Falta ; al final de la asignacion"); }
         | IDENTIFIER_LIST T_ASIGNACION expresion_list ';' {
             
-            // Obtener las listas de variables y expresiones
             List<String> listaVariables = (List<String>) val_peek(3).obj;
             List<String> listaExpresiones = (List<String>) val_peek(1).obj;
             if (listaVariables != null){ 
-                // Verificar si hay más variables que expresiones
                 if (listaVariables.size() > listaExpresiones.size()) {
                     System.out.println("Warning: Hay más variables que expresiones. Se asignará 0 a las variables sobrantes.");
                     for (int i = 0; i < listaVariables.size(); i++) {
@@ -685,7 +667,7 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
                                 SymbolTable.polaca.set(j, variable);
                                 SymbolTable.polaca.set(j+1, ":=");
 
-                                break;  // Salir del loop una vez que reemplace el primer espacio
+                                break;  
                             }
                         }
                     }
@@ -694,13 +676,12 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
                     for (int i = 0; i < listaVariables.size(); i++) {
                         String variable= listaVariables.get(i).toString();
                         String expresion= listaExpresiones.get(i).toString();
-                        // Buscar el primer espacio vacío y reemplazarlo con la variable
                         for (int j = 0; j < SymbolTable.polaca.size(); j++) {
                             if (SymbolTable.polaca.get(j).equals(" ")) {
                                 SymbolTable.polaca.set(j, variable);
                                 SymbolTable.polaca.set(j+1, ":=");
 
-                                break;  // Salir del loop una vez que reemplace el primer espacio
+                                break;  
                             }
                         }
 
@@ -716,17 +697,15 @@ asignacion: IDENTIFIER_LIST T_ASIGNACION expresion_list error{ SymbolTable.aggLi
                  
 
                 } else {
-                    // Generar el código para cada asignación correspondiente
                     for (int i = 0; i < listaVariables.size(); i++) {
                         String variable= listaVariables.get(i).toString();
                         String expresion= listaExpresiones.get(i).toString();
                         
-                        // Buscar el primer espacio vacío y reemplazarlo con la variable
                         for (int j = 0; j < SymbolTable.polaca.size(); j++) {
                             if (SymbolTable.polaca.get(j).equals(" ")) {
                                 SymbolTable.polaca.set(j, variable);
                                 SymbolTable.polaca.set(j+1, ":=");
-                                break;  // Salir del loop una vez que reemplace el primer espacio
+                                break;  
                             }
                         }
 
@@ -742,17 +721,15 @@ expresion_list:
         expresion {
             SymbolTable.aggPolaca(" "); SymbolTable.aggPolaca(" ");
 
-           // Crear una nueva lista con una sola expresión
            List<String> lista = new ArrayList<>();
-           lista.add(val_peek(0).sval);  // Almacenar la expresión como cadena de texto
+           lista.add(val_peek(0).sval);  
            yyval.obj = lista;
         }
     |   expresion_list ',' expresion {
             SymbolTable.aggPolaca(" "); SymbolTable.aggPolaca(" ");
 
-            // Agregar la expresión a la lista existente
             List<String> lista = (List<String>) val_peek(2).obj;
-            lista.add(val_peek(0).sval);  // Almacenar la nueva expresión
+            lista.add(val_peek(0).sval);  
             yyval.obj = lista;
         }
 ;
@@ -760,14 +737,12 @@ expresion_list:
 
 IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
                 
-                // Agregar el identificador a la lista
                 st.esUsoValidoAmbito(val_peek(0).sval);
                 List<String> lista = (List<String>) val_peek(2).obj;
                 lista.add(val_peek(0).sval);
                 yylval.obj = lista;
             }
             | IDENTIFIER_LIST ',' acceso_par{
-                 // Agregar acceso_par (acceso a atributos o elementos) a la lista
                 List<String> lista = (List<String>) val_peek(2).obj;
                 lista.add(val_peek(0).sval);
                 yyval.obj = lista;
@@ -775,13 +750,11 @@ IDENTIFIER_LIST:IDENTIFIER_LIST ',' T_ID {
             | T_ID {
                 
                 st.esUsoValidoAmbito(val_peek(0).sval);
-                // Crear lista con el primer identificador
                 List<String> lista = new ArrayList<>();
                 lista.add(val_peek(0).sval);
                 yyval.obj = lista;
             }
             | acceso_par {
-                // Crear una nueva lista con acceso_par
                 List<String> lista = new ArrayList<>();
                 lista.add(val_peek(0).sval);
                 yyval.obj = lista;
@@ -816,7 +789,7 @@ goto_statement: GOTO T_ETIQUETA';' {
                 int posicion = st.popFirstOccurrenceByNameEtiquetas(val_peek(1).sval);
                 if(posicion!=-1){
 
-                    SymbolTable.aggPolaca(String.valueOf(posicion));//TOQUETEE EL +1
+                    SymbolTable.aggPolaca(String.valueOf(posicion));
                 }else{
                     SymbolTable.aggPolaca("");
                 }
@@ -834,7 +807,6 @@ goto_statement: GOTO T_ETIQUETA';' {
 
 
 invocacion_funcion: T_ID '(' parametro_real ')' {
-        // Verifica que el parámetro no sea nulo antes de intentar convertirlo a cadena
         if (val_peek(1).sval != null) {
             if (st.getUseByAmbito(val_peek(3).sval, SymbolTable.ambitoGlobal.toString()).equals(" ")) {
                 SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Llamado funcion: "+val_peek(3).sval+"  no declarada");
@@ -845,7 +817,7 @@ invocacion_funcion: T_ID '(' parametro_real ')' {
 
         } else {
             SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Parámetro de función nulo");
-            yyval.sval = val_peek(3).sval + "()";  // Asume que no hay parámetros si es nulo
+            yyval.sval = val_peek(3).sval + "()"; 
         }
     }
       | T_ID '(' error ')' {
@@ -854,7 +826,6 @@ invocacion_funcion: T_ID '(' parametro_real ')' {
       ; 
 
 parametro_real: expresion_aritmetica {
-    // Asegúrate de que el valor de la expresión aritmética se pase correctamente hacia arriba
     yyval.sval = val_peek(0).sval;
 }; 
 
@@ -864,7 +835,6 @@ expresion_aritmetica:
                     SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("+");
-                // Devuelve la expresión como una cadena que representa la suma
                 yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
             }
         |expresion_aritmetica '-' expresion_aritmetica {
@@ -872,7 +842,6 @@ expresion_aritmetica:
                     SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("-");
-                // Devuelve la expresión como una cadena que representa la resta
                 yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
             }
         |expresion_aritmetica '*' expresion_aritmetica {
@@ -880,7 +849,6 @@ expresion_aritmetica:
                     SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("*");
-                // Devuelve la expresión como una cadena que representa la multiplicación
                 yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
             }
         |expresion_aritmetica '/' expresion_aritmetica {
@@ -888,31 +856,25 @@ expresion_aritmetica:
                     SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
                 }
                 SymbolTable.aggPolaca("/");
-                // Devuelve la expresión como una cadena que representa la división
                 yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
             }
         |   T_CTE {
                 String constante = val_peek(0).sval;
                 String valorString =getStringByType(constante);
-                // Agregar el valorString a la polaca inversa en la SymbolTable
                 SymbolTable.aggPolaca(valorString);
-                // Devuelve el valor de la constante como cadena
                 yyval.sval = constante;
             }
         |   T_ID {
                 SymbolTable.aggPolaca(val_peek(0).sval);
-                // Devuelve el identificador como cadena
                 st.esUsoValidoAmbito(val_peek(0).sval);
                 yyval.sval = val_peek(0).sval;
             }
         |   acceso_par {
-                // Devuelve el resultado del acceso a un parámetro
                 SymbolTable.aggPolaca(val_peek(0).sval); 
                 yyval.sval = val_peek(0).sval;
             }
         
         |   unaria {
-                // Devuelve la expresión unaria
                 yyval.sval = val_peek(0).sval;
             }
     ;
@@ -923,7 +885,6 @@ expresion:
                 SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("+");
-            // Devuelve la expresión como una cadena que representa la suma
             yyval.sval = val_peek(2).sval + " + " + val_peek(0).sval;
         }
     |   expresion '-' expresion {
@@ -931,7 +892,6 @@ expresion:
                 SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("-");
-            // Devuelve la expresión como una cadena que representa la resta
             yyval.sval = val_peek(2).sval + " - " + val_peek(0).sval;
         }
     |   expresion '*' expresion {
@@ -939,7 +899,6 @@ expresion:
                 SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("*");
-            // Devuelve la expresión como una cadena que representa la multiplicación
             yyval.sval = val_peek(2).sval + " * " + val_peek(0).sval;
         }
     |   expresion '/' expresion {
@@ -947,35 +906,28 @@ expresion:
                 SymbolTable.aggListaErrores("No se puede utilizar un par dentro de una expresion. Se debe usar acceso par.");
             }
             SymbolTable.aggPolaca("/");
-            // Devuelve la expresión como una cadena que representa la división
             yyval.sval = val_peek(2).sval + " / " + val_peek(0).sval;
         }
     |   T_CTE {
             String constante = val_peek(0).sval;
             String valorString =getStringByType(constante);
-            // Agregar el valorString a la polaca inversa en la SymbolTable
             SymbolTable.aggPolaca(valorString);
-            // Devuelve el valor de la constante como cadena
             yyval.sval = constante;
     }
     |   T_ID {
             
             SymbolTable.aggPolaca(val_peek(0).sval);
-            // Devuelve el identificador como cadena
             st.esUsoValidoAmbito(val_peek(0).sval);
             yyval.sval = val_peek(0).sval;
         }
     |   acceso_par {
-            // Devuelve el resultado del acceso a un parámetro
             SymbolTable.aggPolaca(val_peek(0).sval); 
             yyval.sval = val_peek(0).sval;
         }
     |   invocacion_funcion {
-            // Devuelve el resultado de la invocación de una función
             yyval.sval = val_peek(0).sval;
         }
     |   unaria {
-            // Devuelve la expresión unaria
             yyval.sval = val_peek(0).sval;
         }
     |  error {SymbolTable.aggListaErrores("Error en linea: " + Lexer.nmrLinea + " - Error en Expresion");}
@@ -989,9 +941,8 @@ unaria: '-' T_CTE {
     yyval.sval = "-" + val_peek(0).sval;
     String nombreConstante = val_peek(0).sval;  
     String nombreConMenos = "-" + nombreConstante;
-    /* verificacion en la tabla de simbolos.*/
     if (st.hasKey(nombreConstante)) {
-        String tipo = st.getType(nombreConstante);  /*  tipo de la constante.*/
+        String tipo = st.getType(nombreConstante);  
         if (tipo != null) {
             /* Verifica si el valor original (sin negativo) esta en el rango adecuado segun el tipo.*/
             if (tipo.equals("longint")) {
@@ -1020,7 +971,7 @@ unaria: '-' T_CTE {
         } else {
             SymbolTable.aggListaErrores("Error: El tipo de la constante no pudo ser determinado.");
         }
-    } else { /*se trata de numero negativo menor al menor negativo.*/
+    } else { /*se trata de numero negativo menor al minimo negativo.*/
     	
         if (nombreConstante.startsWith("0") && !nombreConstante.matches(".*[89].*")) {
         	SymbolTable.aggListaErrores("El valor octal " + "-"+nombreConstante+ " se ajusto al valor minimo.");
@@ -1029,7 +980,6 @@ unaria: '-' T_CTE {
         } else if (nombreConstante.contains(".")) {
         	SymbolTable.aggListaErrores("El valor double -" + nombreConstante + " se ajusta al valor mínimo.");
 
-            /* Parseamos el valor como double para comparaciones*/
             double valorDouble = Double.parseDouble("-" + nombreConstante.replace("d", "e"));
             /* Rango mínimo y máximo de los números double*/
             double maxNegativeDouble = -1.7976931348623157e+308;
@@ -1052,7 +1002,7 @@ unaria: '-' T_CTE {
             }
             
         } else{ /*ya se sabe que es entero*/
-            /* Lógica para longint*/
+     
         	SymbolTable.aggListaErrores("El valor longint -" + nombreConstante + " se ajusta al valor mínimo.");
             nombreConMenos = "-2147483648"; /* Asignar valor mínimo si está fuera de rango*/
             st.addValue(nombreConMenos, "longint","Constante"," ", SymbolTable.constantValue);
@@ -1147,12 +1097,12 @@ private void verificarRets() {
     if (!list_funs.isEmpty()) {
         Arbol node = list_funs.get(list_funs.size()-1);
         node.setLeft((Arbol) last_node.obj);
-        verificarRetornoEnFuncion(node);
+        verificarRetEnFuncion(node);
         list_funs.remove(list_funs.size() - 1);
     }
 }
-private void verificarRetornoEnFuncion(Arbol node) {
-    if (!verificarRetorno(node))
+private void verificarRetEnFuncion(Arbol node) {
+    if (!verificarRet(node))
         SymbolTable.aggListaErrores("La función '" + node.getValue() + "' no tiene un retorno garantizado.");
 }
 boolean verificarRangoDouble(double valor) {
@@ -1192,7 +1142,6 @@ public boolean isPair(String variable){
 public String borrarUltimoAmbito(){
     String originalString = SymbolTable.ambitoGlobal.toString();
 
-    // Separar por ":"
     String[] partes = originalString.split(":");
 
     // Crear un nuevo StringBuilder con todas las partes excepto la última
@@ -1206,7 +1155,7 @@ public String borrarUltimoAmbito(){
     return nuevoStringBuilder.toString();
 }
 
-private ParserVal getArbol(String name, ParserVal left, ParserVal right) {
+private ParserVal createArbol(String name, ParserVal left, ParserVal right) {
 
     if (!list_funs.isEmpty()) {
         Arbol leftNode = (left != null) ? (Arbol) left.obj : null;
@@ -1219,7 +1168,7 @@ private ParserVal getArbol(String name, ParserVal left, ParserVal right) {
 }
 
 
-private boolean verificarRetorno(Arbol node) {
+private boolean verificarRet(Arbol node) {
     if (node == null) { 
         return false;
     }
@@ -1229,13 +1178,13 @@ private boolean verificarRetorno(Arbol node) {
 
 
     if ("IF".equals(node.value)) {
-        boolean tieneRetornoThen = verificarRetorno(node.left);
-        boolean tieneRetornoElse = verificarRetorno(node.right);
+        boolean tieneRetornoThen = verificarRet(node.left);
+        boolean tieneRetornoElse = verificarRet(node.right);
 
         return tieneRetornoThen && tieneRetornoElse;
     }
 
-    return verificarRetorno(node.left) || verificarRetorno(node.right);
+    return verificarRet(node.left) || verificarRet(node.right);
 }
 
 
